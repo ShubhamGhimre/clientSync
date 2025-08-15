@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id             String     @id @default(cuid())
+  subdomain      String     @unique // e.g. "abc" for abc.localhost
+  companyName    String
+  contactEmail   String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relations
+  users          User[]
+  chatBots       ChatBot[]
+  settings       Settings?
+
+  @@map("organizations")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String    @unique
+  password       String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // SaaS relation
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Relations
+  botAccess      BotAccess[]
+
+  @@map("users")
+}
+
+model Settings {
+  id                     String   @id @default(cuid())
+  timezone               String?  // e.g. UTC-5
+  emailNotifications     Boolean  @default(true)
+  browserNotifications   Boolean  @default(true)
+  weeklyReports          Boolean  @default(false)
+
+  apiKey                 String?
+  webhookUrl             String?
+
+  twoFactorEnabled       Boolean  @default(false)
+  sessionTimeoutMinutes  Int?
+
+  // Relation
+  organizationId         String   @unique
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+model ChatBot {
+  id             String    @id @default(cuid())
+  name           String
+  description    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  files          File[]
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  chatRooms      ChatRoom[]
+  botAccess      BotAccess[]
+
+  @@map("chatbots")
+}
+
+model File {
+  id          String   @id @default(cuid())
+  fileName    String
+  fileUrl     String
+  uploadedAt  DateTime @default(now())
+
+  // Relations
+  chatBotId   String
+  chatBot     ChatBot  @relation(fields: [chatBotId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+model ChatRoom {
+  id             String         @id @default(cuid())
+  title          String
+  createdAt      DateTime       @default(now())
+
+  // Relations
+  chatBotId      String
+  chatBot        ChatBot        @relation(fields: [chatBotId], references: [id], onDelete: Cascade)
+  conversations  Conversation[]
+
+  @@map("chatrooms")
+}
+
+model Conversation {
+  id           String   @id @default(cuid())
+  sender       String
+  message      String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  chatRoomId   String
+  chatRoom     ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+
+  @@map("conversations")
+}
+
+model BotAccess {
+  id        String  @id @default(cuid())
+  userId    String
+  chatBotId String
+  isBlocked Boolean @default(false)
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatBot   ChatBot @relation(fields: [chatBotId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatBotId])
+  @@map("bot_access")
+}
