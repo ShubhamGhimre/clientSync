@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes.js';
 import organizationRoutes from './routes/organization.routes.js';
 import chatBotRoutes from './routes/chatbot.routes.js';
 import supportTicketRoutes from './routes/supportTicket.routes.js';
+import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { PrismaClient } from '../generated/prisma/index.js';
 import { swaggerSpec } from './config/swagger.config.js';
@@ -56,6 +57,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/chatbots', chatBotRoutes);
 app.use('/api/support-tickets', supportTicketRoutes);
+app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
