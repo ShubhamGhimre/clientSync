@@ -77,3 +77,45 @@ export const SearchChatBotsSchema = z.object({
   search: z.string().optional(),
   ...PaginationSchema.shape
 });
+
+// Support Ticket Schemas
+export const CreateSupportTicketSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
+  description: z.string().min(1, 'Description is required'),
+  customerName: z.string().min(1, 'Customer name is required'),
+  customerEmail: z.string().email('Invalid email format'),
+  customerPhone: z.string().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL']).default('MEDIUM'),
+  categoryId: z.string().optional(),
+  assignedAgentId: z.string().optional()
+});
+
+export const UpdateSupportTicketSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().min(1).optional(),
+  status: z.enum(['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED']).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL']).optional(),
+  categoryId: z.string().optional(),
+  assignedAgentId: z.string().optional()
+});
+
+export const CreateTicketCategorySchema = z.object({
+  name: z.string().min(1, 'Category name is required').max(100),
+  description: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color').optional()
+});
+
+export const CreateTicketCommentSchema = z.object({
+  content: z.string().min(1, 'Comment content is required'),
+  isInternal: z.boolean().default(false)
+});
+
+export const SupportTicketQuerySchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(10),
+  status: z.enum(['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED']).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL']).optional(),
+  assignedAgentId: z.string().optional(),
+  categoryId: z.string().optional(),
+  search: z.string().optional()
+});

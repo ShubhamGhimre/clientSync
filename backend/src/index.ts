@@ -2,19 +2,20 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
-import authRoutes from './routes/auth.routes';
-import organizationRoutes from './routes/organization.routes';
-import chatBotRoutes from './routes/chatbot.routes';
-import { errorHandler } from './middleware/error.middleware';
-import { PrismaClient } from '../generated/prisma';
-import { swaggerSpec } from './config/swagger.config';
+import authRoutes from './routes/auth.routes.js';
+import organizationRoutes from './routes/organization.routes.js';
+import chatBotRoutes from './routes/chatbot.routes.js';
+import supportTicketRoutes from './routes/supportTicket.routes.js';
+import { errorHandler } from './middleware/error.middleware.js';
+import { PrismaClient } from '../generated/prisma/index.js';
+import { swaggerSpec } from './config/swagger.config.js';
 
 // Load environment variables
 dotenv.config();
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Initialize Prisma client
 export const prisma = new PrismaClient();
@@ -54,6 +55,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/chatbots', chatBotRoutes);
+app.use('/api/support-tickets', supportTicketRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

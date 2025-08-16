@@ -671,12 +671,7 @@ const Tickets = () => {
                       >
                         <Trash2 size={16} className="text-red-600" />
                       </button>
-                      <button
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                        title="More Options"
-                      >
-                        <MoreHorizontal size={16} className="text-gray-500" />
-                      </button>
+                     
                     </div>
                   </td>
                 </tr>
@@ -722,9 +717,7 @@ const Tickets = () => {
                     >
                       <Trash2 size={16} className="text-red-600" />
                     </button>
-                    <button className="p-1.5 xs:p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                      <MoreHorizontal size={16} className="text-gray-500" />
-                    </button>
+                  
                   </div>
                 </div>
 

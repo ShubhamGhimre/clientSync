@@ -20,6 +20,8 @@ model Organization {
   users          User[]
   chatBots       ChatBot[]
   settings       Settings?
+  supportTickets SupportTicket[]
+  ticketCategories TicketCategory[]
 
   @@map("organizations")
 }
@@ -30,6 +32,8 @@ model User {
   lastName       String
   email          String    @unique
   password       String
+  role           UserRole  @default(AGENT) // ADMIN, AGENT, VIEWER
+  isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -39,8 +43,17 @@ model User {
 
   // Relations
   botAccess      BotAccess[]
+  assignedTickets SupportTicket[] @relation("AssignedAgent")
+  createdTickets SupportTicket[] @relation("CreatedBy")
+  ticketComments TicketComment[]
 
   @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  AGENT
+  VIEWER
 }
 
 model Settings {
@@ -130,4 +143,113 @@ model BotAccess {
 
   @@unique([userId, chatBotId])
   @@map("bot_access")
+}
+
+// New Support Ticket Models
+
+model SupportTicket {
+  id                String          @id @default(cuid())
+  ticketNumber      String          @unique // Auto-generated ticket number like TKT-001
+  title             String
+  description       String          @db.Text
+  
+  // Customer Information
+  customerName      String
+  customerEmail     String
+  customerPhone     String?
+  
+  // Ticket Settings
+  status            TicketStatus    @default(OPEN)
+  priority          TicketPriority  @default(MEDIUM)
+  
+  // Timestamps
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  resolvedAt        DateTime?
+  closedAt          DateTime?
+  
+  // Relations
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  categoryId        String?
+  category          TicketCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  assignedAgentId   String?
+  assignedAgent     User?           @relation("AssignedAgent", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  
+  createdById       String?
+  createdBy         User?           @relation("CreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  
+  comments          TicketComment[]
+  attachments       TicketAttachment[]
+  
+  @@map("support_tickets")
+}
+
+model TicketCategory {
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  color          String?         // Hex color for UI
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tickets        SupportTicket[]
+
+  @@unique([name, organizationId])
+  @@map("ticket_categories")
+}
+
+model TicketComment {
+  id             String        @id @default(cuid())
+  content        String        @db.Text
+  isInternal     Boolean       @default(false) // Internal notes vs customer-visible comments
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  ticketId       String
+  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  authorId       String
+  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("ticket_comments")
+}
+
+model TicketAttachment {
+  id             String        @id @default(cuid())
+  fileName       String
+  fileUrl        String
+  fileSize       Int?          // File size in bytes
+  mimeType       String?
+  uploadedAt     DateTime      @default(now())
+
+  // Relations
+  ticketId       String
+  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@map("ticket_attachments")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  PENDING_CUSTOMER
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  CRITICAL
 }

@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '../../generated/prisma/index.js';
+import { PrismaClient, UserRole } from '../../generated/prisma/index.js';
 
 const prisma = new PrismaClient();
 
@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     organizationId: string;
+    role: UserRole;
     organization: {
       id: string;
       subdomain: string;
@@ -68,6 +69,7 @@ export const authenticateToken = async (
       id: user.id,
       email: user.email,
       organizationId: user.organizationId,
+      role: user.role,
       organization: user.organization
     };
 
@@ -150,6 +152,7 @@ export const optionalAuth = async (
         id: user.id,
         email: user.email,
         organizationId: user.organizationId,
+        role: user.role,
         organization: user.organization
       };
     }
