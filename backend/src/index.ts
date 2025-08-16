@@ -1,15 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes.js';
 import organizationRoutes from './routes/organization.routes.js';
 import chatBotRoutes from './routes/chatbot.routes.js';
 import supportTicketRoutes from './routes/supportTicket.routes.js';
 import userRoutes from './routes/user.routes.js';
+import settingsRoutes from './routes/settings.routes.js';
+import botAccessRoutes from './routes/botAccess.routes.js';
+import ticketAttachmentRoutes from './routes/ticketAttachment.routes.js';
+import chatRoomRoutes from './routes/chatRoom.routes.js';
+import fileRoutes from './routes/file.routes.js';
+import conversationRoutes from './routes/conversation.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { PrismaClient } from '../generated/prisma/index.js';
 import { swaggerSpec } from './config/swagger.config.js';
+
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +36,9 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files (uploads)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Swagger Documentation
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -58,6 +69,12 @@ app.use('/api/organizations', organizationRoutes);
 app.use('/api/chatbots', chatBotRoutes);
 app.use('/api/support-tickets', supportTicketRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/chatrooms', chatRoomRoutes);
+app.use('/api/conversations', conversationRoutes);
+app.use('/api/bot-access', botAccessRoutes);
+app.use('/api/ticket-attachments', ticketAttachmentRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

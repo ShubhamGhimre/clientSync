@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '../../generated/prisma/index.js';
+import { PrismaClient, UserRole } from '../../generated/prisma/index.js';
 import { LoginSchema, RegisterOrganizationSchema } from '../utils/validation.js';
 import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware.js';
 
@@ -103,7 +103,8 @@ router.post('/register', async (req, res) => {
           lastName: validatedData.lastName,
           email: validatedData.email,
           password: hashedPassword,
-          organizationId: organization.id
+          organizationId: organization.id,
+          role: UserRole.ADMIN,
         }
       });
 
