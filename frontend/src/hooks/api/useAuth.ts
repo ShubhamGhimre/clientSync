@@ -5,6 +5,19 @@ import { setAuthData, clearAuthData, isAuthenticated } from '@/lib/auth';
 import type { ApiResponse, LoginRequest, RegisterRequest } from '@/types/api';
 import type { AuthData } from '@/lib/auth';
 
+function clearAllStorage() {
+  // Clear localStorage and sessionStorage
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // Clear all cookies
+  document.cookie.split(";").forEach((cookie) => {
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+  });
+}
+
 // Auth queries
 export const useCurrentUser = () => {
   return useQuery({
@@ -60,13 +73,13 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: async (): Promise<void> => {
-      // Optional: Call logout endpoint
+      // Optional: Call logout endpoint on backend
       // await api.post('/api/auth/logout');
     },
     onSuccess: () => {
-      clearAuthData();
+      clearAllStorage(); // ✅ clears everything
       queryClient.clear();
-      window.location.href = '/auth/login';
+      window.location.href = "/auth/login";
     },
   });
 };

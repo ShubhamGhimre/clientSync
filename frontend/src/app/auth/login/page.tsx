@@ -108,13 +108,21 @@ const Login = () => {
     }
 
     try {
-      await login.mutateAsync(formData);
+      // 1. Login and get token
+      const loginResponse = await login.mutateAsync(formData);
+      // loginResponse should contain the token
 
-      // Fetch identity after login
+      // 2. Fetch user/org info
       const response = await api.get("/api/auth/me");
       const { user, organization } = response.data.data;
-      setAuthData(response.data.data); // still set in localStorage/cookie
-      setAuth(user, organization);     // set in context
+
+      // 3. Set all auth data (token, user, org)
+      setAuthData({
+        token: loginResponse.token, // <-- use the token from login, not from /me
+        user,
+        organization,
+      });
+      setAuth(user, organization);
 
       router.push("/dashboard");
     } catch (err) {

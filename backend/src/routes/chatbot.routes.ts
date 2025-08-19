@@ -48,6 +48,13 @@ const prisma = new PrismaClient();
  */
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    // const subDomain = req.subdomain
+    // if(!subDomain) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Subdomain is required'
+    //   });
+    // }
     const chatBots = await prisma.chatBot.findMany({
       where: { organizationId: req.user!.organizationId },
       include: {

@@ -17,6 +17,7 @@ import {
   Circle,
   CheckCheck
 } from 'lucide-react';
+import { useChatBots } from '@/hooks/api/useChatBots';
 
 // Types
 interface ChatMessage {
@@ -103,6 +104,9 @@ const Chats = () => {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const {data} = useChatBots();
+  console.log('Chatbots data:', data);  
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
