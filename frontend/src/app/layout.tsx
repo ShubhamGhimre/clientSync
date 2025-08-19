@@ -2,6 +2,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 
 import QueryProvider from "@/components/providers/QueryProvider";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,16 +11,14 @@ export const metadata = {
   description: "AI-powered client support with custom chatbots",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import { ReactNode } from "react";
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <QueryProvider>
-          <main>{children}</main>
+          <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
       </body>
     </html>

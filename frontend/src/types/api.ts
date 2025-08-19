@@ -22,7 +22,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 export interface LoginRequest {
   email: string;
   password: string;
-  subdomain: string;
+  // subdomain: string;
 }
 
 export interface RegisterRequest {

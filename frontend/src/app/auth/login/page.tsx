@@ -1,18 +1,21 @@
-'use client'
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  AlertCircle, 
-  CheckCircle2,
+"use client";
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  AlertCircle,
   ArrowRight,
-  Loader2
-} from 'lucide-react';
-
+  Loader2,
+} from "lucide-react";
+import { useLogin } from "@/hooks/api/useAuth";
+import { useAuthContext } from "@/context/AuthContext";
+import { setAuthData } from "@/lib/auth";
+import { api } from "@/lib/axios";
+import AuthHandler from "@/components/providers/AuthHandler";
 
 // ClientSync Logo Component
 const ClientSyncLogo = () => {
@@ -67,51 +70,55 @@ const ClientSyncLogo = () => {
 const Login = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  const login = useLogin();
+  const { setAuth } = useAuthContext();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    if (error) setError(''); // Clear error when user starts typing
+    if (error) setError(""); // Clear error when user starts typing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     // Basic validation
     if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       setLoading(false);
       return;
     }
 
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email address');
+    if (!formData.email.includes("@")) {
+      setError("Please enter a valid email address");
       setLoading(false);
       return;
     }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Add your login logic here
-      console.log('Logging in with:', formData);
-      
-      // Simulate successful login
-      router.push('/dashboard');
+      await login.mutateAsync(formData);
+
+      // Fetch identity after login
+      const response = await api.get("/api/auth/me");
+      const { user, organization } = response.data.data;
+      setAuthData(response.data.data); // still set in localStorage/cookie
+      setAuth(user, organization);     // set in context
+
+      router.push("/dashboard");
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      setError("Invalid email or password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -121,21 +128,25 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
+
       <div className="w-full max-w-md">
         {/* Main Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8 relative overflow-hidden">
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-full -translate-y-10 translate-x-10"></div>
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full translate-y-8 -translate-x-8"></div>
-          
+
           {/* Header */}
           <div className="relative z-10">
             <ClientSyncLogo />
-            
+
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-              <p className="text-gray-600">Sign in to your account to continue</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Welcome Back
+              </h2>
+              <p className="text-gray-600">
+                Sign in to your account to continue
+              </p>
             </div>
 
             {/* Error Message */}
@@ -150,18 +161,24 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Mail
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
                   <input
                     type="email"
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50/50 hover:bg-white focus:bg-white"
+                    className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xltion-all duration-200 bg-gray-50/50 hover:bg-white focus:bg-white"
                     placeholder="Enter your email"
                     disabled={loading}
                   />
@@ -170,13 +187,19 @@ const Login = () => {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Lock
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     id="password"
                     name="password"
                     value={formData.password}
@@ -206,8 +229,8 @@ const Login = () => {
                   />
                   <span className="text-sm text-gray-700">Remember me</span>
                 </label>
-                <Link 
-                  href="/auth/reset-password" 
+                <Link
+                  href="/auth/reset-password"
                   className="text-sm text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
                 >
                   Forgot password?
@@ -244,9 +267,9 @@ const Login = () => {
             {/* Register Link */}
             <div className="mt-6 text-center">
               <p className="text-gray-600">
-                Don't have an account?{' '}
-                <Link 
-                  href="/auth/register" 
+                Don't have an account?{" "}
+                <Link
+                  href="/auth/register"
                   className="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
                 >
                   Create account

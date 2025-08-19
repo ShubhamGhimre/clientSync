@@ -32,12 +32,12 @@ export const UpdateOrganizationSchema = z.object({
 export const LoginSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(1, 'Password is required'),
-  subdomain: z.string().min(1, 'Subdomain is required')
+  // subdomain: z.string().min(1, 'Subdomain is required')
 });
 
 export const ForgotPasswordSchema = z.object({
   email: z.string().email('Invalid email format'),
-  subdomain: z.string().min(1, 'Subdomain is required')
+  // subdomain: z.string().min(1, 'Subdomain is required')
 });
 
 export const ResetPasswordSchema = z.object({

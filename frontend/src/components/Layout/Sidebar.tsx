@@ -4,17 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   MessageSquare, 
-  Bot, 
   LayoutDashboard, 
   Ticket, 
   Settings, 
   GraduationCap,
   User,
-  Menu,
-  X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
+import { useLogout } from '@/hooks/api/useAuth';
+import { useAuthContext } from '@/context/AuthContext'; // <-- import context
 
 // ClientSync Logo Component with SVG
 const ClientSyncLogo = ({ collapsed = false }) => {
@@ -70,12 +70,15 @@ const ClientSyncLogo = ({ collapsed = false }) => {
 const Sidebar = () => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const logout = useLogout();
+  const { user, organization } = useAuthContext(); // <-- get user/org
 
   const sidebarItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { id: 'chats', icon: MessageSquare, label: 'Live Chats', href: '/chats' },
     { id: 'tickets', icon: Ticket, label: 'Support Tickets', href: '/tickets' },
     { id: 'training', icon: GraduationCap, label: 'AI Training', href: '/training' },
+    { id: 'user', icon: User, label: 'User Management', href: '/users' },
     { id: 'settings', icon: Settings, label: 'Settings', href: '/settings' }
   ];
 
@@ -135,17 +138,48 @@ const Sidebar = () => {
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-gray-900 truncate">Admin User</p>
-              <p className="text-xs text-gray-500 truncate">admin@clientsync.com</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {user ? `${user.firstName} ${user.lastName}` : 'User'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email || ''}
+              </p>
+              <p className="text-xs text-blue-500 truncate font-medium">
+                {organization?.companyName || ''}
+              </p>
             </div>
           )}
         </div>
         {collapsed && (
           <div className="absolute left-full bottom-4 ml-2 px-3 py-2 bg-gray-900 text-white text-xs rounded opacity-0 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-            <div>Admin User</div>
-            <div className="text-gray-300">admin@clientsync.com</div>
+            <div>{user ? `${user.firstName} ${user.lastName}` : 'User'}</div>
+            <div className="text-gray-300">{user?.email || ''}</div>
+            <div className="text-blue-400">{organization?.companyName || ''}</div>
           </div>
         )}
+      </div>
+
+      {/* Logout Button */}
+      <div className={`${collapsed ? 'p-2' : 'p-4'} border-t border-gray-200`}>
+        <button
+          onClick={() => logout.mutate()}
+          disabled={logout.isPending}
+          className={`w-full flex items-center justify-center px-4 py-2 text-sm rounded-lg transition-all duration-200
+            ${logout.isPending 
+              ? 'bg-red-400 text-white cursor-not-allowed' 
+              : 'bg-red-500 text-white hover:bg-red-600'
+            }`}
+          aria-label="Logout"
+        >
+          {/* Show icon only on mobile, icon+text on md+ */}
+          <span className="block md:hidden">
+            <LogOut size={20} />
+          </span>
+          <span className="hidden md:flex items-center gap-2">
+            <LogOut size={18} />
+            {logout.isPending ? 'Logging out...' : 'Logout'}
+          </span>
+        </button>
       </div>
     </div>
   );

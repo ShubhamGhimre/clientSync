@@ -1,9 +1,13 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { getAuthToken, removeAuthToken } from './auth';
 
-// Create axios instance
+// Dynamically get subdomain and set API base URL
+const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+const subdomain = hostname.split('.')[0];
+const apiBase = `http://${subdomain}.localhost:5000`;
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  baseURL: apiBase,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,28 +16,15 @@ export const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  (config) => {
     // Add auth token to requests
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    // Add subdomain header if available
-    const subdomain = getSubdomain();
-    if (subdomain) {
-      config.headers['x-subdomain'] = subdomain;
-    }
-
-    // Log request in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
-    }
-
     return config;
   },
   (error: AxiosError) => {
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -94,12 +85,26 @@ function getSubdomain(): string | null {
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
   
-  if (parts.length > 2) {
+  if (parts.length > 2 && parts[0] !== 'www') {
     return parts[0];
   }
   
   // Fallback to localStorage
   return localStorage.getItem('subdomain');
 }
+
+// Helper function to set subdomain
+export const setSubdomain = (subdomain: string): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('subdomain', subdomain);
+  }
+};
+
+// Helper function to remove subdomain
+export const removeSubdomain = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('subdomain');
+  }
+};
 
 export default api;

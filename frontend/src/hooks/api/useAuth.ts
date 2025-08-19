@@ -13,7 +13,7 @@ export const useCurrentUser = () => {
       const response = await api.get<ApiResponse<AuthData>>('/api/auth/me');
       return response.data.data!;
     },
-    enabled: isAuthenticated(),
+    // enabled: isAuthenticated(),
     retry: false,
   });
 };

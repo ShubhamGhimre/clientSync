@@ -17,6 +17,7 @@ import conversationRoutes from './routes/conversation.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { PrismaClient } from '../generated/prisma/index.js';
 import { swaggerSpec } from './config/swagger.config.js';
+import { extractSubdomain } from './middleware/subdomain.middleware.js';
 
 
 // Load environment variables
@@ -31,11 +32,22 @@ export const prisma = new PrismaClient();
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests from any subdomain of localhost:3000
+    if (!origin) return callback(null, true); // Allow non-browser requests (like Postman)
+    const regex = /^https?:\/\/([a-z0-9-]+)\.localhost:3000$/i;
+    if (regex.test(origin) || origin === 'http://localhost:3000') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(extractSubdomain);
 
 // Serve static files (uploads)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -213,11 +213,20 @@ router.post('/register', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
   try {
+    const subdomain = req.subdomain;
+
+    if(!subdomain) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subdomain is required for organization login'
+      });
+    }
+
     const validatedData = LoginSchema.parse(req.body);
 
     // Find organization by subdomain
     const organization = await prisma.organization.findUnique({
-      where: { subdomain: validatedData.subdomain }
+      where: { subdomain: subdomain }
     });
 
     if (!organization) {
@@ -340,6 +349,15 @@ router.post('/login', async (req, res) => {
  */
 router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const subdomain = req.subdomain;
+
+    if (!subdomain) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subdomain is required for organization login'
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
       include: {

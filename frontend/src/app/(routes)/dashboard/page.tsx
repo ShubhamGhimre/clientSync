@@ -17,6 +17,9 @@ const mockChatbots = [
 ];
 
 const Dashboard = () => {
+
+
+
   return (
     <div className="p-3 xs:p-4 sm:p-6 lg:p-8 space-y-4 xs:space-y-6 lg:space-y-8 bg-gray-50 min-h-screen">
       {/* Header Section */}

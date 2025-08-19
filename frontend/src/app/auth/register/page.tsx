@@ -3,18 +3,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  Building2, 
-  User,
-  AlertCircle,
-  ArrowRight,
-  Loader2,
-  Check,
-  X
+  Eye, EyeOff, Mail, Lock, Building2, User, Globe, AlertCircle, ArrowRight, Loader2, Check, X
 } from 'lucide-react';
+import { useRegister } from '@/hooks/api/useAuth';
 
 // ClientSync Logo Component
 const ClientSyncLogo = () => {
@@ -68,8 +59,11 @@ const ClientSyncLogo = () => {
 
 const Register = () => {
   const router = useRouter();
+  const register = useRegister();
+
   const [formData, setFormData] = useState({
     companyName: '',
+    subdomain: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -82,10 +76,13 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  // Simple password validation
-  const isPasswordValid = (password: string) => {
-    return password.length >= 6 && /\d/.test(password) && /[A-Za-z]/.test(password);
-  };
+  // Password validation
+  const isPasswordValid = (password: string) =>
+    password.length >= 6 && /\d/.test(password) && /[A-Za-z]/.test(password);
+
+  // Subdomain validation (letters, numbers, hyphens, no spaces)
+  const isSubdomainValid = (subdomain: string) =>
+    /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(subdomain);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -101,8 +98,22 @@ const Register = () => {
     setError('');
 
     // Validation
-    if (!formData.companyName || !formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.companyName ||
+      !formData.subdomain ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setError('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
+    if (!isSubdomainValid(formData.subdomain)) {
+      setError('Subdomain must be lowercase, alphanumeric, and may include hyphens (no spaces, no special characters).');
       setLoading(false);
       return;
     }
@@ -132,11 +143,22 @@ const Register = () => {
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Registering with:', formData);
+      await register.mutateAsync({
+        companyName: formData.companyName,
+        contactEmail: formData.email,
+        subdomain: formData.subdomain,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
       router.push('/auth/login?registered=true');
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        'Registration failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -148,7 +170,7 @@ const Register = () => {
       
       <div className="w-full max-w-lg">
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6 relative overflow-hidden">
-          {/* Subtle Decorative Elements */}
+          {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-purple-500/8 to-pink-600/8 rounded-full -translate-y-8 translate-x-8"></div>
           <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-blue-500/8 to-purple-500/8 rounded-full translate-y-6 -translate-x-6"></div>
           
@@ -188,7 +210,33 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* First Name & Last Name in Grid */}
+              {/* Company Subdomain */}
+              <div>
+                <label htmlFor="subdomain" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Company Subdomain
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    id="subdomain"
+                    name="subdomain"
+                    value={formData.subdomain}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50/50 hover:bg-white focus:bg-white"
+                    placeholder="e.g. acme-corp"
+                    disabled={loading}
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs">
+                    .localhost
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 ml-1">
+                  Lowercase, numbers, and hyphens only. This will be your login subdomain.
+                </p>
+              </div>
+
+              {/* First Name & Last Name */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -249,7 +297,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Password & Confirm Password in Grid */}
+              {/* Password & Confirm Password */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -308,7 +356,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Simple Password Requirements */}
+              {/* Password Requirements */}
               {formData.password && (
                 <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
                   <div className="flex items-center space-x-4">
