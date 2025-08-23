@@ -78,20 +78,20 @@ api.interceptors.response.use(
 );
 
 // Helper function to get subdomain from URL or localStorage
-function getSubdomain(): string | null {
-  if (typeof window === 'undefined') return null;
+// function getSubdomain(): string | null {
+//   if (typeof window === 'undefined') return null;
   
-  // Try to get from URL subdomain
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
+//   // Try to get from URL subdomain
+//   const hostname = window.location.hostname;
+//   const parts = hostname.split('.');
   
-  if (parts.length > 2 && parts[0] !== 'www') {
-    return parts[0];
-  }
+//   if (parts.length > 2 && parts[0] !== 'www') {
+//     return parts[0];
+//   }
   
-  // Fallback to localStorage
-  return localStorage.getItem('subdomain');
-}
+//   // Fallback to localStorage
+//   return localStorage.getItem('subdomain');
+// }
 
 // Helper function to set subdomain
 export const setSubdomain = (subdomain: string): void => {

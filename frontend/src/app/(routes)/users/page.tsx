@@ -2,25 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, MoreHorizontal, Edit2, Trash2, Key, UserCheck, UserX } from 'lucide-react';
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useResetUserPassword,
+  User as UserType,
+} from "@/hooks/api/useUsers";
 
 // Types
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'ADMIN' | 'AGENT' | 'VIEWER';
-  isActive: boolean;
-  organizationId: string;
-  createdAt: string;
-  updatedAt: string;
-  _count?: {
-    assignedTickets: number;
-    createdTickets: number;
-    ticketComments: number;
-  };
-}
-
 interface UserFormData {
   firstName: string;
   lastName: string;
@@ -43,132 +34,11 @@ interface ApiResponse<T> {
   message?: string;
 }
 
-// Mock API functions (replace with actual API calls)
-const userService = {
-  getUsers: async (params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    role?: string;
-    isActive?: boolean;
-  }): Promise<ApiResponse<User[]>> => {
-    // Simulate API call
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@acme.com',
-        role: 'ADMIN',
-        isActive: true,
-        organizationId: 'org1',
-        createdAt: '2024-01-15T10:30:00Z',
-        updatedAt: '2024-01-15T10:30:00Z',
-        _count: {
-          assignedTickets: 15,
-          createdTickets: 8,
-          ticketComments: 42
-        }
-      },
-      {
-        id: '2',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane.smith@acme.com',
-        role: 'AGENT',
-        isActive: true,
-        organizationId: 'org1',
-        createdAt: '2024-01-10T09:15:00Z',
-        updatedAt: '2024-01-16T14:20:00Z',
-        _count: {
-          assignedTickets: 23,
-          createdTickets: 5,
-          ticketComments: 67
-        }
-      },
-      {
-        id: '3',
-        firstName: 'Mike',
-        lastName: 'Johnson',
-        email: 'mike.johnson@acme.com',
-        role: 'VIEWER',
-        isActive: false,
-        organizationId: 'org1',
-        createdAt: '2024-01-05T16:45:00Z',
-        updatedAt: '2024-01-12T11:30:00Z',
-        _count: {
-          assignedTickets: 0,
-          createdTickets: 12,
-          ticketComments: 18
-        }
-      }
-    ];
-
-    return {
-      success: true,
-      data: mockUsers,
-      pagination: {
-        page: 1,
-        limit: 10,
-        total: 3,
-        totalPages: 1
-      }
-    };
-  },
-
-  createUser: async (userData: UserFormData): Promise<ApiResponse<User>> => {
-    return {
-      success: true,
-      data: {
-        id: Date.now().toString(),
-        ...userData,
-        isActive: true,
-        organizationId: 'org1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      } as User,
-      message: 'User created successfully'
-    };
-  },
-
-  updateUser: async (id: string, userData: Partial<UserFormData>): Promise<ApiResponse<User>> => {
-    return {
-      success: true,
-      data: {} as User,
-      message: 'User updated successfully'
-    };
-  },
-
-  deleteUser: async (id: string): Promise<ApiResponse<null>> => {
-    return {
-      success: true,
-      data: null,
-      message: 'User deactivated successfully'
-    };
-  },
-
-  resetPassword: async (id: string, newPassword: string): Promise<ApiResponse<null>> => {
-    return {
-      success: true,
-      data: null,
-      message: 'Password reset successfully'
-    };
-  },
-
-  toggleUserStatus: async (id: string, isActive: boolean): Promise<ApiResponse<null>> => {
-    return {
-      success: true,
-      data: null,
-      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`
-    };
-  }
-};
-
 // User Modal Component
 const UserModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  user?: User | null;
+  user?: UserType | null;
   onSave: (userData: UserFormData) => void;
 }> = ({ isOpen, onClose, user, onSave }) => {
   const [formData, setFormData] = useState<UserFormData>({
@@ -378,7 +248,7 @@ const UserModal: React.FC<{
 const PasswordResetModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  user: User | null;
+  user: UserType | null;
   onReset: (password: string) => void;
 }> = ({ isOpen, onClose, user, onReset }) => {
   const [password, setPassword] = useState('');
@@ -488,7 +358,13 @@ const PasswordResetModal: React.FC<{
 
 // Main User Management Page
 const UserManagementPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  // Use real API hooks
+  const { data: users = [], isLoading } = useUsers();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
+  const resetUserPassword = useResetUserPassword();
+
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
@@ -503,7 +379,7 @@ const UserManagementPage: React.FC = () => {
   // Modals
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
 
   // Dropdown
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
@@ -536,81 +412,23 @@ const UserManagementPage: React.FC = () => {
   }, [pagination.page, searchTerm]);
 
   // User operations
-  const handleCreateUser = async (userData: UserFormData) => {
-    try {
-      const response = await userService.createUser(userData);
-      if (response.success) {
-        fetchUsers();
-        alert(response.message || 'User created successfully');
-      }
-    } catch (error) {
-      console.error('Error creating user:', error);
-      alert('Failed to create user');
-    }
+  const handleCreateUser = async (userData: Partial<UserType> & { password?: string }) => {
+    await createUser.mutateAsync(userData);
   };
 
-  const handleUpdateUser = async (userData: UserFormData) => {
+  const handleUpdateUser = async (userData: Partial<UserType> & { password?: string }) => {
     if (!selectedUser) return;
-
-    try {
-      const response = await userService.updateUser(selectedUser.id, userData);
-      if (response.success) {
-        fetchUsers();
-        alert(response.message || 'User updated successfully');
-      }
-    } catch (error) {
-      console.error('Error updating user:', error);
-      alert('Failed to update user');
-    }
+    await updateUser.mutateAsync({ id: selectedUser.id, data: userData });
   };
 
-  const handleDeleteUser = async (user: User) => {
-    if (!confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {
-      return;
-    }
-
-    try {
-      const response = await userService.deleteUser(user.id);
-      if (response.success) {
-        fetchUsers();
-        alert(response.message || 'User deleted successfully');
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Failed to delete user');
-    }
-  };
-
-  const handleToggleUserStatus = async (user: User) => {
-    const action = user.isActive ? 'deactivate' : 'activate';
-    if (!confirm(`Are you sure you want to ${action} ${user.firstName} ${user.lastName}?`)) {
-      return;
-    }
-
-    try {
-      const response = await userService.toggleUserStatus(user.id, !user.isActive);
-      if (response.success) {
-        fetchUsers();
-        alert(response.message || `User ${action}d successfully`);
-      }
-    } catch (error) {
-      console.error('Error toggling user status:', error);
-      alert(`Failed to ${action} user`);
-    }
+  const handleDeleteUser = async (user: UserType) => {
+    if (!confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) return;
+    await deleteUser.mutateAsync(user.id);
   };
 
   const handleResetPassword = async (password: string) => {
     if (!selectedUser) return;
-
-    try {
-      const response = await userService.resetPassword(selectedUser.id, password);
-      if (response.success) {
-        alert(response.message || 'Password reset successfully');
-      }
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      alert('Failed to reset password');
-    }
+    await resetUserPassword.mutateAsync({ id: selectedUser.id, password });
   };
 
   // Utility functions
@@ -672,7 +490,7 @@ const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-hidden ">
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -683,7 +501,7 @@ const UserManagementPage: React.FC = () => {
             <p className="text-gray-600">No users found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto h-[80vh]">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -755,70 +573,75 @@ const UserManagementPage: React.FC = () => {
                       <div className="relative">
                         <button
                           onClick={() => setDropdownOpen(dropdownOpen === user.id ? null : user.id)}
-                          className="text-gray-400 hover:text-gray-600 p-1"
+                          className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
                         >
                           <MoreHorizontal size={16} />
                         </button>
-                        
                         {dropdownOpen === user.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                            <div className="py-1">
-                              <button
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setIsUserModalOpen(true);
-                                  setDropdownOpen(null);
-                                }}
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                              >
-                                <Edit2 size={14} className="mr-2" />
-                                Edit User
-                              </button>
-                              
-                              <button
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setIsPasswordResetModalOpen(true);
-                                  setDropdownOpen(null);
-                                }}
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                              >
-                                <Key size={14} className="mr-2" />
-                                Reset Password
-                              </button>
-                              
-                              <button
-                                onClick={() => {
-                                  handleToggleUserStatus(user);
-                                  setDropdownOpen(null);
-                                }}
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                              >
-                                {user.isActive ? (
-                                  <>
-                                    <UserX size={14} className="mr-2" />
-                                    Deactivate
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheck size={14} className="mr-2" />
-                                    Activate
-                                  </>
-                                )}
-                              </button>
-                              
-                              <button
-                                onClick={() => {
-                                  handleDeleteUser(user);
-                                  setDropdownOpen(null);
-                                }}
-                                className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
-                              >
-                                <Trash2 size={14} className="mr-2" />
-                                Delete User
-                              </button>
+                          <>
+                            {/* Backdrop to close dropdown */}
+                            <div 
+                              className="fixed inset-0 z-10" 
+                              onClick={() => setDropdownOpen(null)}
+                            />
+                            {/* Dropdown menu */}
+                            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20 overflow-hidden">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setIsUserModalOpen(true);
+                                    setDropdownOpen(null);
+                                  }}
+                                  className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+                                >
+                                  <Edit2 size={14} className="mr-3 text-gray-400" />
+                                  Edit User
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setIsPasswordResetModalOpen(true);
+                                    setDropdownOpen(null);
+                                  }}
+                                  className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+                                >
+                                  <Key size={14} className="mr-3 text-gray-400" />
+                                  Reset Password
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    // handleToggleUserStatus(user); // You'll need to implement this
+                                    setDropdownOpen(null);
+                                  }}
+                                  className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+                                >
+                                  {user.isActive ? (
+                                    <>
+                                      <UserX size={14} className="mr-3 text-gray-400" />
+                                      Deactivate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserCheck size={14} className="mr-3 text-gray-400" />
+                                      Activate
+                                    </>
+                                  )}
+                                </button>
+                                <div className="border-t border-gray-100 my-1"></div>
+                                <button
+                                  onClick={() => {
+                                    handleDeleteUser(user);
+                                    setDropdownOpen(null);
+                                  }}
+                                  className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
+                                >
+                                  <Trash2 size={14} className="mr-3 text-red-400" />
+                                  Delete User
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                          </>
                         )}
                       </div>
                     </td>

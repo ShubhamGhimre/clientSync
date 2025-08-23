@@ -12,12 +12,13 @@ import settingsRoutes from './routes/settings.routes.js';
 import botAccessRoutes from './routes/botAccess.routes.js';
 import ticketAttachmentRoutes from './routes/ticketAttachment.routes.js';
 import chatRoomRoutes from './routes/chatRoom.routes.js';
+import ragRoutes from './routes/rag.routes.js'
 import fileRoutes from './routes/file.routes.js';
 import conversationRoutes from './routes/conversation.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
-import { PrismaClient } from '../generated/prisma/index.js';
 import { swaggerSpec } from './config/swagger.config.js';
 import { extractSubdomain } from './middleware/subdomain.middleware.js';
+import { PrismaClient } from '@prisma/client';
 
 
 // Load environment variables
@@ -36,7 +37,7 @@ app.use(cors({
     // Allow requests from any subdomain of localhost:3000
     if (!origin) return callback(null, true); // Allow non-browser requests (like Postman)
     const regex = /^https?:\/\/([a-z0-9-]+)\.localhost:3000$/i;
-    if (regex.test(origin) || origin === 'http://localhost:3000') {
+    if (regex.test(origin) || origin === 'http://localhost:3000' || '*') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -44,6 +45,7 @@ app.use(cors({
   },
   credentials: true
 }));
+
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -87,6 +89,7 @@ app.use('/api/chatrooms', chatRoomRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/bot-access', botAccessRoutes);
 app.use('/api/ticket-attachments', ticketAttachmentRoutes);
+app.use('/api/rag', ragRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

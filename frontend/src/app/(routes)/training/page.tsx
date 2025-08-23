@@ -1,16 +1,11 @@
 'use client'
 import React, { useState } from 'react';
 import { 
-  Bot,
-  Upload,
-  FileText,
-  CheckCircle,
-  X,
-  ArrowLeft,
-  ArrowRight
+  Bot, Upload, FileText, CheckCircle, X, ArrowLeft, ArrowRight
 } from 'lucide-react';
+import { useCreateChatBot } from '@/hooks/api/useChatBots';
+import { useUploadFile } from '@/hooks/api/useFiles';
 
-// Types
 interface ChatbotForm {
   name: string;
   description: string;
@@ -20,12 +15,48 @@ interface ChatbotForm {
 const Training = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [chatbotForm, setChatbotForm] = useState<ChatbotForm>({ name: '', description: '', files: [] });
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const createChatBot = useCreateChatBot();
+  const uploadFile = useUploadFile();
 
   const steps = [
     { number: 1, title: 'Basic Info', description: 'Set up chatbot details' },
     { number: 2, title: 'Upload Data', description: 'Add training files' },
     { number: 3, title: 'Review', description: 'Confirm and create' }
   ];
+
+  // Step 3: Review & Create
+  const handleCreateChatbot = async () => {
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+    try {
+      // 1. Create the chatbot
+      const chatbot = await createChatBot.mutateAsync({
+        name: chatbotForm.name,
+        description: chatbotForm.description,
+      });
+
+      // 2. Upload all files (one by one)
+      for (const file of chatbotForm.files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('chatBotId', chatbot.id);
+        await uploadFile.mutateAsync(formData);
+      }
+
+      setSuccess('Chatbot created and files uploaded!');
+      setChatbotForm({ name: '', description: '', files: [] });
+      setCurrentStep(1);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to create chatbot or upload files.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-3 xs:p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
@@ -523,6 +554,18 @@ const Training = () => {
               </div>
             </div>
             
+            {/* Error/Success Messages */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700">
+                {success}
+              </div>
+            )}
+            
             {/* Navigation Buttons */}
             <div className="flex flex-col xs:flex-row xs:justify-between items-center gap-3 xs:gap-0 mt-6 xs:mt-8">
               <button 
@@ -533,15 +576,12 @@ const Training = () => {
                 <span>Previous</span>
               </button>
               <button 
-                onClick={() => {
-                  // Reset form and go back to step 1
-                  setChatbotForm({ name: '', description: '', files: [] });
-                  setCurrentStep(1);
-                }}
+                onClick={handleCreateChatbot}
+                disabled={loading}
                 className="w-full xs:w-auto bg-green-600 text-white px-6 xs:px-8 py-2.5 xs:py-3 rounded-lg xs:rounded-xl hover:bg-green-700 font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 xs:gap-3 text-sm xs:text-base order-1 xs:order-2"
               >
                 <CheckCircle size={16} className="xs:w-5 xs:h-5" />
-                <span>Create Chatbot</span>
+                <span>{loading ? 'Creating...' : 'Create Chatbot'}</span>
               </button>
             </div>
           </div>

@@ -5,9 +5,9 @@ import type { ApiResponse } from '@/types/api';
 export interface File {
   id: string;
   chatBotId: string;
-  name: string;
-  url: string;
-  // ...add other fields as needed
+  fileName: string;
+  fileUrl: string;
+  uploadedAt: string;
 }
 
 // GET /api/files

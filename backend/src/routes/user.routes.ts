@@ -1,5 +1,4 @@
 import express from 'express';
-import { PrismaClient } from '../../generated/prisma/index.js';
 import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware.js';
 import { 
   CreateUserSchema, 
@@ -13,6 +12,7 @@ import {
   sendErrorResponse 
 } from '../utils/helpers.js';
 import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();

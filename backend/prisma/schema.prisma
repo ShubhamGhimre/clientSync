@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -80,6 +80,13 @@ model ChatBot {
   id             String    @id @default(cuid())
   name           String
   description    String?
+  status         BotStatus @default(ONLINE) 
+  
+  // Add RAG fields
+  isKnowledgeInitialized Boolean @default(false)
+  lastKnowledgeUpdate    DateTime @default(now())
+  totalChunks           Int      @default(0)
+  
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -96,14 +103,35 @@ model ChatBot {
 model File {
   id          String   @id @default(cuid())
   fileName    String
-  fileUrl     String
+  fileUrl     String   // This should be 'url' to match your existing code
   uploadedAt  DateTime @default(now())
+  
+  // Add RAG-related fields
+  processed   Boolean  @default(false)
+  content     String?  @db.Text
+  fileType    String?
 
   // Relations
   chatBotId   String
   chatBot     ChatBot  @relation(fields: [chatBotId], references: [id], onDelete: Cascade)
+  chunks      FileChunk[]
 
   @@map("files")
+}
+
+// Add this new model for storing chunks
+model FileChunk {
+  id          String   @id @default(cuid())
+  fileId      String
+  content     String   @db.Text
+  chunkIndex  Int
+  embedding   String?  // Store as JSON string of vector
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  
+  file        File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  @@map("file_chunks")
 }
 
 model ChatRoom {
@@ -235,6 +263,12 @@ model TicketAttachment {
   ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@map("ticket_attachments")
+}
+
+enum BotStatus {
+  ONLINE
+  OFFLINE
+  BUSY
 }
 
 enum TicketStatus {

@@ -1,9 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, UserRole } from '../../generated/prisma/index.js';
 import { LoginSchema, RegisterOrganizationSchema } from '../utils/validation.js';
 import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware.js';
+import { PrismaClient, UserRole } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();

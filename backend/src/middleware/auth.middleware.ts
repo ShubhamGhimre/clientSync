@@ -1,6 +1,6 @@
+import { PrismaClient, UserRole } from '@prisma/client';
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, UserRole } from '../../generated/prisma/index.js';
 
 const prisma = new PrismaClient();
 

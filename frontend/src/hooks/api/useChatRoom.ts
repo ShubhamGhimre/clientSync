@@ -5,14 +5,14 @@ import type { ApiResponse, ChatBot } from '@/types/api';
 
 // ChatRoom Types
 export interface CreateChatRoomRequest {
-  name: string;
+  title: string;
   description?: string;
   chatBotId: string;
 }
 
 export interface ChatRoom {
   id: string;
-  name: string;
+  title: string;
   description?: string;
   createdAt: string;
   updatedAt: string;

@@ -1,205 +1,133 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Bot, 
-  Send,
-  MoreHorizontal,
-  ArrowLeft,
-  MessageCircle,
-  Search,
-  Settings,
-  Phone,
-  Video,
-  Info,
-  Smile,
-  Paperclip,
-  Mic,
-  Circle,
-  CheckCheck
+import {
+  Bot, Send, ArrowLeft, MessageCircle, Search, Settings,
+  Phone, Video, Info, Smile, Paperclip, Mic, Circle, CheckCheck, X
 } from 'lucide-react';
 import { useChatBots } from '@/hooks/api/useChatBots';
-
-// Types
-interface ChatMessage {
-  id: number;
-  sender: 'user' | 'bot';
-  message: string;
-  timestamp: string;
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
-}
-
-interface Chatbot {
-  id: number;
-  name: string;
-  status: 'online' | 'offline' | 'busy';
-  conversations: number;
-  accuracy: number;
-  avatar?: string;
-  lastMessage?: string;
-  lastSeen?: string;
-  unreadCount?: number;
-}
-
-// Mock data
-const mockChatbots: Chatbot[] = [
-  { 
-    id: 1, 
-    name: 'General Support', 
-    status: 'online', 
-    conversations: 45, 
-    accuracy: 94,
-    lastMessage: 'How can I help you today?',
-    lastSeen: '2 min ago',
-    unreadCount: 3
-  },
-  { 
-    id: 2, 
-    name: 'Technical Help', 
-    status: 'online', 
-    conversations: 32, 
-    accuracy: 89,
-    lastMessage: 'Let me check your system status...',
-    lastSeen: '5 min ago',
-    unreadCount: 0
-  },
-  { 
-    id: 3, 
-    name: 'Billing Assistant', 
-    status: 'busy', 
-    conversations: 18, 
-    accuracy: 96,
-    lastMessage: 'Your payment has been processed',
-    lastSeen: '1 hour ago',
-    unreadCount: 1
-  },
-  { 
-    id: 4, 
-    name: 'Product Expert', 
-    status: 'offline', 
-    conversations: 28, 
-    accuracy: 92,
-    lastMessage: 'Here are the product features you requested',
-    lastSeen: '3 hours ago',
-    unreadCount: 0
-  }
-];
-
-const mockChats: Record<number, ChatMessage[]> = {
-  1: [
-    { id: 1, sender: 'user', message: 'Hi, I need help with my account', timestamp: '10:30 AM', status: 'read' },
-    { id: 2, sender: 'bot', message: 'Hello! 👋 I\'d be happy to help you with your account. What specific issue are you experiencing?', timestamp: '10:30 AM', status: 'delivered' },
-    { id: 3, sender: 'user', message: 'I can\'t log in to my dashboard', timestamp: '10:31 AM', status: 'read' },
-    { id: 4, sender: 'bot', message: 'I understand you\'re having trouble logging in. Let me help you troubleshoot this step by step. Have you tried resetting your password recently?', timestamp: '10:31 AM', status: 'delivered' },
-    { id: 5, sender: 'user', message: 'No, I haven\'t tried that yet', timestamp: '10:32 AM', status: 'sent' },
-    { id: 6, sender: 'bot', message: 'Perfect! Let me guide you through the password reset process. I\'ll send you a secure link to reset your password. Please check your email in a few moments.', timestamp: '10:33 AM', status: 'delivered' }
-  ]
-};
+import { useChatRooms, useCreateChatRoom } from '@/hooks/api/useChatRoom';
+import { useGrantBotAccess } from '@/hooks/api/useBotAccess';
+import { useAuthContext } from '@/context/AuthContext';
+import { useConversations, useSendMessage } from '@/hooks/api/useConversations';
 
 const Chats = () => {
-  const [activeChatbot, setActiveChatbot] = useState<number | null>(null);
+  const { data: chatbots } = useChatBots();
+  const { data: chatRooms } = useChatRooms();
+  const createChatRoom = useCreateChatRoom();
+  const grantBotAccess = useGrantBotAccess();
+  const sendMessageMutation = useSendMessage();
+  const { user } = useAuthContext();
+
+  const [activeChatbotId, setActiveChatbotId] = useState<string | null>(null);
+  const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState<string>('');
-  const [chatMessages, setChatMessages] = useState<Record<number, ChatMessage[]>>(mockChats);
   const [showChatList, setShowChatList] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalBotId, setModalBotId] = useState<string | null>(null);
+  const [chatRoomForm, setChatRoomForm] = useState({ name: '', description: '' });
+  const [modalError, setModalError] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const {data} = useChatBots();
-  console.log('Chatbots data:', data);  
+  // Fetch conversations for the active chat room
+  const { data: conversations = [] } = useConversations(
+    activeChatRoomId ? { chatRoomId: activeChatRoomId } : undefined
+  );
 
-  // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Filter chatbots by search
+  const filteredChatbots = (chatbots || []).filter(bot =>
+    bot.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
+  // Scroll to bottom when conversations change
   useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages, activeChatbot]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversations, activeChatRoomId]);
 
   // Focus input when chat is selected
   useEffect(() => {
-    if (activeChatbot && inputRef.current) {
+    if (activeChatbotId && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [activeChatbot]);
+  }, [activeChatbotId]);
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !activeChatbot) return;
-    
-    const userMessage: ChatMessage = {
-      id: Date.now(),
-      sender: 'user',
-      message: newMessage,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: 'sending'
-    };
-    
-    setChatMessages(prev => ({
-      ...prev,
-      [activeChatbot]: [...(prev[activeChatbot] || []), userMessage]
-    }));
-    
-    setNewMessage('');
-    
-    // Update status to sent
-    setTimeout(() => {
-      setChatMessages(prev => ({
-        ...prev,
-        [activeChatbot]: prev[activeChatbot].map(msg => 
-          msg.id === userMessage.id ? { ...msg, status: 'sent' } : msg
-        )
-      }));
-    }, 500);
+  // Handle bot selection: grant access, create/find chat room, set active
+  const selectChatbot = async (botId: string) => {
+    if (!user) return;
+    try {
+      await grantBotAccess.mutateAsync({ userId: user.id, chatBotId: botId });
 
-    // Show typing indicator
-    setIsTyping(true);
-    
-    // Simulate bot response
-    setTimeout(() => {
-      setIsTyping(false);
-      const botResponses = [
-        "Thank you for your message! I'm here to help you with that. 😊",
-        "I understand your concern. Let me provide you with the best solution.",
-        "Great question! Here's what I recommend based on your needs.",
-        "I'm processing your request. This should resolve your issue quickly.",
-        "Thanks for reaching out! I'll make sure to get this sorted for you."
-      ];
-      
-      const botMessage: ChatMessage = {
-        id: Date.now() + 1,
-        sender: 'bot',
-        message: botResponses[Math.floor(Math.random() * botResponses.length)],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'delivered'
-      };
-      
-      setChatMessages(prev => ({
-        ...prev,
-        [activeChatbot]: [...(prev[activeChatbot] || []), botMessage]
-      }));
-    }, 1500 + Math.random() * 1000);
+      // Try to find an existing chat room for this bot
+      let chatRoom = (chatRooms || []).find(
+        room => room.chatBotId === botId
+      );
+
+      console.log(chatRoom)
+
+      if (chatRoom) {
+        setActiveChatbotId(botId);
+        setActiveChatRoomId(chatRoom.id);
+        setShowChatList(false);
+      } else {
+        // Open modal to create chat room
+        setModalBotId(botId);
+        setChatRoomForm({ name: '', description: '' });
+        setModalError(null);
+        setShowModal(true);
+      }
+    } catch (err) {
+      // Optionally show error
+    }
   };
 
-  const selectChatbot = (botId: number) => {
-    setActiveChatbot(botId);
-    setShowChatList(false);
+  // Handle chat room creation from modal
+  const handleCreateChatRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setModalError(null);
+    if (!chatRoomForm.name.trim()) {
+      setModalError('Chat room name is required.');
+      return;
+    }
+    if (!modalBotId) return;
+    try {
+      const chatRoom = await createChatRoom.mutateAsync({
+        title: chatRoomForm.name,
+        description: chatRoomForm.description,
+        chatBotId: modalBotId,
+      });
+      setActiveChatbotId(modalBotId);
+      setActiveChatRoomId(chatRoom.id);
+      setShowChatList(false);
+      setShowModal(false);
+    } catch (err: any) {
+      setModalError(err?.message || 'Failed to create chat room.');
+    }
   };
 
   const goBackToList = () => {
     setShowChatList(true);
-    setActiveChatbot(null);
+    setActiveChatbotId(null);
+    setActiveChatRoomId(null);
   };
 
-  const filteredChatbots = mockChatbots.filter(bot =>
-    bot.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Send a message
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !activeChatRoomId || !user) return;
+    await sendMessageMutation.mutateAsync({
+      chatRoomId: activeChatRoomId,
+      message: newMessage,
+      sender: `${user.firstName} ${user.lastName}` // <-- send user's name
+    });
+    setNewMessage('');
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'bg-green-400';
-      case 'busy': return 'bg-yellow-400';
-      case 'offline': return 'bg-gray-400';
+      case 'ONLINE': return 'bg-green-400';
+      case 'BUSY': return 'bg-yellow-400';
+      case 'OFFLINE': return 'bg-gray-400';
       default: return 'bg-gray-400';
     }
   };
@@ -216,13 +144,59 @@ const Chats = () => {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
+      {/* Modal for chat room creation */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowModal(false)}
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Create Chat Room</h2>
+            <form onSubmit={handleCreateChatRoom} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Chat Room Name</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={chatRoomForm.name}
+                  onChange={e => setChatRoomForm({ ...chatRoomForm, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={chatRoomForm.description}
+                  onChange={e => setChatRoomForm({ ...chatRoomForm, description: e.target.value })}
+                />
+              </div>
+              {modalError && (
+                <div className="text-red-600 text-sm">{modalError}</div>
+              )}
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+              >
+                Create
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Messages</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {mockChatbots.filter(bot => bot.status === 'online').length} bots online
+              {(chatbots || []).filter(bot => bot.status === 'ONLINE').length} bots online
             </p>
           </div>
           <div className="flex items-center space-x-2">
@@ -241,7 +215,6 @@ const Chats = () => {
         <div className={`${
           showChatList ? 'flex' : 'hidden'
         } lg:flex flex-col w-full lg:w-80 xl:w-96 bg-white border-r border-gray-200`}>
-          
           {/* Search Bar */}
           <div className="p-4 border-b border-gray-100">
             <div className="relative">
@@ -255,7 +228,6 @@ const Chats = () => {
               />
             </div>
           </div>
-          
           {/* Chatbots List */}
           <div className="flex-1 overflow-y-auto">
             {filteredChatbots.map((bot) => (
@@ -263,7 +235,7 @@ const Chats = () => {
                 key={bot.id}
                 onClick={() => selectChatbot(bot.id)}
                 className={`w-full text-left p-4 hover:bg-gray-50 border-b border-gray-100 transition-colors duration-150 ${
-                  activeChatbot === bot.id ? 'bg-blue-50 border-r-2 border-r-blue-500' : ''
+                  activeChatbotId === bot.id ? 'bg-blue-50 border-r-2 border-r-blue-500' : ''
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -274,20 +246,13 @@ const Chats = () => {
                     </div>
                     <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${getStatusColor(bot.status)} rounded-full border-2 border-white`}></div>
                   </div>
-                  
                   {/* Chat Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <p className="font-semibold text-gray-900 truncate">
                         {bot.name}
                       </p>
-                      <span className="text-xs text-gray-500">
-                        {bot.lastSeen}
-                      </span>
                     </div>
-                    <p className="text-sm text-gray-600 truncate mb-1">
-                      {bot.lastMessage}
-                    </p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${getStatusColor(bot.status)}`}></div>
@@ -295,11 +260,6 @@ const Chats = () => {
                           {bot.status}
                         </span>
                       </div>
-                      {bot.unreadCount && bot.unreadCount > 0 && (
-                        <div className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {bot.unreadCount}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -312,52 +272,39 @@ const Chats = () => {
         <div className={`${
           !showChatList ? 'flex' : 'hidden'
         } lg:flex flex-col flex-1 bg-white`}>
-          
-          {activeChatbot ? (
+          {activeChatbotId && activeChatRoomId ? (
             <>
               {/* Chat Header */}
               <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 min-w-0 flex-1">
                     {/* Back button for mobile */}
-                    <button 
+                    <button
                       onClick={goBackToList}
                       className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
                     >
                       <ArrowLeft size={20} className="text-gray-600" />
                     </button>
-                    
                     {/* Bot Avatar and Info */}
                     <div className="flex items-center space-x-3 min-w-0 flex-1">
                       <div className="relative">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                           <Bot className="h-5 w-5 text-white" />
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${getStatusColor(mockChatbots.find(bot => bot.id === activeChatbot)?.status || 'offline')} rounded-full border-2 border-white`}></div>
+                        <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${getStatusColor(
+                          (chatbots || []).find(bot => bot.id === activeChatbotId)?.status || 'offline'
+                        )} rounded-full border-2 border-white`}></div>
                       </div>
-                      
                       <div className="min-w-0 flex-1">
                         <h3 className="font-semibold text-gray-900 truncate">
-                          {mockChatbots.find(bot => bot.id === activeChatbot)?.name}
+                          {(chatbots || []).find(bot => bot.id === activeChatbotId)?.name}
                         </h3>
                         <p className="text-sm text-gray-500 truncate">
-                          {isTyping ? (
-                            <span className="flex items-center">
-                              <span className="typing-indicator">typing</span>
-                              <span className="ml-1 flex space-x-1">
-                                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                                <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                              </span>
-                            </span>
-                          ) : (
-                            `${mockChatbots.find(bot => bot.id === activeChatbot)?.status} • AI Assistant`
-                          )}
+                          AI Assistant
                         </p>
                       </div>
                     </div>
                   </div>
-                  
                   {/* Action Buttons */}
                   <div className="flex items-center space-x-2">
                     <button className="hidden sm:flex p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
@@ -375,7 +322,7 @@ const Chats = () => {
 
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white">
-                {(chatMessages[activeChatbot] || []).map((message: ChatMessage, index: number) => (
+                {conversations.map((message, index) => (
                   <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
                       {/* Message Bubble */}
@@ -388,22 +335,16 @@ const Chats = () => {
                           {message.message}
                         </p>
                       </div>
-                      
                       {/* Timestamp and Status */}
                       <div className={`flex items-center mt-1 px-1 ${
                         message.sender === 'user' ? 'justify-end' : 'justify-start'
                       }`}>
                         <span className="text-xs text-gray-500 mr-1">
-                          {message.timestamp}
+                          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        {message.sender === 'user' && (
-                          <div className="ml-1">
-                            {getMessageStatusIcon(message.status)}
-                          </div>
-                        )}
+                        {/* Optionally: status icon */}
                       </div>
                     </div>
-                    
                     {/* Avatar for bot messages */}
                     {message.sender === 'bot' && (
                       <div className="order-1 mr-3 mt-auto">
@@ -414,25 +355,6 @@ const Chats = () => {
                     )}
                   </div>
                 ))}
-                
-                {/* Typing Indicator */}
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <Bot className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
                 <div ref={messagesEndRef} />
               </div>
 
@@ -443,7 +365,6 @@ const Chats = () => {
                   <button className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200">
                     <Paperclip size={20} />
                   </button>
-                  
                   {/* Message Input */}
                   <div className="flex-1 relative">
                     <input
@@ -451,7 +372,7 @@ const Chats = () => {
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                       placeholder="Type a message..."
                       className="w-full px-4 py-3 pr-12 bg-gray-100 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 resize-none"
                     />
@@ -459,7 +380,6 @@ const Chats = () => {
                       <Smile size={18} />
                     </button>
                   </div>
-                  
                   {/* Send/Mic Button */}
                   {newMessage.trim() ? (
                     <button

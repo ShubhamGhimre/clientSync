@@ -1,7 +1,7 @@
 import express from 'express';
-import { PrismaClient } from '../../generated/prisma';
 import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware';
 import { CreateChatBotSchema } from '../utils/validation';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();

@@ -40,7 +40,14 @@ export interface CreateChatBotRequest {
   description?: string;
 }
 
+export enum BotStatus {
+  ONLINE = 'ONLINE',
+  OFFLINE = 'OFFLINE',
+  BUSY = 'BUSY',
+}
+
 export interface ChatBot {
+  status: BotStatus;
   id: string;
   name: string;
   description?: string;

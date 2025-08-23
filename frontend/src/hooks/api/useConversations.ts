@@ -5,10 +5,10 @@ import type { ApiResponse } from '@/types/api';
 export interface Conversation {
   id: string;
   chatRoomId: string;
+  sender: string;
   userId: string;
   message: string;
   createdAt: string;
-  // ...add other fields as needed
 }
 
 // GET /api/conversations
@@ -19,13 +19,14 @@ export const useConversations = (params?: { chatRoomId?: string }) =>
       const res = await api.get<ApiResponse<Conversation[]>>('/api/conversations', { params });
       return res.data.data!;
     },
+    enabled: !!params?.chatRoomId,
   });
 
 // POST /api/conversations
 export const useSendMessage = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { chatRoomId: string; message: string }) => {
+    mutationFn: async (data: { chatRoomId: string; message: string, sender: string }) => {
       const res = await api.post<ApiResponse<Conversation>>('/api/conversations', data);
       return res.data.data!;
     },

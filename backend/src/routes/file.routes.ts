@@ -2,14 +2,16 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
-import { PrismaClient } from '../../generated/prisma/index.js';
 import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware.js';
 import { sendSuccessResponse, sendErrorResponse, createPaginationResponse } from '../utils/helpers.js';
 import { PaginationSchema } from '../utils/validation.js';
 import z from 'zod';
+import { RAGService } from '../services/rag.service';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const ragService = new RAGService();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -178,11 +180,17 @@ router.post('/upload', authenticateToken, upload.single('file'), async (req: Aut
 
     const file = await prisma.file.create({
       data: {
-        fileName: req.file.originalname,
-        fileUrl,
-        chatBotId
+        fileName: req.file?.originalname || '',
+        fileUrl: req.file?.path || '',
+        chatBotId,
+        fileType: path.extname(req.file?.originalname || '').toLowerCase()
       }
     });
+
+    // Process the file for RAG (async, don't wait)
+    // ragService.processNewFile(file.id).catch(error => {
+    //   console.error('Error processing file for RAG:', error);
+    // });
 
     sendSuccessResponse(res, 'File uploaded successfully', file, 201);
 

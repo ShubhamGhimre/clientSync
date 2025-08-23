@@ -11,7 +11,8 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Bot
 } from 'lucide-react';
 import { useLogout } from '@/hooks/api/useAuth';
 import { useAuthContext } from '@/context/AuthContext'; // <-- import context
@@ -76,6 +77,7 @@ const Sidebar = () => {
   const sidebarItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { id: 'chats', icon: MessageSquare, label: 'Live Chats', href: '/chats' },
+    { id: 'botlist', icon: Bot, label: 'Chat Bots', href: '/botlist' },
     { id: 'tickets', icon: Ticket, label: 'Support Tickets', href: '/tickets' },
     { id: 'training', icon: GraduationCap, label: 'AI Training', href: '/training' },
     { id: 'user', icon: User, label: 'User Management', href: '/users' },

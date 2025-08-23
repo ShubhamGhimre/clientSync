@@ -1,12 +1,14 @@
 import express from 'express';
-import { PrismaClient } from '../../generated/prisma/index.js';
 import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware.js';
 import { sendSuccessResponse, sendErrorResponse, createPaginationResponse } from '../utils/helpers.js';
 import { SendMessageSchema, PaginationSchema } from '../utils/validation.js';
 import { z } from 'zod';
+import { ConversationService } from '../services/conversation.service';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const conversationService = new ConversationService();
 
 /**
  * @swagger
@@ -128,43 +130,27 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: express.Respons
  */
 router.post('/', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
-    const { chatRoomId, message, sender } = z.object({
-      chatRoomId: z.string().min(1, 'Chat room ID is required'),
-      message: z.string().min(1, 'Message is required'),
-      sender: z.string().min(1, 'Sender is required')
-    }).parse(req.body);
+    const { chatRoomId, message, sender, userId } = req.body;
 
-    // Verify chat room belongs to user's organization
-    const chatRoom = await prisma.chatRoom.findFirst({
-      where: {
-        id: chatRoomId,
-        chatBot: {
-          organizationId: req.user!.organizationId
-        }
-      }
-    });
+    const response = await conversationService.processMessage(
+      chatRoomId,
+      message,
+      sender,
+      userId
+    );
 
-    if (!chatRoom) {
-      return sendErrorResponse(res, 'Chat room not found', 404);
-    }
-
-    const conversation = await prisma.conversation.create({
+    res.json({
+      success: true,
       data: {
-        message,
-        sender,
-        chatRoomId
-      }
+        response,
+        message: 'Message processed successfully',
+      },
     });
-
-    sendSuccessResponse(res, 'Message sent successfully', conversation, 201);
-
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return sendErrorResponse(res, 'Validation failed', 400, error.errors);
-    }
-
-    console.error('Send message error:', error);
-    sendErrorResponse(res, 'Failed to send message');
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to process message',
+    });
   }
 });
 
