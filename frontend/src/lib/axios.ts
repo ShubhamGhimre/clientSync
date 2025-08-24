@@ -1,14 +1,148 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { getAuthToken, removeAuthToken } from './auth';
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import { toast } from 'sonner';
 
-// Dynamically get subdomain and set API base URL
-const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-const subdomain = hostname.split('.')[0];
-const apiBase = `http://${subdomain}.localhost:5000`;
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    metadata?: {
+      startTime: number;
+    };
+  }
+}
 
-export const api = axios.create({
-  baseURL: apiBase,
-  timeout: 10000,
+interface ApiError {
+  message: string;
+  errors?: Record<string, string[]>;
+  status?: number;
+}
+
+// Enhanced token management
+export const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
+  } catch {
+    return null;
+  }
+};
+
+export const setAuthToken = (token: string, remember: boolean = false): void => {
+  if (typeof window === 'undefined') return;
+
+  const storage = remember ? localStorage : sessionStorage;
+  
+  try {
+    console.log('💾 Setting auth token:', {
+      storage: remember ? 'localStorage' : 'sessionStorage',
+      tokenLength: token?.length || 0
+    });
+    
+    storage.setItem('token', token);
+    
+    // Clear from the other storage
+    const otherStorage = remember ? sessionStorage : localStorage;
+    otherStorage.removeItem('token');
+    
+    // Verify it was stored
+    const storedToken = storage.getItem('token');
+    console.log('✅ Token stored successfully:', !!storedToken);
+    
+  } catch (error) {
+    console.error('❌ Failed to store auth token:', error);
+  }
+};
+
+export const clearAuthToken = (): void => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    console.log('🧹 Clearing auth tokens');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('dev_subdomain');
+  } catch (error) {
+    console.error('❌ Failed to clear auth token:', error);
+  }
+};
+
+// Subdomain detection
+export const getSubdomain = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  
+  const hostname = window.location.hostname;
+  
+  // Method 1: Real subdomain (acme.localhost:3000)
+  if (hostname.includes('.localhost') || hostname.includes('.127.0.0.1')) {
+    const parts = hostname.split('.');
+    const subdomain = parts[0];
+    sessionStorage.setItem('dev_subdomain', subdomain);
+    return subdomain;
+  }
+  
+  // Method 2: Check session storage
+  const storedSubdomain = sessionStorage.getItem('dev_subdomain');
+  if (storedSubdomain) {
+    return storedSubdomain;
+  }
+  
+  // Method 3: Check URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const subdomainParam = urlParams.get('subdomain');
+  if (subdomainParam) {
+    sessionStorage.setItem('dev_subdomain', subdomainParam);
+    return subdomainParam;
+  }
+  
+  // Method 4: Production subdomain
+  if (!hostname.includes('localhost') && !hostname.includes('127.0.0.1')) {
+    const parts = hostname.split('.');
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      return parts[0];
+    }
+  }
+  
+  return null;
+};
+
+// Build API URL with subdomain
+const getBaseURL = (): string => {
+  const subdomain = getSubdomain();
+  const basePort = process.env.NEXT_PUBLIC_API_PORT || '5000';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  if (typeof window === 'undefined') {
+    return apiUrl || `http://localhost:${basePort}`;
+  }
+  
+  const hostname = window.location.hostname;
+  
+  // For local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.localhost')) {
+    if (subdomain) {
+      return `http://${subdomain}.localhost:${basePort}`;
+    }
+    return `http://localhost:${basePort}`;
+  }
+  
+  // For production
+  if (subdomain) {
+    return `https://${subdomain}.${process.env.NEXT_PUBLIC_API_DOMAIN || 'api.clientsync.com'}`;
+  }
+  
+  return apiUrl || `https://api.clientsync.com`;
+};
+
+export const setSubdomain = (subdomain: string): void => {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('dev_subdomain', subdomain);
+    console.log('🎯 Subdomain set to:', subdomain);
+  }
+};
+
+// Create axios instance
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -16,95 +150,90 @@ export const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config) => {
-    // Add auth token to requests
+  (config: InternalAxiosRequestConfig) => {
+    // Get dynamic base URL for each request
+    const dynamicBaseURL = getBaseURL();
+    config.baseURL = dynamicBaseURL;
+    
+    // Add auth token
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 Token added to request');
+    } else {
+      console.log('❌ No token available for request');
     }
+    
+    // Add subdomain as header
+    const subdomain = getSubdomain();
+    if (subdomain) {
+      config.headers['X-Tenant'] = subdomain;
+    }
+    
+    // Debug logging
+    if (process.env.NODE_ENV === 'development') {
+      config.metadata = { startTime: Date.now() };
+      console.log('📤 API REQUEST:', {
+        method: config.method?.toUpperCase(),
+        url: `${config.baseURL}${config.url}`,
+        subdomain: subdomain || 'none',
+        hasAuth: !!token
+      });
+    }
+    
     return config;
   },
-  (error: AxiosError) => {
+  (error) => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor
 api.interceptors.response.use(
-  (response: AxiosResponse) => {
-    // Log successful responses in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+  (response) => {
+    if (process.env.NODE_ENV === 'development' && response.config.metadata) {
+      const duration = Date.now() - response.config.metadata.startTime;
+      console.log('🚀 API RESPONSE:', {
+        method: response.config.method?.toUpperCase(),
+        url: `${response.config.baseURL}${response.config.url}`,
+        status: response.status,
+        duration: `${duration}ms`
+      });
     }
-
+    
     return response;
   },
-  (error: AxiosError) => {
-    // Handle different types of errors
-    if (error.response) {
-      const { status, data } = error.response;
-
-      // Handle authentication errors
-      if (status === 401) {
-        removeAuthToken();
-        // Redirect to login page
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      console.log('🔄 401 error, clearing token and redirecting');
+      clearAuthToken();
+      
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        
+        if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
+          window.location.href = '/login';
         }
       }
-
-      // Handle forbidden errors
-      if (status === 403) {
-        console.error('Access forbidden');
-      }
-
-      // Handle server errors
-      if (status >= 500) {
-        console.error('Server error:', data);
-      }
-
-      // Log error in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, data);
-      }
-    } else if (error.request) {
-      console.error('Network error:', error.message);
-    } else {
-      console.error('Request setup error:', error.message);
+      
+      return Promise.reject(error);
     }
-
+    
+    if (error.response) {
+      const apiError: ApiError = {
+        message: (error.response.data as any)?.message || 'An error occurred',
+        errors: (error.response.data as any)?.errors,
+        status: error.response.status,
+      };
+      
+      return Promise.reject(apiError);
+    }
+    
     return Promise.reject(error);
   }
 );
-
-// Helper function to get subdomain from URL or localStorage
-// function getSubdomain(): string | null {
-//   if (typeof window === 'undefined') return null;
-  
-//   // Try to get from URL subdomain
-//   const hostname = window.location.hostname;
-//   const parts = hostname.split('.');
-  
-//   if (parts.length > 2 && parts[0] !== 'www') {
-//     return parts[0];
-//   }
-  
-//   // Fallback to localStorage
-//   return localStorage.getItem('subdomain');
-// }
-
-// Helper function to set subdomain
-export const setSubdomain = (subdomain: string): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('subdomain', subdomain);
-  }
-};
-
-// Helper function to remove subdomain
-export const removeSubdomain = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('subdomain');
-  }
-};
 
 export default api;

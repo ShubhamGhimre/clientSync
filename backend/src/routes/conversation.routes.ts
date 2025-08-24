@@ -1,108 +1,64 @@
 import express from 'express';
-import { authenticateToken, type AuthRequest } from '../middleware/auth.middleware.js';
-import { sendSuccessResponse, sendErrorResponse, createPaginationResponse } from '../utils/helpers.js';
-import { SendMessageSchema, PaginationSchema } from '../utils/validation.js';
-import { z } from 'zod';
 import { ConversationService } from '../services/conversation.service';
-import { PrismaClient } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const conversationService = new ConversationService();
 
 /**
  * @swagger
- * /api/conversations:
+ * /api/conversations/{chatRoomId}:
  *   get:
+ *     summary: Get all conversations for a chat room
  *     tags: [Conversations]
- *     summary: Get conversations for a chat room
- *     description: Retrieve paginated conversations for a specific chat room
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: chatRoomId
  *         required: true
  *         schema:
  *           type: string
- *         description: Chat room ID
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 50
+ *         description: The chat room ID
  *     responses:
  *       200:
- *         description: Conversations retrieved successfully
- *       404:
- *         description: Chat room not found
+ *         description: All conversations retrieved successfully
  */
-router.get('/', authenticateToken, async (req: AuthRequest, res: express.Response) => {
-  try {
-    const { chatRoomId, page, limit } = PaginationSchema.extend({
-      chatRoomId: z.string().min(1, 'Chat room ID is required')
-    }).parse(req.query);
+router.get('/:chatRoomId', authenticateToken, async (req, res) => {
+    try {
+        const { chatRoomId } = req.params;
 
-    // Verify chat room belongs to user's organization
-    const chatRoom = await prisma.chatRoom.findFirst({
-      where: {
-        id: chatRoomId,
-        chatBot: {
-          organizationId: req.user!.organizationId
+        if(!chatRoomId) {
+          return res.status(400).json({
+              success: false,
+              message: 'Chat room ID is required'
+          });
         }
-      }
-    });
-
-    if (!chatRoom) {
-      return sendErrorResponse(res, 'Chat room not found', 404);
+        
+        const conversations = await conversationService.getAllConversations(chatRoomId);
+        
+        res.json({
+            success: true,
+            data: conversations,
+            total: conversations.length,
+            message: 'All conversations retrieved successfully'
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to retrieve conversations'
+        });
     }
-
-    const skip = (page - 1) * limit;
-
-    const [conversations, total] = await Promise.all([
-      prisma.conversation.findMany({
-        where: { chatRoomId },
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'asc' }
-      }),
-      prisma.conversation.count({ where: { chatRoomId } })
-    ]);
-
-    const paginationResult = createPaginationResponse(conversations, total, { page, limit });
-
-    res.json({
-      success: true,
-      ...paginationResult
-    });
-
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return sendErrorResponse(res, 'Invalid query parameters', 400, error.errors);
-    }
-
-    console.error('Get conversations error:', error);
-    sendErrorResponse(res, 'Failed to get conversations');
-  }
 });
 
 /**
  * @swagger
  * /api/conversations:
  *   post:
+ *     summary: Send a message (alternative to RAG chat)
  *     tags: [Conversations]
- *     summary: Send message to chat room
- *     description: Add a new message to a chat room
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -118,94 +74,90 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: express.Respons
  *                 type: string
  *               message:
  *                 type: string
- *                 example: 'Hello, how can I help you?'
  *               sender:
  *                 type: string
- *                 example: 'customer'
+ *               userId:
+ *                 type: string
  *     responses:
- *       201:
+ *       200:
  *         description: Message sent successfully
- *       404:
- *         description: Chat room not found
  */
-router.post('/', authenticateToken, async (req: AuthRequest, res: express.Response) => {
-  try {
-    const { chatRoomId, message, sender, userId } = req.body;
+router.post('/', authenticateToken, async (req, res) => {
+    try {
+        const { chatRoomId, message, sender, userId } = req.body;
 
-    const response = await conversationService.processMessage(
-      chatRoomId,
-      message,
-      sender,
-      userId
-    );
+        if (!chatRoomId || !message || !sender) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields: chatRoomId, message, sender'
+            });
+        }
 
-    res.json({
-      success: true,
-      data: {
-        response,
-        message: 'Message processed successfully',
-      },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to process message',
-    });
-  }
+        const response = await conversationService.processMessage(
+            chatRoomId,
+            message,
+            sender,
+            userId
+        );
+
+        res.json({
+            success: true,
+            data: {
+                response,
+                message: 'Message sent successfully',
+            },
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to send message'
+        });
+    }
 });
 
 /**
  * @swagger
- * /api/conversations/{id}:
+ * /api/conversations/{chatRoomId}/clear:
  *   delete:
+ *     summary: Clear all conversations in a chat room
  *     tags: [Conversations]
- *     summary: Delete conversation
- *     description: Delete a specific conversation message
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: chatRoomId
  *         required: true
  *         schema:
  *           type: string
+ *         description: The chat room ID
  *     responses:
  *       200:
- *         description: Conversation deleted successfully
- *       404:
- *         description: Conversation not found
+ *         description: Conversations cleared successfully
  */
-router.delete('/:id', authenticateToken, async (req: AuthRequest, res: express.Response) => {
-  try {
-    const { id } = req.params;
+router.delete('/:chatRoomId/clear', authenticateToken, async (req, res) => {
+    try {
+        const { chatRoomId } = req.params;
 
-    if (!id) {
-      return sendErrorResponse(res, 'Conversation ID is required', 400);
-    }
-    // Verify conversation belongs to user's organization
-    const conversation = await prisma.conversation.findFirst({
-      where: {
-        id,
-        chatRoom: {
-          chatBot: {
-            organizationId: req.user!.organizationId
-          }
+        if(!chatRoomId) {
+          return res.status(400).json({
+              success: false,
+              message: 'Chat room ID is required'
+          });
         }
-      }
-    });
-
-    if (!conversation) {
-      return sendErrorResponse(res, 'Conversation not found', 404);
+        
+        const result = await conversationService.clearConversations(chatRoomId);
+        
+        res.json({
+            success: true,
+            data: result,
+            message: result.message
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to clear conversations'
+        });
     }
-
-    await prisma.conversation.delete({ where: { id } });
-
-    sendSuccessResponse(res, 'Conversation deleted successfully');
-
-  } catch (error) {
-    console.error('Delete conversation error:', error);
-    sendErrorResponse(res, 'Failed to delete conversation');
-  }
 });
 
 export default router;

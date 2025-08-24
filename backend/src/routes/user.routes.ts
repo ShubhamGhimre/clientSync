@@ -17,35 +17,126 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// ⚠️ IMPORTANT: Put specific routes BEFORE parameterized routes
+
 /**
  * @swagger
- * components:
- *   schemas:
- *     User:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *         firstName:
- *           type: string
- *         lastName:
- *           type: string
- *         email:
- *           type: string
- *         role:
- *           type: string
- *           enum: [ADMIN, AGENT, VIEWER]
- *         isActive:
- *           type: boolean
- *         createdAt:
- *           type: string
- *           format: date-time
- *         updatedAt:
- *           type: string
- *           format: date-time
- *         organizationId:
- *           type: string
+ * /api/users/stats:
+ *   get:
+ *     tags: [Users]
+ *     summary: Get user statistics
+ *     description: Get statistics about users in the organization
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User statistics retrieved successfully
  */
+router.get('/stats', authenticateToken, async (req: AuthRequest, res: express.Response) => {
+  try {
+    console.log('📊 Getting user stats for organization:', req.user!.organizationId);
+    
+    const organizationId = req.user!.organizationId;
+
+    const [total, active, roleStats, recentUsers] = await Promise.all([
+      prisma.user.count({ 
+        where: { organizationId } 
+      }),
+      prisma.user.count({ 
+        where: { organizationId, isActive: true } 
+      }),
+      prisma.user.groupBy({
+        by: ['role'],
+        where: { organizationId, isActive: true },
+        _count: { role: true }
+      }),
+      prisma.user.findMany({
+        where: { organizationId },
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          createdAt: true
+        }
+      })
+    ]);
+
+    // Initialize byRole with all possible roles
+    const byRole = {
+      ADMIN: 0,
+      AGENT: 0,
+      VIEWER: 0
+    };
+
+    // Populate with actual counts
+    roleStats.forEach(item => {
+      byRole[item.role as keyof typeof byRole] = item._count.role;
+    });
+
+    const stats = {
+      total,
+      active,
+      inactive: total - active,
+      byRole,
+      recentlyJoined: recentUsers
+    };
+
+    console.log('✅ User stats retrieved:', stats);
+
+    sendSuccessResponse(res, 'User statistics retrieved successfully', stats);
+
+  } catch (error) {
+    console.error('❌ Get user stats error:', error);
+    sendErrorResponse(res, 'Failed to get user statistics');
+  }
+});
+
+/**
+ * @swagger
+ * /api/users/agents:
+ *   get:
+ *     tags: [Users]
+ *     summary: Get all agents
+ *     description: Get all active agents and admins in the organization for assignment purposes
+ *     security:
+ *       - BearerAuth: []
+ */
+router.get('/agents', authenticateToken, async (req: AuthRequest, res: express.Response) => {
+  try {
+    console.log('👥 Getting agents for organization:', req.user!.organizationId);
+    
+    const agents = await prisma.user.findMany({
+      where: {
+        organizationId: req.user!.organizationId,
+        isActive: true,
+        role: { in: ['ADMIN', 'AGENT'] }
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true
+      },
+      orderBy: [
+        { role: 'asc' }, // ADMIN first, then AGENT
+        { firstName: 'asc' }
+      ]
+    });
+
+    console.log('✅ Agents retrieved:', agents.length);
+
+    sendSuccessResponse(res, 'Agents retrieved successfully', agents);
+
+  } catch (error) {
+    console.error('❌ Get agents error:', error);
+    sendErrorResponse(res, 'Failed to get agents');
+  }
+});
 
 /**
  * @swagger
@@ -53,57 +144,6 @@ const prisma = new PrismaClient();
  *   get:
  *     tags: [Users]
  *     summary: Get all users in organization
- *     description: Retrieve paginated users for the authenticated user's organization
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *         description: Number of users per page
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Search in name or email
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *           enum: [ADMIN, AGENT, VIEWER]
- *         description: Filter by user role
- *       - in: query
- *         name: isActive
- *         schema:
- *           type: boolean
- *         description: Filter by active status
- *     responses:
- *       200:
- *         description: Users retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/User'
- *                 pagination:
- *                   $ref: '#/components/schemas/Pagination'
  */
 router.get('/', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
@@ -182,46 +222,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: express.Respons
  *   post:
  *     tags: [Users]
  *     summary: Create new user
- *     description: Create a new user in the organization (Admin only)
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - email
- *               - password
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: 'John'
- *               lastName:
- *                 type: string
- *                 example: 'Doe'
- *               email:
- *                 type: string
- *                 example: 'john.doe@example.com'
- *               password:
- *                 type: string
- *                 example: 'password123'
- *               role:
- *                 type: string
- *                 enum: [ADMIN, AGENT, VIEWER]
- *                 default: AGENT
- *     responses:
- *       201:
- *         description: User created successfully
- *       400:
- *         description: Validation failed or email already exists
- *       403:
- *         description: Insufficient permissions
- *       401:
- *         description: Unauthorized
  */
 router.post('/', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
@@ -286,38 +286,24 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: express.Respon
   }
 });
 
+// ⚠️ IMPORTANT: Put parameterized routes AFTER specific routes
+
 /**
  * @swagger
  * /api/users/{id}:
  *   get:
  *     tags: [Users]
  *     summary: Get user by ID
- *     description: Retrieve a specific user by their ID
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID
- *     responses:
- *       200:
- *         description: User retrieved successfully
- *       404:
- *         description: User not found
- *       401:
- *         description: Unauthorized
  */
 router.get('/:id', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
     const { id } = req.params;
 
-    if(!id) {
-        return sendErrorResponse(res, 'User ID is required', 400);
-
+    if (!id) {
+      return sendErrorResponse(res, 'User ID is required', 400);
     }
+
+    console.log('👤 Getting user by ID:', id, 'for organization:', req.user!.organizationId);
 
     const user = await prisma.user.findFirst({
       where: {
@@ -347,13 +333,15 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: express.Resp
     });
 
     if (!user) {
+      console.log('❌ User not found:', id);
       return sendErrorResponse(res, 'User not found', 404);
     }
 
+    console.log('✅ User found:', user.email);
     sendSuccessResponse(res, 'User retrieved successfully', user);
 
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('❌ Get user error:', error);
     sendErrorResponse(res, 'Failed to get user');
   }
 });
@@ -364,54 +352,14 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: express.Resp
  *   put:
  *     tags: [Users]
  *     summary: Update user
- *     description: Update user details (Admin only, or users can update themselves)
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               email:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: [ADMIN, AGENT, VIEWER]
- *               isActive:
- *                 type: boolean
- *     responses:
- *       200:
- *         description: User updated successfully
- *       404:
- *         description: User not found
- *       403:
- *         description: Insufficient permissions
- *       400:
- *         description: Validation failed
- *       401:
- *         description: Unauthorized
  */
 router.put('/:id', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
     const { id } = req.params;
     const { role, isActive, ...basicFields } = req.body;
 
-       if(!id) {
-        return sendErrorResponse(res, 'User ID is required', 400);
-        
+    if (!id) {
+      return sendErrorResponse(res, 'User ID is required', 400);
     }
 
     // Check if user exists and belongs to organization
@@ -499,27 +447,6 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: express.Resp
  *   delete:
  *     tags: [Users]
  *     summary: Delete user
- *     description: Delete a user (Admin only, cannot delete self)
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID
- *     responses:
- *       200:
- *         description: User deleted successfully
- *       404:
- *         description: User not found
- *       403:
- *         description: Insufficient permissions
- *       400:
- *         description: Cannot delete yourself
- *       401:
- *         description: Unauthorized
  */
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
@@ -535,11 +462,9 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: express.R
       return sendErrorResponse(res, 'You cannot delete your own account', 400);
     }
 
-       if(!id) {
-        return sendErrorResponse(res, 'User ID is required', 400);
-        
+    if (!id) {
+      return sendErrorResponse(res, 'User ID is required', 400);
     }
-
 
     // Check if user exists and belongs to organization
     const existingUser = await prisma.user.findFirst({
@@ -573,40 +498,6 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: express.R
  *   post:
  *     tags: [Users]
  *     summary: Reset user password
- *     description: Reset a user's password (Admin only)
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - newPassword
- *             properties:
- *               newPassword:
- *                 type: string
- *                 minLength: 6
- *                 example: 'newPassword123'
- *     responses:
- *       200:
- *         description: Password reset successfully
- *       404:
- *         description: User not found
- *       403:
- *         description: Insufficient permissions
- *       400:
- *         description: Validation failed
- *       401:
- *         description: Unauthorized
  */
 router.post('/:id/reset-password', authenticateToken, async (req: AuthRequest, res: express.Response) => {
   try {
@@ -623,11 +514,9 @@ router.post('/:id/reset-password', authenticateToken, async (req: AuthRequest, r
       return sendErrorResponse(res, 'Password must be at least 6 characters long', 400);
     }
 
-       if(!id) {
-        return sendErrorResponse(res, 'User ID is required', 400);
-        
+    if (!id) {
+      return sendErrorResponse(res, 'User ID is required', 400);
     }
-
 
     // Check if user exists and belongs to organization
     const existingUser = await prisma.user.findFirst({
@@ -654,147 +543,6 @@ router.post('/:id/reset-password', authenticateToken, async (req: AuthRequest, r
   } catch (error) {
     console.error('Reset password error:', error);
     sendErrorResponse(res, 'Failed to reset password');
-  }
-});
-
-/**
- * @swagger
- * /api/users/agents:
- *   get:
- *     tags: [Users]
- *     summary: Get all agents
- *     description: Get all active agents and admins in the organization for assignment purposes
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Agents retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                       firstName:
- *                         type: string
- *                       lastName:
- *                         type: string
- *                       email:
- *                         type: string
- *                       role:
- *                         type: string
- */
-router.get('/agents', authenticateToken, async (req: AuthRequest, res: express.Response) => {
-  try {
-    const agents = await prisma.user.findMany({
-      where: {
-        organizationId: req.user!.organizationId,
-        isActive: true,
-        role: { in: ['ADMIN', 'AGENT'] }
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true
-      },
-      orderBy: [
-        { role: 'asc' }, // ADMIN first, then AGENT
-        { firstName: 'asc' }
-      ]
-    });
-
-    sendSuccessResponse(res, 'Agents retrieved successfully', agents);
-
-  } catch (error) {
-    console.error('Get agents error:', error);
-    sendErrorResponse(res, 'Failed to get agents');
-  }
-});
-
-/**
- * @swagger
- * /api/users/stats:
- *   get:
- *     tags: [Users]
- *     summary: Get user statistics
- *     description: Get statistics about users in the organization
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: User statistics retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     total:
- *                       type: integer
- *                     active:
- *                       type: integer
- *                     byRole:
- *                       type: object
- *                     recentlyJoined:
- *                       type: array
- */
-router.get('/stats', authenticateToken, async (req: AuthRequest, res: express.Response) => {
-  try {
-    const organizationId = req.user!.organizationId;
-
-    const [total, active, roleStats, recentUsers] = await Promise.all([
-      prisma.user.count({ where: { organizationId } }),
-      prisma.user.count({ where: { organizationId, isActive: true } }),
-      prisma.user.groupBy({
-        by: ['role'],
-        where: { organizationId, isActive: true },
-        _count: { role: true }
-      }),
-      prisma.user.findMany({
-        where: { organizationId },
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          role: true,
-          createdAt: true
-        }
-      })
-    ]);
-
-    const byRole = roleStats.reduce((acc, item) => {
-      acc[item.role] = item._count.role;
-      return acc;
-    }, {} as Record<string, number>);
-
-    sendSuccessResponse(res, 'User statistics retrieved successfully', {
-      total,
-      active,
-      inactive: total - active,
-      byRole,
-      recentlyJoined: recentUsers
-    });
-
-  } catch (error) {
-    console.error('Get user stats error:', error);
-    sendErrorResponse(res, 'Failed to get user statistics');
   }
 });
 

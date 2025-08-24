@@ -1,78 +1,98 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
 import api from '@/lib/axios';
-import type { ApiResponse, CreateChatBotRequest, ChatBot } from '@/types/api';
 
-// ChatBot queries
+// Types based on your schema
+export interface ChatBot {
+  _count: any;
+	id: string;
+	name: string;
+	description?: string;
+	status: 'ONLINE' | 'OFFLINE' | 'BUSY';
+	isKnowledgeInitialized: boolean;
+	lastKnowledgeUpdate: string;
+	totalChunks: number;
+	createdAt: string;
+	updatedAt: string;
+	organizationId: string;
+}
+
+export interface CreateChatBotData {
+	name: string;
+	description?: string;
+	status?: 'ONLINE' | 'OFFLINE' | 'BUSY';
+}
+
+export interface UpdateChatBotData {
+	name?: string;
+	description?: string;
+	status?: 'ONLINE' | 'OFFLINE' | 'BUSY';
+}
+
+export interface ChatBotsResponse {
+	success: boolean;
+	data: ChatBot[];
+}
+
+export interface ChatBotResponse {
+	success: boolean;
+	data: ChatBot;
+}
+
+// API functions
+const chatBotsAPI = {
+	getChatBots: async (): Promise<ChatBotsResponse> => {
+		const response = await api.get('/api/chatbots');
+		return response.data;
+	},
+	getChatBotById: async (id: string): Promise<ChatBotResponse> => {
+		const response = await api.get(`/api/chatbots/${id}`);
+		return response.data;
+	},
+	createChatBot: async (data: CreateChatBotData): Promise<ChatBotResponse> => {
+		const response = await api.post('/api/chatbots', data);
+		return response.data;
+	},
+	updateChatBot: async (id: string, data: UpdateChatBotData): Promise<ChatBotResponse> => {
+		const response = await api.put(`/api/chatbots/${id}`, data);
+		return response.data;
+	},
+};
+
+// React Query hooks
 export const useChatBots = () => {
-  return useQuery({
-    queryKey: ['chatbots'],
-    queryFn: async (): Promise<ChatBot[]> => {
-      const response = await api.get<ApiResponse<ChatBot[]>>('/api/chatbots');
-      return response.data.data!;
-    },
-  });
+	return useQuery({
+		queryKey: ['chatbots'],
+		queryFn: chatBotsAPI.getChatBots,
+		staleTime: 5 * 60 * 1000,
+	});
 };
 
 export const useChatBot = (id: string) => {
-  return useQuery({
-    queryKey: ['chatbots', id],
-    queryFn: async (): Promise<ChatBot> => {
-      const response = await api.get<ApiResponse<ChatBot>>(`/api/chatbots/${id}`);
-      return response.data.data!;
-    },
-    enabled: !!id,
-  });
+	return useQuery({
+		queryKey: ['chatbot', id],
+		queryFn: () => chatBotsAPI.getChatBotById(id),
+		enabled: !!id,
+		staleTime: 5 * 60 * 1000,
+	});
 };
 
-// ChatBot mutations
 export const useCreateChatBot = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: CreateChatBotRequest): Promise<ChatBot> => {
-      const response = await api.post<ApiResponse<ChatBot>>('/api/chatbots', data);
-      return response.data.data!;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-    },
-    onError: (error: AxiosError) => {
-      console.error('Failed to create chatbot:', error);
-    },
-  });
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: chatBotsAPI.createChatBot,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['chatbots'] });
+		},
+	});
 };
 
 export const useUpdateChatBot = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateChatBotRequest> }): Promise<ChatBot> => {
-      const response = await api.put<ApiResponse<ChatBot>>(`/api/chatbots/${id}`, data);
-      return response.data.data!;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-      queryClient.setQueryData(['chatbots', data.id], data);
-    },
-    onError: (error: AxiosError) => {
-      console.error('Failed to update chatbot:', error);
-    },
-  });
-};
-
-export const useDeleteChatBot = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      await api.delete(`/api/chatbots/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-    },
-    onError: (error: AxiosError) => {
-      console.error('Failed to delete chatbot:', error);
-    },
-  });
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: UpdateChatBotData }) =>
+			chatBotsAPI.updateChatBot(id, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['chatbots'] });
+		},
+	});
 };

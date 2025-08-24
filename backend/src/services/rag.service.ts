@@ -163,6 +163,7 @@ export class RAGService {
     }
   }
 
+  // Update the generateResponse method in RAG service to handle unlimited history
   async generateResponse(
     chatBotId: string,
     query: string,
@@ -194,26 +195,26 @@ export class RAGService {
         .map(doc => doc.pageContent)
         .join('\n\n');
 
-      // Format conversation history
+      // Format ALL conversation history (no limit)
       const history = conversationHistory
-        .slice(-5)
         .map(msg => `${msg.role}: ${msg.message}`)
         .join('\n');
 
       // Create the prompt template
       const promptTemplate = ChatPromptTemplate.fromTemplate(`
-You are ${chatBot.name}, a helpful AI assistant for ClientSync. Use the provided context and conversation history to answer the user's question accurately and helpfully.
+You are ${chatBot.name}, a helpful AI assistant for ClientSync. Use the provided context and complete conversation history to answer the user's question accurately and helpfully.
 
 Context:
 {context}
 
-Conversation History:
+Complete Conversation History:
 {history}
 
-User Question: {question}
+Current User Question: {question}
 
 Instructions:
 - Answer based on the provided context when possible
+- Consider the entire conversation history for context
 - If the context doesn't contain relevant information, provide a helpful general response
 - Be concise but comprehensive
 - Maintain a professional and friendly tone

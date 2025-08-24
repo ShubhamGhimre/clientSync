@@ -1,46 +1,46 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/axios';
-import type { ApiResponse } from '@/types/api';
 
-export interface File {
-  id: string;
-  chatBotId: string;
-  fileName: string;
-  fileUrl: string;
-  uploadedAt: string;
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from '@/lib/axios';
+
+// Get all files for a chatbot
+export function useFiles(chatBotId: string, options?: any) {
+	return useQuery({
+		queryKey: ['files', chatBotId],
+		queryFn: async () => {
+			const { data } = await axios.get('/api/files', { params: { chatBotId } });
+			return data;
+		},
+		enabled: !!chatBotId,
+		...options,
+	});
 }
 
-// GET /api/files
-export const useFiles = (params?: { chatBotId?: string }) =>
-  useQuery({
-    queryKey: ['files', params],
-    queryFn: async (): Promise<File[]> => {
-      const res = await api.get<ApiResponse<File[]>>('/api/files', { params });
-      return res.data.data!;
-    },
-  });
+// Upload file to chatbot
+export function useUploadFile() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (formData: FormData) => {
+			const { data } = await axios.post('/api/files/upload', formData, {
+				headers: { 'Content-Type': 'multipart/form-data' },
+			});
+			return data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['files'] });
+		},
+	});
+}
 
-// POST /api/files/upload
-export const useUploadFile = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (data: FormData) => {
-      const res = await api.post<ApiResponse<File>>('/api/files/upload', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return res.data.data!;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['files'] }),
-  });
-};
-
-// DELETE /api/files/{id}
-export const useDeleteFile = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/api/files/${id}`);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['files'] }),
-  });
-};
+// Delete file
+export function useDeleteFile() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const { data } = await axios.delete(`/api/files/${id}`);
+			return data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['files'] });
+		},
+	});
+}

@@ -1,38 +1,89 @@
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   success: boolean;
-  message?: string;
   data?: T;
-  errors?: Array<{
-    field: string;
-    message: string;
-  }>;
+  message?: string;
+  total?: number;
 }
 
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+// Organization Types
+export interface Organization {
+  id: string;
+  name: string;
+  subdomain: string;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    users: number;
+    chatBots: number;
+    supportTickets: number;
   };
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-  // subdomain: string;
+export interface CreateOrganizationRequest {
+  name: string;
+  subdomain: string;
 }
 
-export interface RegisterRequest {
-  companyName: string;
-  contactEmail: string;
-  subdomain: string;
+export interface UpdateOrganizationRequest {
+  name?: string;
+  subdomain?: string;
+}
+
+// User Types
+export interface User {
+  id: string;
+  name: string; 
+  email: string;
   firstName: string;
   lastName: string;
+  role: string;
+  organizationId?: string;
+  organization?: {
+    id: string;
+    name: string;
+    subdomain: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateUserRequest {
+  name: string;
   email: string;
   password: string;
+  role?: 'ADMIN' | 'USER';
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  email?: string;
+  role?: 'ADMIN' | 'USER';
+}
+
+// ChatBot Types
+export interface ChatBot {
+  id: string;
+  name: string;
+  description?: string;
+  organizationId: string;
+  isKnowledgeInitialized: boolean;
+  totalChunks?: number;
+  lastKnowledgeUpdate?: string;
+  createdAt: string;
+  updatedAt: string;
+  organization?: Organization;
+  _count?: {
+    chatRooms: number;
+    files: number;
+  };
 }
 
 export interface CreateChatBotRequest {
@@ -40,136 +91,215 @@ export interface CreateChatBotRequest {
   description?: string;
 }
 
-export enum BotStatus {
-  ONLINE = 'ONLINE',
-  OFFLINE = 'OFFLINE',
-  BUSY = 'BUSY',
+export interface UpdateChatBotRequest {
+  name?: string;
+  description?: string;
 }
 
-export interface ChatBot {
-  status: BotStatus;
+// ChatRoom Types
+export interface ChatRoom {
   id: string;
-  name: string;
+  title: string;
   description?: string;
+  chatBotId: string;
   createdAt: string;
   updatedAt: string;
+  chatBot?: ChatBot;
   _count?: {
-    chatRooms: number;
-    files: number;
+    conversations: number;
   };
+}
+
+export interface CreateChatRoomRequest {
+  title: string;
+  description?: string;
+  chatBotId: string;
+}
+
+export interface UpdateChatRoomRequest {
+  title?: string;
+  description?: string;
+}
+
+// Conversation Types
+export interface Conversation {
+  id: string;
+  chatRoomId: string;
+  sender: string;
+  fromUserId?: string;
+  message: string;
+  createdAt: string;
+  fromUser?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface SendMessageRequest {
+  chatRoomId: string;
+  message: string;
+  sender: string;
+  userId?: string;
+}
+
+// File Types
+export interface File {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  chatBotId: string;
+  processed: boolean;
+  uploadedAt: string;
+  chatBot?: ChatBot;
 }
 
 // Support Ticket Types
 export interface SupportTicket {
   id: string;
-  ticketNumber: string;
   title: string;
   description: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
-  status: TicketStatus;
-  priority: TicketPriority;
+  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  organizationId: string;
+  createdById: string;
+  assignedToId?: string;
   createdAt: string;
   updatedAt: string;
-  resolvedAt?: string;
-  closedAt?: string;
-  category?: TicketCategory;
-  assignedAgent?: User;
   createdBy?: User;
-  comments?: TicketComment[];
-  attachments?: TicketAttachment[];
+  assignedTo?: User;
+  organization?: Organization;
+  _count?: {
+    attachments: number;
+  };
 }
 
 export interface CreateSupportTicketRequest {
   title: string;
   description: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
-  priority: TicketPriority;
-  categoryId?: string;
-  assignedAgentId?: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 }
 
 export interface UpdateSupportTicketRequest {
   title?: string;
   description?: string;
-  status?: TicketStatus;
-  priority?: TicketPriority;
-  categoryId?: string;
-  assignedAgentId?: string;
+  status?: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  assignedToId?: string;
 }
 
-export interface TicketCategory {
-  id: string;
-  name: string;
-  description?: string;
-  color?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateTicketCategoryRequest {
-  name: string;
-  description?: string;
-  color?: string;
-}
-
-export interface TicketComment {
-  id: string;
-  content: string;
-  isInternal: boolean;
-  createdAt: string;
-  updatedAt: string;
-  author: User;
-}
-
-export interface CreateTicketCommentRequest {
-  content: string;
-  isInternal?: boolean;
-}
-
+// Ticket Attachment Types
 export interface TicketAttachment {
   id: string;
+  ticketId: string;
   fileName: string;
   fileUrl: string;
-  fileSize?: number;
-  mimeType?: string;
+  fileType: string;
+  fileSize: number;
   uploadedAt: string;
+  ticket?: SupportTicket;
 }
 
-export enum TicketStatus {
-  OPEN = 'OPEN',
-  IN_PROGRESS = 'IN_PROGRESS',
-  PENDING_CUSTOMER = 'PENDING_CUSTOMER',
-  RESOLVED = 'RESOLVED',
-  CLOSED = 'CLOSED',
-  CANCELLED = 'CANCELLED'
-}
-
-export enum TicketPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
-  CRITICAL = 'CRITICAL'
-}
-
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  AGENT = 'AGENT',
-  VIEWER = 'VIEWER'
-}
-
-export interface User {
+// Settings Types
+export interface Settings {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: UserRole;
-  isActive: boolean;
+  organizationId: string;
+  allowUserRegistration: boolean;
+  maxChatbotsPerUser: number;
+  maxFilesPerChatbot: number;
+  maxFileSize: number;
+  allowedFileTypes: string[];
+  customBranding: boolean;
+  customDomain?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateSettingsRequest {
+  allowUserRegistration?: boolean;
+  maxChatbotsPerUser?: number;
+  maxFilesPerChatbot?: number;
+  maxFileSize?: number;
+  allowedFileTypes?: string[];
+  customBranding?: boolean;
+  customDomain?: string;
+}
+
+// Bot Access Types
+export interface BotAccess {
+  id: string;
+  userId: string;
+  chatBotId: string;
+  accessLevel: 'READ' | 'WRITE' | 'ADMIN';
+  createdAt: string;
+  user?: User;
+  chatBot?: ChatBot;
+}
+
+export interface CreateBotAccessRequest {
+  userId: string;
+  chatBotId: string;
+  accessLevel: 'READ' | 'WRITE' | 'ADMIN';
+}
+
+export interface UpdateBotAccessRequest {
+  accessLevel: 'READ' | 'WRITE' | 'ADMIN';
+}
+
+// RAG Types
+export interface RAGChatRequest {
+  chatRoomId: string;
+  message: string;
+  sender: string;
+  userId?: string;
+}
+
+export interface RAGChatResponse {
+  response: string;
+  message: string;
+  processingType?: string;
+}
+
+export interface KnowledgeInitializationRequest {
+  chatBotId: string;
+}
+
+export interface KnowledgeInitializationResponse {
+  message: string;
+  jobId?: string;
+}
+
+export interface KnowledgeBaseProgressResponse {
+  status: 'processing' | 'completed' | 'failed';
+  progress?: number;
+  message: string;
+  totalFiles: number;
+  processedFiles: number;
+  totalChunks: number;
+  processedChunks: number;
+  currentFile?: string;
+  embeddingType?: string;
+  timeElapsed?: string;
+}
+
+// Auth Types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  organizationName: string;
+  subdomain: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+  message?: string;
 }

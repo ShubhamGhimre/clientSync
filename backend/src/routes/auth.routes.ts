@@ -386,7 +386,8 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
-          email: user.email
+          email: user.email,
+          role: user.role
         },
         organization: user.organization
       }
@@ -455,6 +456,98 @@ router.post('/refresh', authenticateToken, async (req: AuthRequest, res) => {
     res.status(500).json({
       success: false,
       message: 'Token refresh failed'
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/check-subdomain:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Check subdomain availability
+ *     description: Check if a subdomain is available for registration
+ *     parameters:
+ *       - in: query
+ *         name: subdomain
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The subdomain to check
+ *         example: 'my-company'
+ *     responses:
+ *       200:
+ *         description: Subdomain availability checked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/ApiResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         available:
+ *                           type: boolean
+ *                           description: Whether the subdomain is available
+ *                         subdomain:
+ *                           type: string
+ *                           description: The checked subdomain
+ *       400:
+ *         description: Missing subdomain parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/check-subdomain', async (req: express.Request, res: express.Response) => {
+  try {
+    const { subdomain } = req.query;
+
+    console.log('🔍 Checking subdomain availability:', { subdomain, query: req.query });
+
+    if (!subdomain || typeof subdomain !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Subdomain query parameter is required'
+      });
+    }
+
+    // Validate subdomain format (optional)
+    const subdomainRegex = /^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$/;
+    if (!subdomainRegex.test(subdomain)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid subdomain format. Use only lowercase letters, numbers, and hyphens.'
+      });
+    }
+
+    const existingOrg = await prisma.organization.findUnique({
+      where: { subdomain }
+    });
+
+    console.log('✅ Subdomain check result:', { subdomain, available: !existingOrg });
+
+    res.json({
+      success: true,
+      data: {
+        available: !existingOrg,
+        subdomain
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Check subdomain error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check subdomain'
     });
   }
 });
