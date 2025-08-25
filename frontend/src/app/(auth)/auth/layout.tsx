@@ -16,7 +16,6 @@ export default function AuthLayout({
   useEffect(() => {
     const token = getAuthToken();
     
-    console.log('🔍 Auth layout check:', { hasToken: !!token, isAuthenticated });
     
     // Only redirect if we have both token AND authenticated state
     if (token && isAuthenticated) {

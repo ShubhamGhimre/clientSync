@@ -79,27 +79,27 @@ export class RAGService {
           const csvDocs = await this.documentProcessor.processCSVDataset(csvPath);
           
           // Create a virtual file entry for the CSV dataset
-          let csvFile = await prisma.file.findFirst({
-            where: {
-              chatBotId,
-              fileName: 'dataset_rag.csv'
-            }
-          });
+          // let csvFile = await prisma.file.findFirst({
+          //   where: {
+          //     chatBotId,
+          //     fileName: 'dataset_rag.csv'
+          //   }
+          // });
 
-          if (!csvFile) {
-            csvFile = await prisma.file.create({
-              data: {
-                chatBotId,
-                fileName: 'dataset_rag.csv',
-                fileUrl: csvPath,
-                fileType: 'csv',
-                processed: false
-              }
-            });
-          }
+          // if (!csvFile) {
+          //   csvFile = await prisma.file.create({
+          //     data: {
+          //       chatBotId,
+          //       fileName: 'dataset_rag.csv',
+          //       fileUrl: csvPath,
+          //       fileType: 'csv',
+          //       processed: false
+          //     }
+          //   });
+          // }
 
-          await this.vectorStoreService.addDocuments(chatBotId, csvDocs, csvFile.id);
-          totalChunks += csvDocs.length;
+          // await this.vectorStoreService.addDocuments(chatBotId, csvDocs, csvFile.id);
+          // totalChunks += csvDocs.length;
           console.log(`Processed ${csvDocs.length} chunks from CSV dataset`);
         } catch (csvError) {
           console.error('Error processing CSV dataset:', csvError);

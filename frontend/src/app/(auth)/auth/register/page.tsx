@@ -89,13 +89,11 @@ export default function RegisterPage() {
   useEffect(() => {
     if (formData.subdomain.length >= 3) {
       setSubdomainStatus('checking');
-      console.log('🔍 Starting subdomain check for:', formData.subdomain);
       
       const timer = setTimeout(() => {
         checkSubdomain(formData.subdomain, {
           onSuccess: (data) => {
-            console.log('✅ Subdomain check success:', data);
-            console.log('📊 Available status:', data.available);
+         
             setSubdomainStatus(data.available ? 'available' : 'unavailable');
           },
           onError: (error) => {
@@ -114,21 +112,23 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('📝 Form submission started with data:', formData);
     
     // Validate form
     if (!validateForm()) {
-      console.log('❌ Form validation failed:', formErrors);
       return;
     }
     
-    console.log('✅ Form validation passed, submitting...');
     
+    // Split name into firstName and lastName
+    const [firstName, ...rest] = formData.name.trim().split(' ');
+    const lastName = rest.join(' ') || '';
     register({
-      name: formData.name,
-      email: formData.email,
+      firstName,
+      lastName,
+      contactEmail: formData.email,
       password: formData.password,
-      organizationName: formData.organizationName,
+      companyName: formData.organizationName,
+      email: formData.email,
       subdomain: formData.subdomain,
     });
   };
@@ -558,7 +558,7 @@ export default function RegisterPage() {
                   <div className="text-center">
                     <span className="text-sm text-gray-600">Already have an account? </span>
                     <Link 
-                      href="/login" 
+                      href="/auth/login" 
                       className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
                     >
                       Sign in instead

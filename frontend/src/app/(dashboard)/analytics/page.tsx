@@ -9,7 +9,7 @@ import { BarChart3, MessageSquare, Users, TrendingUp, Clock, Bot } from 'lucide-
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>

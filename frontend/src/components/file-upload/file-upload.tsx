@@ -16,7 +16,9 @@ import {
   FileText,
   FileSpreadsheet,
   FileType,
-  Loader2
+  Loader2,
+  CloudUpload,
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -45,18 +47,18 @@ interface UploadedFile {
 }
 
 const allowedTypes = {
-  'application/pdf': { icon: FileText, label: 'PDF', color: 'bg-red-100 text-red-700' },
-  'text/plain': { icon: FileType, label: 'TXT', color: 'bg-gray-100 text-gray-700' },
-  'text/csv': { icon: FileSpreadsheet, label: 'CSV', color: 'bg-green-100 text-green-700' },
+  'application/pdf': { icon: FileText, label: 'PDF', color: 'bg-red-50 text-red-600 border-red-200' },
+  'text/plain': { icon: FileType, label: 'TXT', color: 'bg-slate-50 text-slate-600 border-slate-200' },
+  'text/csv': { icon: FileSpreadsheet, label: 'CSV', color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { 
     icon: FileText, 
     label: 'DOCX', 
-    color: 'bg-blue-100 text-blue-700' 
+    color: 'bg-blue-50 text-blue-600 border-blue-200' 
   },
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': { 
     icon: FileSpreadsheet, 
     label: 'XLSX', 
-    color: 'bg-green-100 text-green-700' 
+    color: 'bg-emerald-50 text-emerald-600 border-emerald-200' 
   },
 };
 
@@ -105,7 +107,6 @@ export function FileUpload({
     }));
     
     setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
-
 
     // Real file upload using API
     for (const uploadingFile of newUploadingFiles) {
@@ -210,7 +211,7 @@ export function FileUpload({
 
   const getFileColor = (fileType: string) => {
     const typeInfo = allowedTypes[fileType as keyof typeof allowedTypes];
-    return typeInfo ? typeInfo.color : 'bg-gray-100 text-gray-700';
+    return typeInfo ? typeInfo.color : 'bg-slate-50 text-slate-600 border-slate-200';
   };
 
   const formatFileSize = (bytes: number) => {
@@ -222,37 +223,59 @@ export function FileUpload({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-6 ${className}`}>
       {/* Upload Area */}
-      <Card>
-        <CardContent className="p-6">
+      <Card className="border-0 shadow-sm bg-white overflow-hidden">
+        <CardContent className="p-0">
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+            className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 ${
               isDragActive
-                ? 'border-primary bg-primary/5'
-                : 'border-muted-foreground/25 hover:border-primary hover:bg-primary/5'
+                ? 'border-blue-400 bg-blue-50/50 scale-[1.02]'
+                : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
             }`}
           >
             <input {...getInputProps()} />
-            <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <div className="space-y-2">
-              <p className="text-lg font-medium">
-                {isDragActive ? 'Drop files here' : 'Upload training files'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Drag and drop files here, or click to browse
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 mt-4">
+            
+            {/* Upload Icon */}
+            <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+              isDragActive ? 'bg-blue-100 scale-110' : 'bg-slate-100'
+            }`}>
+              <CloudUpload className={`h-8 w-8 transition-colors duration-300 ${
+                isDragActive ? 'text-blue-600' : 'text-slate-600'
+              }`} />
+            </div>
+
+            {/* Upload Text */}
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <p className={`text-xl font-semibold transition-colors duration-300 ${
+                  isDragActive ? 'text-blue-900' : 'text-slate-900'
+                }`}>
+                  {isDragActive ? 'Drop your files here' : 'Upload training files'}
+                </p>
+                <p className="text-slate-600">
+                  Drag and drop files here, or{' '}
+                  <span className="text-blue-600 font-medium">click to browse</span>
+                </p>
+              </div>
+
+              {/* Supported File Types */}
+              <div className="flex flex-wrap justify-center gap-2 pt-2">
                 {Object.entries(allowedTypes).map(([type, info]) => (
-                  <Badge key={type} variant="outline" className={info.color}>
+                  <Badge key={type} variant="outline" className={`${info.color} font-medium`}>
+                    <info.icon className="w-3 h-3 mr-1.5" />
                     {info.label}
                   </Badge>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Maximum file size: {maxSize / (1024 * 1024)}MB • Maximum files: {maxFiles}
-              </p>
+
+              {/* File Limits */}
+              <div className="flex items-center justify-center gap-6 text-xs text-slate-500 pt-2">
+                <span>Max size: {maxSize / (1024 * 1024)}MB</span>
+                <span>•</span>
+                <span>Max files: {maxFiles}</span>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -260,65 +283,75 @@ export function FileUpload({
 
       {/* Uploading Files */}
       {uploadingFiles.length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-medium mb-4">Uploading Files</h3>
-            <div className="space-y-3">
+        <Card className="border-0 shadow-sm bg-white">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Upload className="h-4 w-4 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-slate-900">Uploading Files ({uploadingFiles.length})</h3>
+            </div>
+            
+            <div className="space-y-4">
               {uploadingFiles.map((uploadingFile) => {
                 const Icon = getFileIcon(uploadingFile.file.type);
                 
                 return (
-                  <div key={uploadingFile.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium truncate">
+                  <div key={uploadingFile.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
+                      <Icon className="h-5 w-5 text-slate-600" />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-slate-900 truncate pr-4">
                           {uploadingFile.file.name}
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3 flex-shrink-0">
                           <Badge variant="outline" className={getFileColor(uploadingFile.file.type)}>
                             {getFileLabel(uploadingFile.file.type)}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-sm text-slate-500">
                             {formatFileSize(uploadingFile.file.size)}
                           </span>
-                          {uploadingFile.status === 'completed' && (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          )}
-                          {uploadingFile.status === 'error' && (
-                            <AlertCircle className="h-4 w-4 text-red-500" />
-                          )}
-                          {uploadingFile.status === 'uploading' && (
-                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeUploadingFile(uploadingFile.id)}
-                            className="h-6 w-6 p-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
                         </div>
                       </div>
                       
                       {uploadingFile.status === 'uploading' && (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           <Progress value={uploadingFile.progress} className="h-2" />
-                          <p className="text-xs text-muted-foreground">
-                            {uploadingFile.progress}% uploaded
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-slate-600">
+                              Uploading... {uploadingFile.progress}%
+                            </p>
+                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                          </div>
                         </div>
                       )}
                       
-                      {uploadingFile.status === 'error' && uploadingFile.error && (
-                        <p className="text-xs text-red-500">{uploadingFile.error}</p>
+                      {uploadingFile.status === 'completed' && (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-emerald-500" />
+                          <p className="text-sm text-emerald-600 font-medium">Upload completed</p>
+                        </div>
                       )}
                       
-                      {uploadingFile.status === 'completed' && (
-                        <p className="text-xs text-green-600">Upload completed</p>
+                      {uploadingFile.status === 'error' && (
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                          <p className="text-sm text-red-600">{uploadingFile.error || 'Upload failed'}</p>
+                        </div>
                       )}
                     </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeUploadingFile(uploadingFile.id)}
+                      className="h-8 w-8 p-0 hover:bg-slate-200 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 );
               })}
@@ -329,37 +362,49 @@ export function FileUpload({
 
       {/* Completed Files */}
       {completedFiles.length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-medium mb-4">Successfully Uploaded ({completedFiles.length})</h3>
-            <div className="space-y-2">
+        <Card className="border-0 shadow-sm bg-white">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-slate-900">Successfully Uploaded ({completedFiles.length})</h3>
+            </div>
+            
+            <div className="grid gap-3">
               {completedFiles.map((file) => {
                 const Icon = getFileIcon(file.fileType);
                 
                 return (
-                  <div key={file.id} className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <Icon className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <div key={file.id} className="flex items-center gap-4 p-4 bg-emerald-50/50 rounded-xl border border-emerald-200/60">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-emerald-200">
+                      <Icon className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate text-green-800">
-                        {file.fileName}
-                      </p>
-                      <p className="text-xs text-green-600">
-                        {formatFileSize(file.fileSize)} • Uploaded {new Date(file.uploadedAt).toLocaleTimeString()}
-                      </p>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-medium text-emerald-900 truncate pr-4">
+                          {file.fileName}
+                        </p>
+                        <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 flex-shrink-0">
+                          {getFileLabel(file.fileType)}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-emerald-700">
+                        <span>{formatFileSize(file.fileSize)}</span>
+                        <span>•</span>
+                        <span>Uploaded {new Date(file.uploadedAt).toLocaleTimeString()}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                        {getFileLabel(file.fileType)}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeCompletedFile(file.id)}
-                        className="h-6 w-6 p-0 hover:bg-green-100"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCompletedFile(file.id)}
+                      className="h-8 w-8 p-0 hover:bg-emerald-100 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 );
               })}
@@ -370,4 +415,3 @@ export function FileUpload({
     </div>
   );
 }
-

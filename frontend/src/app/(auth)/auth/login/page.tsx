@@ -30,10 +30,8 @@ export default function LoginPage() {
   useEffect(() => {
     const token = getAuthToken();
     
-    console.log('🔍 Login page check:', { hasToken: !!token, isAuthenticated });
     
     if (token && isAuthenticated) {
-      console.log('🔄 User already authenticated, redirecting...');
       router.replace('/dashboard');
     }
   }, [isAuthenticated, router]);
@@ -234,7 +232,7 @@ export default function LoginPage() {
                   <div className="text-center">
                     <span className="text-sm text-gray-600">Don't have an account? </span>
                     <Link 
-                      href="/register" 
+                      href="/auth/register" 
                       className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                     >
                       Create one now

@@ -291,10 +291,12 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  name: string;
-  email: string;
+  firstName: string;
+  lastName: string;
+  contactEmail: string;
   password: string;
-  organizationName: string;
+  companyName: string;
+  email: string;
   subdomain: string;
 }
 

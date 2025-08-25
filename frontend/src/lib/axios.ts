@@ -1,5 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
-import { toast } from 'sonner';
+import { setCookie } from 'cookies-next/client';
+
+
 
 declare module 'axios' {
   export interface InternalAxiosRequestConfig {
@@ -32,21 +34,17 @@ export const setAuthToken = (token: string, remember: boolean = false): void => 
   const storage = remember ? localStorage : sessionStorage;
   
   try {
-    console.log('💾 Setting auth token:', {
-      storage: remember ? 'localStorage' : 'sessionStorage',
-      tokenLength: token?.length || 0
-    });
+   
     
     storage.setItem('token', token);
     
     // Clear from the other storage
     const otherStorage = remember ? sessionStorage : localStorage;
     otherStorage.removeItem('token');
-    
-    // Verify it was stored
-    const storedToken = storage.getItem('token');
-    console.log('✅ Token stored successfully:', !!storedToken);
-    
+
+    // store the token in the cookie as well
+    setCookie('token', token, { maxAge: remember ? 30 * 24 * 60 * 60 : undefined });
+
   } catch (error) {
     console.error('❌ Failed to store auth token:', error);
   }
@@ -56,7 +54,7 @@ export const clearAuthToken = (): void => {
   if (typeof window === 'undefined') return;
 
   try {
-    console.log('🧹 Clearing auth tokens');
+    
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('dev_subdomain');
@@ -135,7 +133,6 @@ const getBaseURL = (): string => {
 export const setSubdomain = (subdomain: string): void => {
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('dev_subdomain', subdomain);
-    console.log('🎯 Subdomain set to:', subdomain);
   }
 };
 
@@ -159,7 +156,6 @@ api.interceptors.request.use(
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 Token added to request');
     } else {
       console.log('❌ No token available for request');
     }
@@ -173,12 +169,7 @@ api.interceptors.request.use(
     // Debug logging
     if (process.env.NODE_ENV === 'development') {
       config.metadata = { startTime: Date.now() };
-      console.log('📤 API REQUEST:', {
-        method: config.method?.toUpperCase(),
-        url: `${config.baseURL}${config.url}`,
-        subdomain: subdomain || 'none',
-        hasAuth: !!token
-      });
+     
     }
     
     return config;
@@ -193,12 +184,7 @@ api.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === 'development' && response.config.metadata) {
       const duration = Date.now() - response.config.metadata.startTime;
-      console.log('🚀 API RESPONSE:', {
-        method: response.config.method?.toUpperCase(),
-        url: `${response.config.baseURL}${response.config.url}`,
-        status: response.status,
-        duration: `${duration}ms`
-      });
+     
     }
     
     return response;
@@ -208,14 +194,13 @@ api.interceptors.response.use(
     
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      console.log('🔄 401 error, clearing token and redirecting');
       clearAuthToken();
       
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
-        
-        if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
-          window.location.href = '/login';
+
+        if (!currentPath.includes('/auth/login') && !currentPath.includes('/auth/register')) {
+          window.location.href = '/auth/login';
         }
       }
       

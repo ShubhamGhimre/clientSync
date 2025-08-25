@@ -5,6 +5,7 @@ import api, { setSubdomain, setAuthToken } from '@/lib/axios';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '@/types/api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
+import { setCookie } from 'cookies-next/client';
 
 // Backend response structure
 interface BackendAuthResponse {
@@ -40,21 +41,15 @@ export const useLogin = () => {
       return response.data; // This is the full backend response
     },
     onSuccess: async (backendResponse, variables) => {
-      console.log('✅ Login successful - Backend Response:', backendResponse);
 
       try {
         // Extract data from the nested structure
         const { token, user: backendUser, organization } = backendResponse.data;
 
-        console.log('📊 Extracted data:', {
-          token: token ? `${token.substring(0, 20)}...` : 'null',
-          user: backendUser,
-          organization
-        });
-
+        // set the authToken to the cookies
+        
         // Step 1: Store the token immediately
         setAuthToken(token, variables.remember);
-        console.log('🔐 Token stored, now fetching user data...');
 
         // Step 2: Transform backend user data to frontend format
         const transformedUser: User = {
@@ -72,14 +67,12 @@ export const useLogin = () => {
           lastName: backendUser.lastName,
         };
 
-        console.log('🔄 Transformed user data:', transformedUser);
 
         // Step 3: Store complete user data in auth store
         setAuth(transformedUser, token, variables.remember);
 
         // Step 4: Set subdomain if available
         if (organization?.subdomain) {
-          console.log('🎯 Setting subdomain:', organization.subdomain);
           setSubdomain(organization.subdomain);
         }
 
@@ -89,7 +82,6 @@ export const useLogin = () => {
           const userResponse = await api.get('/api/auth/me');
           const completeUserData = userResponse.data;
 
-          console.log('👤 Complete user data fetched:', completeUserData);
 
           // Update with complete data if available
           setAuth(completeUserData, token, variables.remember);
@@ -104,7 +96,6 @@ export const useLogin = () => {
         toast.success(backendResponse.message || 'Welcome back!');
 
         // Step 6: Redirect to dashboard
-        console.log('🔄 Redirecting to dashboard...');
         router.push('/dashboard');
 
       } catch (error) {
@@ -132,21 +123,13 @@ export const useRegister = () => {
       return response.data;
     },
     onSuccess: async (backendResponse) => {
-      console.log('✅ Registration successful - Backend Response:', backendResponse);
 
       try {
         // Extract data from the nested structure
         const { token, user: backendUser, organization } = backendResponse.data;
 
-        console.log('📊 Extracted registration data:', {
-          token: token ? `${token.substring(0, 20)}...` : 'null',
-          user: backendUser,
-          organization
-        });
-
         // Step 1: Store the token immediately
         setAuthToken(token, false);
-        console.log('🔐 Token stored, now processing user data...');
 
         // Step 2: Transform backend user data to frontend format
         const transformedUser: User = {
@@ -164,14 +147,12 @@ export const useRegister = () => {
           lastName: backendResponse.data.user.lastName ||  ''
         };
 
-        console.log('🔄 Transformed user data:', transformedUser);
 
         // Step 3: Store complete user data in auth store
         setAuth(transformedUser, token, false);
 
         // Step 4: Set subdomain if available
         if (organization?.subdomain) {
-          console.log('🎯 Setting subdomain:', organization.subdomain);
           setSubdomain(organization.subdomain);
         }
 
@@ -181,7 +162,6 @@ export const useRegister = () => {
           const userResponse = await api.get('/api/auth/me');
           const completeUserData = userResponse.data;
 
-          console.log('👤 Complete user data fetched:', completeUserData);
           setAuth(completeUserData, token, false);
           queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
         } catch (meError) {
@@ -190,9 +170,7 @@ export const useRegister = () => {
 
         toast.success(backendResponse.message || 'Account created successfully!');
 
-        // Step 6: Redirect to dashboard
-        console.log('🔄 Redirecting to dashboard...');
-        router.push('/dashboard');
+        router.push('/auth/login');
 
       } catch (error) {
         console.error('❌ Error processing registration data:', error);
@@ -214,32 +192,14 @@ export const useMe = () => {
   return useQuery<User, Error>({
     queryKey: ['auth', 'me'],
     queryFn: async (): Promise<User> => {
-      console.log('📡 Fetching user data from /api/auth/me');
       const response = await api.get('/api/auth/me');
-      console.log('👤 User data received:', response.data);
       return response.data;
     },
     enabled: isAuthenticated, // Only run if user is authenticated
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    // onSuccess: (user) => {
-    //   console.log('✅ useMe success:', user);
-
-    //   // Set subdomain if available
-    //   if (user?.organization?.subdomain) {
-    //     setSubdomain(user.organization.subdomain);
-    //   }
-    // },
-    // onError: (error: any) => {
-    //   console.error('❌ useMe error:', error);
-
-    //   // Only logout on 401 errors
-    //   if (error.status === 401) {
-    //     console.log('🚪 401 error in useMe, logging out');
-    //     logout();
-    //   }
-    // },
+    
   });
 };
 
@@ -279,7 +239,6 @@ export const useLogout = () => {
 export const useCheckSubdomain = () => {
   return useMutation({
     mutationFn: async (subdomain: string): Promise<{ available: boolean }> => {
-      console.log('🔍 Checking subdomain:', subdomain);
       
       try {
         const { default: axios } = await import('axios');
@@ -291,11 +250,9 @@ export const useCheckSubdomain = () => {
           params: { subdomain },
         });
         
-        console.log('📡 Full subdomain check response:', response.data);
         
         // Handle the nested response structure
         if (response.data.success && response.data.data) {
-          console.log('✅ Subdomain check result:', response.data.data);
           return response.data.data; // Return the nested data object
         } else {
           console.error('❌ Unexpected response structure:', response.data);

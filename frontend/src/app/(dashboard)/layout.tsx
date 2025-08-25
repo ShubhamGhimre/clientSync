@@ -19,19 +19,11 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const token = getAuthToken();
-    
-    console.log('🔍 Dashboard layout check:', { 
-      hasToken: !!token, 
-      isAuthenticated, 
-      hasUser: !!user,
-      meLoading,
-      hasError: !!error
-    });
+ 
     
     // If no token, redirect to login
     if (!token) {
-      console.log('❌ No token found, redirecting to login');
-      router.replace('/login');
+      router.replace('/auth/login');
       return;
     }
     
@@ -41,7 +33,6 @@ export default function DashboardLayout({
       typeof (error as any).status === 'number' &&
       (error as any).status === 401
     ) {
-      console.log('❌ 401 error, logging out');
       logout();
       return;
     }

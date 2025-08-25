@@ -155,7 +155,6 @@ export default function Sidebar({ className }: SidebarProps) {
   const { displayUser, isAuthenticated, isLoading } = useDisplayUser();
   const { initialize } = useAuthStore();
 
-  console.log('🎭 Sidebar render with display user:', displayUser);
 
   // Initialize auth store on component mount
   useEffect(() => {
@@ -163,7 +162,6 @@ export default function Sidebar({ className }: SidebarProps) {
   }, [initialize]);
 
   const handleLogout = () => {
-    console.log('Logging out...');
     logout.mutate();
   };
 

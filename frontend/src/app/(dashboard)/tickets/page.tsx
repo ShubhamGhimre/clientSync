@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,12 +10,98 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Filter, Download, HelpCircle, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { TicketsTable } from '@/components/tables/tickets-table';
+import { useSupportTickets, useCreateSupportTicket, useUpdateSupportTicket, useDeleteSupportTicket } from '@/hooks/api/useSupportTickets';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<any | null>(null);
+  const [deletingTicket, setDeletingTicket] = useState<any | null>(null);
+
+  // Fetch tickets from API
+  const { data: ticketsData, isLoading: ticketsLoading, refetch } = useSupportTickets();
+  // Defensive: ensure array
+  const tickets = ticketsData && Array.isArray((ticketsData as any).tickets) ? (ticketsData as any).tickets : [];
+
+  // API hooks
+  const createTicketMutation = useCreateSupportTicket();
+  const updateTicketMutation = useUpdateSupportTicket();
+  const deleteTicketMutation = useDeleteSupportTicket();
+
+  // Handlers
+  const handleCreate = () => {
+    setEditingTicket(null);
+    setModalOpen(true);
+  };
+  const handleEdit = (ticket: any) => {
+    setEditingTicket(ticket);
+    setModalOpen(true);
+  };
+  const handleDelete = (ticket: any) => {
+    setDeletingTicket(ticket);
+    setDeleteModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEditingTicket(null);
+  };
+  const handleDeleteModalClose = () => {
+    setDeleteModalOpen(false);
+    setDeletingTicket(null);
+  };
+
+  // Ticket form state
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    priority: 'MEDIUM',
+    status: 'OPEN',
+  });
+
+  // Populate form when editing
+  React.useEffect(() => {
+    if (editingTicket) {
+      setForm({
+        title: editingTicket.title || '',
+        description: editingTicket.description || '',
+        priority: editingTicket.priority || 'MEDIUM',
+        status: editingTicket.status || 'OPEN',
+      });
+    } else {
+      setForm({ title: '', description: '', priority: 'MEDIUM', status: 'OPEN' });
+    }
+  }, [editingTicket, modalOpen]);
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingTicket) {
+      await updateTicketMutation.mutateAsync({ id: editingTicket.id, ...form });
+    } else {
+      await createTicketMutation.mutateAsync(form);
+    }
+    setModalOpen(false);
+    setEditingTicket(null);
+    refetch();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deletingTicket) {
+      await deleteTicketMutation.mutateAsync(deletingTicket.id);
+      setDeleteModalOpen(false);
+      setDeletingTicket(null);
+      refetch();
+    }
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Support Tickets</h1>
@@ -23,7 +109,7 @@ export default function TicketsPage() {
             Manage and track customer support requests
           </p>
         </div>
-        <Button>
+        <Button onClick={handleCreate}>
           <Plus className="mr-2 h-4 w-4" />
           Create Ticket
         </Button>
@@ -142,20 +228,93 @@ export default function TicketsPage() {
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">All Tickets</TabsTrigger>
-          <TabsTrigger value="assigned">Assigned to Me</TabsTrigger>
+          {/* <TabsTrigger value="assigned">Assigned to Me</TabsTrigger>
           <TabsTrigger value="unassigned">Unassigned</TabsTrigger>
-          <TabsTrigger value="urgent">Urgent</TabsTrigger>
+          <TabsTrigger value="urgent">Urgent</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
           <Card>
             <CardContent className="p-0">
-              <TicketsTable />
+              <TicketsTable 
+                data={tickets} 
+                loading={ticketsLoading}
+                onTicketEdit={handleEdit}
+                onTicketDelete={handleDelete}
+              />
+      {/* Create/Update Ticket Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingTicket ? 'Update Ticket' : 'Create Ticket'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <Input name="title" value={form.title} onChange={handleFormChange} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea name="description" value={form.description} onChange={handleFormChange} className="w-full border rounded p-2" required />
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Priority</label>
+                <select name="priority" value={form.priority} onChange={handleFormChange} className="w-full border rounded p-2">
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <select name="status" value={form.status} onChange={handleFormChange} className="w-full border rounded p-2">
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={createTicketMutation.isPending || updateTicketMutation.isPending}
+              >
+                {(createTicketMutation.isPending || updateTicketMutation.isPending)
+                  ? (editingTicket ? 'Updating...' : 'Creating...')
+                  : (editingTicket ? 'Update' : 'Create')}
+              </Button>
+              <Button type="button" variant="outline" onClick={handleModalClose}>Cancel</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Ticket Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Ticket</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete this ticket?</p>
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteTicketMutation.isPending}
+            >
+              {deleteTicketMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleDeleteModalClose}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="assigned" className="space-y-4">
+        {/* <TabsContent value="assigned" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Tickets Assigned to You</CardTitle>
@@ -248,7 +407,7 @@ export default function TicketsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

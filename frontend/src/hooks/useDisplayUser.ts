@@ -9,9 +9,7 @@ export function useDisplayUser() {
   const displayUser: DisplayUser | null = useMemo(() => {
     if (!user || !isAuthenticated) return null;
     
-    console.log('🎭 Extracting display user from raw data:', user);
     const extracted = extractDisplayUser(user);
-    console.log('✨ Extracted display user:', extracted);
     
     return extracted;
   }, [user, isAuthenticated]);

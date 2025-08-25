@@ -45,11 +45,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         const token = getAuthToken();
         const state = get();
 
-        console.log('🔄 Initializing auth store:', {
-          hasStoredToken: !!token,
-          hasStoredUser: !!state.user,
-          isAuthenticated: state.isAuthenticated
-        });
+       
 
         if (token && state.user) {
           set({
@@ -75,13 +71,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       setAuth: (user, token, remember = false) => {
-        console.log('🔐 Setting complete auth data:', {
-          userId: user.id,
-          email: user.email,
-          hasOrganization: !!user.organization,
-          tokenLength: token?.length || 0,
-          remember
-        });
+     
 
         // Store token in browser storage
         setAuthToken(token, remember);
@@ -97,7 +87,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       logout: () => {
-        console.log('🚪 Logging out');
 
         clearAuthToken();
         set({
@@ -110,7 +99,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
         // Redirect to login
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          window.location.href = '/auth/login';
         }
       },
 
@@ -126,7 +115,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             user: updatedUser,
           });
 
-          console.log('👤 User data updated:', updatedUser);
         }
       },
     }),

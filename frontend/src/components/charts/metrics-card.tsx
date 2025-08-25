@@ -26,25 +26,61 @@ export function MetricsCard({
 }: MetricsCardProps) {
   const isPositive = trend === 'up';
   
+  const getIconBgColor = (iconName: string) => {
+    const iconColorMap: { [key: string]: string } = {
+      'Bot': 'bg-blue-50',
+      'MessageSquare': 'bg-indigo-50',
+      'Users': 'bg-violet-50',
+      'HelpCircle': 'bg-amber-50',
+      'TrendingUp': 'bg-emerald-50',
+      'Activity': 'bg-cyan-50',
+      'BarChart3': 'bg-purple-50',
+    };
+    return iconColorMap[Icon.name] || 'bg-slate-50';
+  };
+
+  const getIconColor = (iconName: string) => {
+    const iconColorMap: { [key: string]: string } = {
+      'Bot': 'text-blue-600',
+      'MessageSquare': 'text-indigo-600',
+      'Users': 'text-violet-600',
+      'HelpCircle': 'text-amber-600',
+      'TrendingUp': 'text-emerald-600',
+      'Activity': 'text-cyan-600',
+      'BarChart3': 'text-purple-600',
+    };
+    return iconColorMap[Icon.name] || 'text-slate-600';
+  };
+
   return (
-    <Card className={cn('', className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <Card className={cn(
+      'border-0 shadow-sm bg-white/80 backdrop-blur-sm hover:shadow-md transition-all duration-200 group',
+      className
+    )}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-sm font-semibold text-slate-600">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <div className={cn(
+          'flex items-center justify-center w-10 h-10 rounded-xl transition-colors',
+          getIconBgColor(Icon.name),
+          'group-hover:scale-105'
+        )}>
+          <Icon className={cn('h-5 w-5', getIconColor(Icon.name))} />
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="text-2xl font-bold">{value}</div>
-          <div className="flex items-center space-x-2">
+      <CardContent className="space-y-3">
+        <div className="text-3xl font-bold text-slate-900 tracking-tight">
+          {value}
+        </div>
+        <div className="flex items-center gap-2">
+          {change && (
             <Badge
-              variant={isPositive ? 'default' : 'secondary'}
               className={cn(
-                'flex items-center space-x-1',
+                'flex items-center gap-1 px-2 py-1 text-xs font-medium border',
                 isPositive
-                  ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                  : 'bg-red-100 text-red-800 hover:bg-red-100'
+                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-200'
+                  : 'bg-red-50 text-red-700 hover:bg-red-50 border-red-200'
               )}
             >
               {isPositive ? (
@@ -52,13 +88,15 @@ export function MetricsCard({
               ) : (
                 <TrendingDown className="h-3 w-3" />
               )}
-              <span className="text-xs font-medium">{change}</span>
+              <span>{change}</span>
             </Badge>
-          </div>
-          {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
           )}
         </div>
+        {description && (
+          <p className="text-sm text-slate-600 leading-relaxed">
+            {description}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

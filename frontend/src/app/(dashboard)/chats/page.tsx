@@ -93,23 +93,6 @@ export default function ChatsPage() {
     console.log('Delete chat:', chatId);
   };
 
-//   const handleChatArchive = (chatId: string) => {
-//     setChats(prev => 
-//       prev.map(c => 
-//         c.id === chatId ? { ...c, isArchived: !c.isArchived } : c
-//       )
-//     );
-//     console.log('Archive chat:', chatId);
-//   };
-
-//   const handleChatPin = (chatId: string, pinned: boolean) => {
-//     setChats(prev => 
-//       prev.map(c => 
-//         c.id === chatId ? { ...c, isPinned: pinned } : c
-//       )
-//     );
-//     console.log('Pin chat:', chatId, pinned);
-//   };
 
   return (
     <div className="space-y-6">
