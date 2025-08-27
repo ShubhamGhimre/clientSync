@@ -193,16 +193,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Stats */}
-            <div className="mt-12 grid grid-cols-2 gap-6">
-              <div>
-                <div className="text-3xl font-bold text-white">10k+</div>
-                <div className="text-emerald-200 text-sm">Active Users</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-white">99.9%</div>
-                <div className="text-emerald-200 text-sm">Uptime</div>
-              </div>
-            </div>
+           
           </div>
         </div>
 
