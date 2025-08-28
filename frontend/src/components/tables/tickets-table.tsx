@@ -70,41 +70,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-
-// Types
-interface SupportTicket {
-  id: string;
-  title: string;
-  description: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  organizationId: string;
-  createdById: string;
-  assignedToId?: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  assignedTo?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  organization?: {
-    id: string;
-    name: string;
-    subdomain: string;
-  };
-  _count?: {
-    attachments: number;
-    comments?: number;
-  };
-  lastActivity?: string;
-  resolutionTime?: number; // in hours
-}
+import { SupportTicket, TicketStatus, TicketPriority } from '@/hooks/api/useSupportTickets';
 
 interface TicketsTableProps {
   data?: SupportTicket[];
@@ -113,114 +79,12 @@ interface TicketsTableProps {
   onTicketEdit?: (ticket: SupportTicket) => void;
   onTicketDelete?: (ticketId: string) => void;
   onTicketAssign?: (ticketId: string, userId: string) => void;
-  onStatusChange?: (ticketId: string, status: SupportTicket['status']) => void;
-  onPriorityChange?: (ticketId: string, priority: SupportTicket['priority']) => void;
+  onStatusChange?: (ticketId: string, status: TicketStatus) => void;
+  onPriorityChange?: (ticketId: string, priority: TicketPriority) => void;
 }
 
-// Sample data
-const sampleTickets: SupportTicket[] = [
-  {
-    id: 'TICK-001',
-    title: 'Chatbot not responding to customer queries',
-    description: 'The customer support chatbot has stopped responding to user queries since this morning. Multiple customers have reported this issue.',
-    status: 'OPEN',
-    priority: 'HIGH',
-    organizationId: 'org-1',
-    createdById: 'user-1',
-    assignedToId: 'user-2',
-    createdAt: '2024-08-24T08:30:00Z',
-    updatedAt: '2024-08-24T10:15:00Z',
-    createdBy: {
-      id: 'user-1',
-      name: 'John Customer',
-      email: 'john@customer.com',
-    },
-    assignedTo: {
-      id: 'user-2',
-      name: 'Sarah Support',
-      email: 'sarah@company.com',
-    },
-    organization: {
-      id: 'org-1',
-      name: 'Acme Corp',
-      subdomain: 'acme',
-    },
-    _count: {
-      attachments: 2,
-      comments: 5,
-    },
-    lastActivity: '2024-08-24T10:15:00Z',
-  },
-  {
-    id: 'TICK-002',
-    title: 'Unable to upload training documents',
-    description: 'Getting error when trying to upload PDF files for chatbot training. The error message says "File format not supported".',
-    status: 'IN_PROGRESS',
-    priority: 'MEDIUM',
-    organizationId: 'org-2',
-    createdById: 'user-3',
-    assignedToId: 'user-4',
-    createdAt: '2024-08-24T07:45:00Z',
-    updatedAt: '2024-08-24T09:30:00Z',
-    createdBy: {
-      id: 'user-3',
-      name: 'Jane Smith',
-      email: 'jane@techstartup.com',
-    },
-    assignedTo: {
-      id: 'user-4',
-      name: 'Mike Developer',
-      email: 'mike@company.com',
-    },
-    organization: {
-      id: 'org-2',
-      name: 'Tech Startup',
-      subdomain: 'techstartup',
-    },
-    _count: {
-      attachments: 1,
-      comments: 3,
-    },
-    lastActivity: '2024-08-24T09:30:00Z',
-    resolutionTime: 2.5,
-  },
-  {
-    id: 'TICK-003',
-    title: 'API integration documentation request',
-    description: 'Need detailed documentation for integrating our CRM system with the chatbot API.',
-    status: 'CLOSED',
-    priority: 'LOW',
-    organizationId: 'org-1',
-    createdById: 'user-5',
-    assignedToId: 'user-6',
-    createdAt: '2024-08-23T14:20:00Z',
-    updatedAt: '2024-08-24T11:00:00Z',
-    createdBy: {
-      id: 'user-5',
-      name: 'Bob Developer',
-      email: 'bob@acme.com',
-    },
-    assignedTo: {
-      id: 'user-6',
-      name: 'Lisa Documentation',
-      email: 'lisa@company.com',
-    },
-    organization: {
-      id: 'org-1',
-      name: 'Acme Corp',
-      subdomain: 'acme',
-    },
-    _count: {
-      attachments: 0,
-      comments: 8,
-    },
-    lastActivity: '2024-08-24T11:00:00Z',
-    resolutionTime: 20.67,
-  },
-];
-
 export function TicketsTable({
-  data = sampleTickets,
+  data = [],
   loading = false,
   onTicketSelect,
   onTicketEdit,
@@ -235,7 +99,7 @@ export function TicketsTable({
   const [rowSelection, setRowSelection] = useState({});
 
   // Helper functions
-  const getStatusBadge = (status: SupportTicket['status']) => {
+  const getStatusBadge = (status: TicketStatus) => {
     const statusConfig = {
       OPEN: { 
         variant: 'destructive' as const, 
@@ -249,11 +113,29 @@ export function TicketsTable({
         label: 'In Progress',
         className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
       },
+      PENDING_CUSTOMER: { 
+        variant: 'default' as const, 
+        icon: Clock, 
+        label: 'Pending Customer',
+        className: 'bg-orange-100 text-orange-800 hover:bg-orange-100'
+      },
+      RESOLVED: { 
+        variant: 'secondary' as const, 
+        icon: CheckCircle, 
+        label: 'Resolved',
+        className: 'bg-green-100 text-green-800 hover:bg-green-100'
+      },
       CLOSED: { 
         variant: 'secondary' as const, 
         icon: CheckCircle, 
         label: 'Closed',
-        className: 'bg-green-100 text-green-800 hover:bg-green-100'
+        className: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
+      },
+      CANCELLED: { 
+        variant: 'secondary' as const, 
+        icon: CheckCircle, 
+        label: 'Cancelled',
+        className: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
       },
     };
 
@@ -268,7 +150,7 @@ export function TicketsTable({
     );
   };
 
-  const getPriorityBadge = (priority: SupportTicket['priority']) => {
+  const getPriorityBadge = (priority: TicketPriority) => {
     const priorityConfig = {
       LOW: { 
         variant: 'outline' as const, 
@@ -289,6 +171,11 @@ export function TicketsTable({
         variant: 'destructive' as const, 
         label: 'Urgent',
         className: 'bg-red-100 text-red-800 hover:bg-red-100'
+      },
+      CRITICAL: { 
+        variant: 'destructive' as const, 
+        label: 'Critical',
+        className: 'bg-red-200 text-red-900 hover:bg-red-200'
       },
     };
 
@@ -324,6 +211,16 @@ export function TicketsTable({
     return formatDate(dateString);
   };
 
+  // Helper to get full name from user
+  const getFullName = (user: { firstName: string; lastName: string }) => {
+    return `${user.firstName} ${user.lastName}`.trim();
+  };
+
+  // Helper to get user initials
+  const getUserInitials = (user: { firstName: string; lastName: string }) => {
+    return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+  };
+
   // Column definitions
   const columns: ColumnDef<SupportTicket>[] = [
     {
@@ -346,14 +243,14 @@ export function TicketsTable({
       enableHiding: false,
     },
     {
-      accessorKey: 'id',
+      accessorKey: 'ticketNumber',
       header: 'Ticket ID',
       cell: ({ row }) => {
         const ticket = row.original;
         return (
           <div className="flex items-center gap-2">
             <HelpCircle className="h-4 w-4 text-muted-foreground" />
-            <span className="font-mono text-sm">{ticket.id}</span>
+            <span className="font-mono text-sm">{ticket.ticketNumber || ticket.id}</span>
           </div>
         );
       },
@@ -413,6 +310,19 @@ export function TicketsTable({
       },
     },
     {
+      accessorKey: 'customerName',
+      header: 'Customer',
+      cell: ({ row }) => {
+        const ticket = row.original;
+        return (
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{ticket.customerName}</p>
+            <p className="text-xs text-muted-foreground truncate">{ticket.customerEmail}</p>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'createdBy',
       header: 'Created By',
       cell: ({ row }) => {
@@ -420,13 +330,13 @@ export function TicketsTable({
         return createdBy ? (
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${createdBy.name}`} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getFullName(createdBy)}`} />
               <AvatarFallback>
-                {createdBy.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {getUserInitials(createdBy)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{createdBy.name}</p>
+              <p className="text-sm font-medium truncate">{getFullName(createdBy)}</p>
               <p className="text-xs text-muted-foreground truncate">{createdBy.email}</p>
             </div>
           </div>
@@ -436,21 +346,21 @@ export function TicketsTable({
       },
     },
     {
-      accessorKey: 'assignedTo',
+      accessorKey: 'assignedAgent',
       header: 'Assigned To',
       cell: ({ row }) => {
-        const assignedTo = row.original.assignedTo;
-        return assignedTo ? (
+        const assignedAgent = row.original.assignedAgent;
+        return assignedAgent ? (
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${assignedTo.name}`} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getFullName(assignedAgent)}`} />
               <AvatarFallback>
-                {assignedTo.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {getUserInitials(assignedAgent)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{assignedTo.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{assignedTo.email}</p>
+              <p className="text-sm font-medium truncate">{getFullName(assignedAgent)}</p>
+              <p className="text-xs text-muted-foreground truncate">{assignedAgent.email}</p>
             </div>
           </div>
         ) : (
@@ -461,38 +371,41 @@ export function TicketsTable({
       },
     },
     {
-      accessorKey: 'organization',
-      header: 'Organization',
+      accessorKey: 'category',
+      header: 'Category',
       cell: ({ row }) => {
-        const org = row.original.organization;
-        return org ? (
-          <div>
-            <p className="text-sm font-medium">{org.name}</p>
-            <p className="text-xs text-muted-foreground">{org.subdomain}</p>
+        const category = row.original.category;
+        return category ? (
+          <div className="flex items-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: category.color || '#3B82F6' }}
+            />
+            <span className="text-sm">{category.name}</span>
           </div>
         ) : (
-          <span className="text-muted-foreground">No organization</span>
+          <span className="text-muted-foreground">No category</span>
         );
       },
     },
     {
-      accessorKey: 'lastActivity',
+      accessorKey: 'updatedAt',
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="h-8 px-2"
         >
-          Last Activity
+          Last Updated
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => {
-        const lastActivity = row.original.lastActivity || row.original.updatedAt;
+        const updatedAt = row.original.updatedAt;
         return (
           <div className="flex items-center gap-2">
             <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-sm">{getTimeAgo(lastActivity)}</span>
+            <span className="text-sm">{getTimeAgo(updatedAt)}</span>
           </div>
         );
       },
@@ -519,7 +432,7 @@ export function TicketsTable({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(ticket.id)}
+                onClick={() => navigator.clipboard.writeText(ticket.ticketNumber || ticket.id)}
               >
                 Copy ticket ID
               </DropdownMenuItem>
@@ -547,7 +460,7 @@ export function TicketsTable({
                   Change status
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  {(['OPEN', 'IN_PROGRESS', 'CLOSED'] as const).map((status) => (
+                  {(['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED'] as const).map((status) => (
                     <DropdownMenuItem 
                       key={status}
                       onClick={() => onStatusChange?.(ticket.id, status)}
@@ -566,7 +479,7 @@ export function TicketsTable({
                   Change priority
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  {(['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const).map((priority) => (
+                  {(['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'] as const).map((priority) => (
                     <DropdownMenuItem 
                       key={priority}
                       onClick={() => onPriorityChange?.(ticket.id, priority)}
@@ -599,7 +512,7 @@ export function TicketsTable({
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                       This action cannot be undone. This will permanently delete{' '}
-                      <strong>{ticket.id}</strong> and all associated data.
+                      <strong>{ticket.ticketNumber || ticket.id}</strong> and all associated data.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -639,7 +552,7 @@ export function TicketsTable({
     },
   });
 
-  const handleBulkStatusChange = (status: SupportTicket['status']) => {
+  const handleBulkStatusChange = (status: TicketStatus) => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     const selectedTicketIds = selectedRows.map(row => row.original.id);
     
@@ -649,7 +562,7 @@ export function TicketsTable({
     }
 
     selectedTicketIds.forEach(id => onStatusChange?.(id, status));
-    toast.success(`${selectedTicketIds.length} tickets updated to ${status.toLowerCase()}`);
+    toast.success(`${selectedTicketIds.length} tickets updated to ${status.toLowerCase().replace('_', ' ')}`);
     setRowSelection({});
   };
 
@@ -674,19 +587,22 @@ export function TicketsTable({
       : data;
 
     // Simple CSV export
-    const headers = ['ID', 'Title', 'Status', 'Priority', 'Created By', 'Assigned To', 'Organization', 'Created', 'Last Activity'];
+    const headers = ['ID', 'Ticket Number', 'Title', 'Status', 'Priority', 'Customer Name', 'Customer Email', 'Created By', 'Assigned To', 'Category', 'Created', 'Updated'];
     const csvContent = [
       headers.join(','),
       ...ticketsToExport.map(ticket => [
         ticket.id,
+        ticket.ticketNumber || '',
         `"${ticket.title}"`,
         ticket.status,
         ticket.priority,
-        `"${ticket.createdBy?.name || ''}"`,
-        `"${ticket.assignedTo?.name || 'Unassigned'}"`,
-        `"${ticket.organization?.name || ''}"`,
+        `"${ticket.customerName}"`,
+        `"${ticket.customerEmail}"`,
+        `"${getFullName(ticket.createdBy)}"`,
+        `"${ticket.assignedAgent ? getFullName(ticket.assignedAgent) : 'Unassigned'}"`,
+        `"${ticket.category?.name || ''}"`,
         formatDate(ticket.createdAt),
-        formatDate(ticket.lastActivity || ticket.updatedAt)
+        formatDate(ticket.updatedAt)
       ].join(','))
     ].join('\n');
 
@@ -702,7 +618,7 @@ export function TicketsTable({
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 p-4">
       {/* Toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -716,7 +632,7 @@ export function TicketsTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              {['OPEN', 'IN_PROGRESS', 'CLOSED'].map((status) => (
+              {['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED'].map((status) => (
                 <DropdownMenuCheckboxItem
                   key={status}
                   className="capitalize"
@@ -744,7 +660,7 @@ export function TicketsTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map((priority) => (
+              {['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'].map((priority) => (
                 <DropdownMenuCheckboxItem
                   key={priority}
                   className="capitalize"
@@ -780,7 +696,7 @@ export function TicketsTable({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {(['OPEN', 'IN_PROGRESS', 'CLOSED'] as const).map((status) => (
+                  {(['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED'] as const).map((status) => (
                     <DropdownMenuItem 
                       key={status}
                       onClick={() => handleBulkStatusChange(status)}

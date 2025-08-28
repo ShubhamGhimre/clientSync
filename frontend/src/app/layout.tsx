@@ -23,7 +23,7 @@ export default function RootLayout({
   }, [initialize]);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
           {children}

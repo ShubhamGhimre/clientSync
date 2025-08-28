@@ -25,7 +25,7 @@ export class RAGService {
     this.documentProcessor = new DocumentProcessorService();
   }
 
-  async initializeChatbotKnowledge(chatBotId: string): Promise<void> {
+  async initializeChatbotKnowledge(chatBotId: string, p0: { onFileStart: (fileName: string) => void; onFileComplete: (fileName: string, processedFiles: number) => void; onChunkingStart: (totalChunks: number) => void; onChunkComplete: (processedChunks: number) => void; onEmbeddingStart: () => void; onComplete: () => void; }): Promise<void> {
     try {
       console.log(`Starting knowledge initialization for chatbot: ${chatBotId}`);
 
