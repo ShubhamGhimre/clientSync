@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
 import axios from '@/lib/axios';
 
-// Types based on your Prisma schema
 export interface Conversation {
   id: string;
   sender: string;
@@ -21,7 +20,6 @@ export interface SendMessagePayload {
   message: string;
 }
 
-// API Response types
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -71,11 +69,6 @@ export function useSendMessage(
       // Invalidate conversations for this chat room
       queryClient.invalidateQueries({ queryKey: ['conversations', variables.chatRoomId] });
       
-      // Optionally update the cache optimistically for better UX
-      // queryClient.setQueryData(['conversations', variables.chatRoomId], (old: Conversation[] | undefined) => {
-      //   return old ? [...old, data] : [data];
-      // });
-      
       options?.onSuccess?.(data, variables, context);
     },
     ...options,
@@ -107,7 +100,6 @@ export function useClearConversations(
   });
 }
 
-// Additional utility hook for optimistic updates
 export function useOptimisticSendMessage(
   options?: UseMutationOptions<Conversation, Error, SendMessagePayload>
 ) {
@@ -128,7 +120,7 @@ export function useOptimisticSendMessage(
       // Snapshot the previous value
       const previousConversations = queryClient.getQueryData<Conversation[]>(['conversations', newMessage.chatRoomId]);
       
-      // Optimistically update to the new value
+      // Create optimistic message
       const optimisticMessage: Conversation = {
         id: `temp-${Date.now()}`,
         sender: newMessage.sender,
@@ -137,32 +129,48 @@ export function useOptimisticSendMessage(
         chatRoomId: newMessage.chatRoomId,
       };
       
+      // Safely update by checking if currentConversations is an array
       queryClient.setQueryData(
         ['conversations', newMessage.chatRoomId],
-        (old: Conversation[] | undefined) => Array.isArray(old) ? [...old, optimisticMessage] : [optimisticMessage]
+        (old: Conversation[] | undefined) => {
+          // Ensure we have an array to work with
+          const currentConversations = Array.isArray(old) ? old : [];
+          return [...currentConversations, optimisticMessage];
+        }
       );
       
-      // Return a context object with the snapshotted value
+      // Return context for rollback
       return { previousConversations, optimisticMessage };
     },
-    // onError: (
-    //   err,
-    //   newMessage,
-    //   context: unknown
-    // ) => {
-    //   // Safely cast context to the expected type
-    //   const ctx = context as { previousConversations?: Conversation[]; optimisticMessage?: Conversation } | undefined;
-    //   // If the mutation fails, use the context returned from onMutate to roll back
-    //   if (ctx?.previousConversations) {
-    //     queryClient.setQueryData(['conversations', newMessage.chatRoomId], ctx.previousConversations);
-    //   }
-    //   options?.onError?.(err, newMessage, ctx);
-    // },
-    // onSettled: (data, error, variables) => {
-    //   // Always refetch after error or success to sync with server
-    //   queryClient.invalidateQueries({ queryKey: ['conversations', variables.chatRoomId] });
-    //   options?.onSettled?.(data, error, variables);
-    // },
-    // ...options,
+    onError: (
+      err,
+      newMessage,
+      context
+    ) => {
+      // Safely cast context and rollback on error
+      const ctx = context as { previousConversations?: Conversation[]; optimisticMessage?: Conversation } | undefined;
+      
+      if (ctx?.previousConversations !== undefined) {
+        queryClient.setQueryData(['conversations', newMessage.chatRoomId], ctx.previousConversations);
+      }
+      
+      options?.onError?.(err, newMessage, context);
+    },
+    onSuccess: (data, variables, context) => {
+      // Remove the temporary optimistic message and let the real data from refetch take over
+      const currentConversations = queryClient.getQueryData<Conversation[]>(['conversations', variables.chatRoomId]);
+      
+      if (currentConversations && Array.isArray(currentConversations)) {
+        // Filter out temp messages and let the invalidation handle the rest
+        const withoutTemp = currentConversations.filter(conv => !conv.id.startsWith('temp-'));
+        queryClient.setQueryData(['conversations', variables.chatRoomId], withoutTemp);
+      }
+      
+      // Invalidate to ensure we get the latest data from server
+      queryClient.invalidateQueries({ queryKey: ['conversations', variables.chatRoomId] });
+      
+      options?.onSuccess?.(data, variables, context);
+    },
+    ...options,
   });
 }

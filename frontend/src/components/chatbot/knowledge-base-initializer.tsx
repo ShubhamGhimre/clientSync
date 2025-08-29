@@ -35,7 +35,7 @@ interface File {
   id: string;
   fileName?: string;
   name?: string;
-  fileType?: string;
+  fileType?: string | null;
   fileSize?: number;
   processed?: boolean;
 }
