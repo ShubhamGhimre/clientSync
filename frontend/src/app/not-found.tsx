@@ -40,10 +40,10 @@ export default function Custom404() {
         <main className="auth-layout">
             <div className="hero-glow" aria-hidden="true" />
 
-            <div className="notfound-card pos-rel z-mid stack g-8 center">
-                <div className="stack-sm center">
+            <div className="w-full max-w-md text-center relative z-10 stack gap-8 flex items-center justify-center">
+                <div className="flex flex-col gap-2 items-center justify-center">
                     <p
-                        className="gradient-text notfound-code"
+                        className="gradient-text select-none text-9xl font-extrabold text-muted"
                         aria-hidden="true"
                     >
                         404
@@ -54,7 +54,7 @@ export default function Custom404() {
                     </p>
                 </div>
 
-                <div className="notfound-actions">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                     <button type="button" onClick={handleGoBack} className="btn btn-brand">
                         <ArrowLeft />
                         Go back
@@ -66,17 +66,17 @@ export default function Custom404() {
                 </div>
 
                 {/* Auto-redirect */}
-                <div className="surface surface-pad full-w">
+                <div className="surface surface-pad w-full">
                     {paused ? (
-                        <div className="row-between g-3">
-                            <p className="t-sm t-muted">Redirect cancelled.</p>
+                        <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm text-muted-foreground">Redirect cancelled.</p>
                         </div>
                     ) : (
                         <>
-                            <div className="row-between g-3">
-                                <p className="t-sm t-muted" role="timer">
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm text-muted-foreground" role="timer">
                                     Redirecting to the dashboard in{' '}
-                                    <span className="t-semibold tabular">
+                                    <span className="font-semibold tabular">
                                         {countdown}
                                     </span>{' '}
                                     {countdown === 1 ? 'second' : 'seconds'}
@@ -89,7 +89,7 @@ export default function Custom404() {
                                     Stay here
                                 </button>
                             </div>
-                            <div className="progress space-t-3" aria-hidden="true">
+                            <div className="progress mt-3" aria-hidden="true">
                                 <span
                                     style={{
                                         width: `${((REDIRECT_SECONDS - countdown) / REDIRECT_SECONDS) * 100}%`,
@@ -100,9 +100,9 @@ export default function Custom404() {
                     )}
                 </div>
 
-                <nav className="full-w border-top pad-y-6" aria-label="Common pages">
-                    <p className="field-hint space-b-3">Looking for something else?</p>
-                    <div className="cluster center g-6">
+                <nav className="w-full border-t py-6" aria-label="Common pages">
+                    <p className="field-hint mb-3">Looking for something else?</p>
+                    <div className="cluster flex items-center justify-center gap-6">
                         <Link href="/auth/login" className="btn btn-link">
                             Log in
                         </Link>
