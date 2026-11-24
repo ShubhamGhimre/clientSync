@@ -256,20 +256,20 @@ export default function UsersPage() {
   // Error handling
   if (usersError || statsError) {
     return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
+      <div className="stack g-6 pad-6">
+        <div className="row-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-            <p className="text-muted-foreground">Manage user accounts and permissions</p>
+            <h1 className="t-3xl t-bold t-tight">Users</h1>
+            <p className="t-muted">Manage user accounts and permissions</p>
           </div>
           <Button onClick={handleRefresh} variant="outline">
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="space-r-2 ico" />
             Retry
           </Button>
         </div>
         
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="ico" />
           <AlertDescription>
             Failed to load users data. {usersError?.message || statsError?.message}
           </AlertDescription>
@@ -279,23 +279,23 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-gray-50 to-white dark:from-[#18181b] dark:to-[#23232a] min-h-screen">
+    <div className="page stack g-8 screen-h">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="page-toolbar">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">Users</h1>
-          <p className="text-muted-foreground text-base mt-1">
+          <h1 className="page-title">Users</h1>
+          <p className="page-subtitle">
             Manage user accounts and permissions
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="page-actions">
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoadingAny}>
-            <RefreshCw className={cn("mr-2 h-4 w-4", isLoadingAny && "animate-spin")} />
+            <RefreshCw className={cn("space-r-2 ico", isLoadingAny && "spin")} />
             Refresh
           </Button>
           {isAdmin && (
-            <Button onClick={handleUserInvite} disabled={isMutating} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md">
-              <UserPlus className="mr-2 h-4 w-4" />
+            <Button onClick={handleUserInvite} disabled={isMutating} className="btn btn-brand">
+              <UserPlus className="space-r-2 ico" />
               Invite User
             </Button>
           )}
@@ -303,75 +303,75 @@ export default function UsersPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-6 md:grid-cols-4">
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-gray-100 dark:from-[#23232a] dark:to-[#18181b]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-200">Total Users</CardTitle>
-            <Users className="h-5 w-5 text-blue-500" />
+      <div className="grid-stats">
+        <Card className="surface">
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-semibold">Total Users</CardTitle>
+            <Users className="ico-lg t-brand" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="h-7 w-7 animate-spin" />
+                <Loader2 className="ico-xl spin" />
               ) : (
                 stats?.total || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="t-xs t-muted space-t-1">
               {statsLoading ? '...' : `${stats?.active || 0} active users`}
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-gray-100 dark:from-[#23232a] dark:to-[#18181b]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-200">Active Users</CardTitle>
-            <UserCheck className="h-5 w-5 text-green-500" />
+        <Card className="surface">
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-semibold">Active Users</CardTitle>
+            <UserCheck className="ico-lg t-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="h-7 w-7 animate-spin" />
+                <Loader2 className="ico-xl spin" />
               ) : (
                 stats?.active || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="t-xs t-muted space-t-1">
               {statsLoading || !stats ? '...' : `${Math.round((stats.active / stats.total) * 100)}% of total`}
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-gray-100 dark:from-[#23232a] dark:to-[#18181b]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-200">Admins</CardTitle>
-            <Shield className="h-5 w-5 text-blue-600" />
+        <Card className="surface">
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-semibold">Admins</CardTitle>
+            <Shield className="ico-lg t-brand" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="h-7 w-7 animate-spin" />
+                <Loader2 className="ico-xl spin" />
               ) : (
                 stats?.byRole?.ADMIN || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="t-xs t-muted space-t-1">
               Administrative access
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-gray-100 dark:from-[#23232a] dark:to-[#18181b]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-200">Agents</CardTitle>
-            <UserCheck className="h-5 w-5 text-purple-600" />
+        <Card className="surface">
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-semibold">Agents</CardTitle>
+            <UserCheck className="ico-lg t-ai" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="h-7 w-7 animate-spin" />
+                <Loader2 className="ico-xl spin" />
               ) : (
                 stats?.byRole?.AGENT || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="t-xs t-muted space-t-1">
               Support agents
             </p>
           </CardContent>
@@ -379,22 +379,22 @@ export default function UsersPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="page-toolbar">
+        <div className="search-wrap toolbar-search flex-fill">
+          <Search className="search-icon" />
           <Input
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10 rounded-lg border-gray-200 dark:border-gray-700 shadow-sm"
+            className="search-input"
             disabled={usersLoading}
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="filter-bar">
           <Button
             variant={roleFilter === undefined ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setRoleFilter(undefined); setCurrentPage(1); }}
             disabled={usersLoading}
           >
@@ -403,39 +403,39 @@ export default function UsersPage() {
           <Button
             variant={roleFilter === 'ADMIN' ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setRoleFilter('ADMIN'); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <Shield className="h-3 w-3 mr-1" />
+            <Shield className="ico-xs space-r-1" />
             Admin
           </Button>
           <Button
             variant={roleFilter === 'AGENT' ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setRoleFilter('AGENT'); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <UserCheck className="h-3 w-3 mr-1" />
+            <UserCheck className="ico-xs space-r-1" />
             Agent
           </Button>
           <Button
             variant={roleFilter === 'VIEWER' ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setRoleFilter('VIEWER'); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <Eye className="h-3 w-3 mr-1" />
+            <Eye className="ico-xs space-r-1" />
             Viewer
           </Button>
         </div>
-        <div className="flex gap-2">
+        <div className="cluster">
           <Button
             variant={statusFilter === undefined ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setStatusFilter(undefined); setCurrentPage(1); }}
             disabled={usersLoading}
           >
@@ -444,34 +444,34 @@ export default function UsersPage() {
           <Button
             variant={statusFilter === true ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setStatusFilter(true); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <UserCheck className="h-3 w-3 mr-1" />
+            <UserCheck className="ico-xs space-r-1" />
             Active
           </Button>
           <Button
             variant={statusFilter === false ? "default" : "outline"}
             size="sm"
-            className="rounded-full"
+            className="shape-round"
             onClick={() => { setStatusFilter(false); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <UserX className="h-3 w-3 mr-1" />
+            <UserX className="ico-xs space-r-1" />
             Inactive
           </Button>
         </div>
       </div>
 
       {/* Users Table */}
-      <Card className="shadow-md border-0">
+      <Card className="surface-raised">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">User Management</CardTitle>
+          <CardTitle className="section-title">User Management</CardTitle>
           <CardDescription>
             View and manage all users in your organization
             {pagination && (
-              <span className="ml-2">
+              <span className="space-l-2">
                 ({pagination.total} total users)
               </span>
             )}
@@ -498,32 +498,32 @@ export default function UsersPage() {
 
       {/* Recent Activity */}
       {stats?.recentlyJoined && stats.recentlyJoined.length > 0 && (
-        <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-gray-100 dark:from-[#23232a] dark:to-[#18181b]">
+        <Card className="surface">
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Recent Additions</CardTitle>
+            <CardTitle className="card-title">Recent Additions</CardTitle>
             <CardDescription>
               Users who recently joined your organization
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="stack g-3">
               {stats.recentlyJoined.map((user) => (
-                <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                <div key={user.id} className="list-row">
+                  <div className="list-avatar t-sm t-semibold">
                     {user.firstName[0]}{user.lastName[0]}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
+                  <div className="flex-fill">
+                    <p className="list-title">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="list-meta">
                       {user.email}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-xs flex-shrink-0">
+                  <Badge variant="outline" className="t-xs no-shrink">
                     {user.role}
                   </Badge>
-                  <p className="text-xs text-muted-foreground flex-shrink-0">
+                  <p className="t-xs t-muted no-shrink">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </p>
                 </div>

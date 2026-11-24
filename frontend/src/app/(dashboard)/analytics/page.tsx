@@ -9,18 +9,18 @@ import { BarChart3, MessageSquare, Users, TrendingUp, Clock, Bot } from 'lucide-
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6 p-8">
-      <div className="flex items-center justify-between">
+    <div className="page stack g-6">
+      <div className="row-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Analytics</h1>
+          <p className="t-muted">
             Monitor your chatbot performance and engagement metrics
           </p>
         </div>
       </div>
 
       {/* Metrics Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid-4">
         <MetricsCard
           title="Total Conversations"
           value="12,543"
@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue="overview" className="stack">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
@@ -59,8 +59,8 @@ export default function AnalyticsPage() {
           <TabsTrigger value="satisfaction">Satisfaction</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="overview" className="stack">
+          <div className="grid-2">
             <Card>
               <CardHeader>
                 <CardTitle>Conversation Volume</CardTitle>
@@ -83,7 +83,7 @@ export default function AnalyticsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="conversations" className="space-y-4">
+        <TabsContent value="conversations" className="stack">
           <Card>
             <CardHeader>
               <CardTitle>Conversation Analytics</CardTitle>
@@ -95,8 +95,8 @@ export default function AnalyticsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="performance" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="performance" className="stack">
+          <div className="grid-2">
             <Card>
               <CardHeader>
                 <CardTitle>Response Times</CardTitle>
@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="satisfaction" className="space-y-4">
+        <TabsContent value="satisfaction" className="stack">
           <Card>
             <CardHeader>
               <CardTitle>Customer Satisfaction</CardTitle>

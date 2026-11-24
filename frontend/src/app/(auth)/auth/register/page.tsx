@@ -1,21 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Mail, Lock, User, Building, Check, X, Eye, EyeOff, ArrowRight, Sparkles, Shield, Users, Zap, Building2 } from 'lucide-react';
+import {
+  Loader2, Mail, Lock, User, Building, Check, X, Eye, EyeOff,
+  ArrowRight, Sparkles, MessageSquareText, BookOpen, BarChart3, Building2,
+} from 'lucide-react';
 import { useRegister, useCheckSubdomain } from '@/hooks/api/useAuth';
-import { cn } from '@/lib/utils';
+
+type FormData = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  organizationName: string;
+  subdomain: string;
+};
+
+type SubdomainStatus = 'idle' | 'checking' | 'available' | 'unavailable';
+
+/* Small wrapper so every field gets the same label / error markup */
+function Field({
+  id, label, error, hint, children,
+}: { id: string; label: string; error?: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="field">
+      <label htmlFor={id} className="label">{label}</label>
+      {children}
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="field-error row g-1">
+          <X className="ico-xs" />
+          {error}
+        </p>
+      ) : hint ? (
+        <p className="field-hint">{hint}</p>
+      ) : null}
+    </div>
+  );
+}
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     password: '',
@@ -23,81 +50,72 @@ export default function RegisterPage() {
     organizationName: '',
     subdomain: '',
   });
-  const [subdomainStatus, setSubdomainStatus] = useState<'idle' | 'checking' | 'available' | 'unavailable'>('idle');
+  const [subdomainStatus, setSubdomainStatus] = useState<SubdomainStatus>('idle');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { mutate: register, isPending, error } = useRegister();
-  const { mutate: checkSubdomain, isPending: isCheckingSubdomain } = useCheckSubdomain();
+  const { mutate: checkSubdomain } = useCheckSubdomain();
 
-  // Validate form fields
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
-    // Name validation (should contain at least first name)
+
     if (!formData.name.trim()) {
       errors.name = 'Full name is required';
     } else if (formData.name.trim().length < 2) {
       errors.name = 'Please enter your full name';
     }
-    
-    // Email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!emailRegex.test(formData.email)) {
       errors.email = 'Please enter a valid email address';
     }
-    
-    // Password validation
+
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       errors.password = 'Password must be at least 6 characters';
     }
-    
-    // Confirm password validation
+
     if (!formData.confirmPassword) {
       errors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
-    
-    // Organization name validation
+
     if (!formData.organizationName.trim()) {
       errors.organizationName = 'Organization name is required';
     } else if (formData.organizationName.trim().length < 2) {
       errors.organizationName = 'Organization name must be at least 2 characters';
     }
-    
-    // Subdomain validation
-    const subdomainRegex = /^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$/;
+
+    const subdomainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
     if (!formData.subdomain) {
       errors.subdomain = 'Subdomain is required';
     } else if (!subdomainRegex.test(formData.subdomain)) {
-      errors.subdomain = 'Subdomain can only contain lowercase letters, numbers, and hyphens';
+      errors.subdomain = 'Use lowercase letters, numbers, and hyphens only';
     } else if (formData.subdomain.length < 3) {
       errors.subdomain = 'Subdomain must be at least 3 characters';
     } else if (subdomainStatus !== 'available') {
       errors.subdomain = 'Please choose an available subdomain';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  // Check subdomain availability
   useEffect(() => {
     if (formData.subdomain.length >= 3) {
       setSubdomainStatus('checking');
-      
+
       const timer = setTimeout(() => {
         checkSubdomain(formData.subdomain, {
           onSuccess: (data) => {
-         
             setSubdomainStatus(data.available ? 'available' : 'unavailable');
           },
-          onError: (error) => {
-            console.error('❌ Subdomain check error:', error);
+          onError: (err) => {
+            console.error('Subdomain check error:', err);
             setSubdomainStatus('unavailable');
           },
         });
@@ -109,17 +127,24 @@ export default function RegisterPage() {
     }
   }, [formData.subdomain, checkSubdomain]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    
-    // Validate form
-    if (!validateForm()) {
-      return;
+  /* One handler for every field. Also removes that field's error key
+     (the old version left an empty-string key behind, which kept
+     Object.keys(formErrors).length > 0 and the submit button disabled). */
+  const setField = (key: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
     }
-    
-    
-    // Split name into firstName and lastName
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
     const [firstName, ...rest] = formData.name.trim().split(' ');
     const lastName = rest.join(' ') || '';
     register({
@@ -133,7 +158,7 @@ export default function RegisterPage() {
     });
   };
 
-  const isFormValid = 
+  const isFormValid =
     formData.name.trim() &&
     formData.email &&
     formData.password &&
@@ -146,435 +171,317 @@ export default function RegisterPage() {
     Object.keys(formErrors).length === 0;
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'2\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
-        
-        <div className="relative z-10 flex flex-col justify-center px-12 py-12 text-white">
-          <div className="max-w-md">
-            {/* Logo */}
-            <div className="flex items-center mb-8">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mr-3">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">ClientSync</h1>
-                <p className="text-emerald-100 text-sm">Customer Management Platform</p>
-              </div>
-            </div>
+    <div className="auth-shell">
+      {/* ---------- Brand panel (desktop) ---------- */}
+      <aside className="auth-brand">
+        <div className="inset-fill brand-gradient-alt" />
+        <div className="hero-glow" />
 
-            {/* Heading */}
-            <h2 className="text-4xl font-bold mb-6 leading-tight">
-              Start your
-              <span className="text-yellow-300 block">customer journey</span>
+        <div className="auth-brand-inner">
+          <div className="auth-logo">
+            <span className="auth-logo-mark auth-logo-ghost">
+              <Building2 className="ico-lg" />
+            </span>
+            <span className="t-lg t-semibold">ClientSync</span>
+          </div>
+
+          <div className="auth-form-wrap">
+            <h2 className="auth-title">
+              Answer customers instantly, from your own knowledge base
             </h2>
-            
-            <p className="text-xl text-emerald-100 mb-8 leading-relaxed">
-              Join thousands of businesses using ClientSync to manage and grow their customer relationships.
+            <p className="auth-lead">
+              Train an AI assistant on your docs, put it on your site, and hand off to your team when it matters.
             </p>
 
-            {/* Feature Pills */}
-            <div className="space-y-4">
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <Users className="h-5 w-5 text-blue-300 mr-3" />
-                <span className="text-sm">Unlimited customer records</span>
-              </div>
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <Zap className="h-5 w-5 text-yellow-300 mr-3" />
-                <span className="text-sm">Real-time analytics</span>
-              </div>
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <Shield className="h-5 w-5 text-green-300 mr-3" />
-                <span className="text-sm">Bank-level security</span>
-              </div>
-            </div>
-
-            {/* Stats */}
-           
-          </div>
-        </div>
-
-        {/* Floating Elements */}
-        <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute bottom-40 right-40 w-24 h-24 bg-cyan-300/20 rounded-full blur-xl"></div>
-        <div className="absolute top-1/2 right-10 w-16 h-16 bg-emerald-300/30 rounded-full blur-lg"></div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 lg:px-8">
-        <div className="w-full max-w-lg">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center mb-8">
-            <div className="bg-emerald-600 rounded-xl p-3 mr-3">
-              <Building2 className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">ClientSync</h1>
-              <p className="text-sm text-gray-600">Get Started</p>
-            </div>
-          </div>
-
-          <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
-            <CardHeader className="space-y-1 pb-6">
-              <CardTitle className="text-2xl font-bold text-center text-gray-900 flex items-center justify-center gap-2">
-                <Sparkles className="h-6 w-6 text-emerald-600" />
-                Create your account
-              </CardTitle>
-              <CardDescription className="text-center text-gray-600">
-                Start managing your customers in minutes
-              </CardDescription>
-            </CardHeader>
-            
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-6 px-6">
-                {error && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">
-                      {(error as any).message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-                
-                {/* Personal Information */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <User className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm font-medium text-gray-700">Personal Information</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                        Full Name *
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="name"
-                          placeholder="John Doe"
-                          value={formData.name}
-                          onChange={(e) => {
-                            setFormData(prev => ({ ...prev, name: e.target.value }));
-                            if (formErrors.name) {
-                              setFormErrors(prev => ({ ...prev, name: '' }));
-                            }
-                          }}
-                          className={cn(
-                            "pl-10 h-12 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-colors",
-                            formErrors.name && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          )}
-                          required
-                          disabled={isPending}
-                        />
-                      </div>
-                      {formErrors.name && (
-                        <p className="text-sm text-red-600 flex items-center gap-1">
-                          <X className="h-3 w-3" />
-                          {formErrors.name}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                        Email Address *
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="john@company.com"
-                          value={formData.email}
-                          onChange={(e) => {
-                            setFormData(prev => ({ ...prev, email: e.target.value }));
-                            if (formErrors.email) {
-                              setFormErrors(prev => ({ ...prev, email: '' }));
-                            }
-                          }}
-                          className={cn(
-                            "pl-10 h-12 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-colors",
-                            formErrors.email && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          )}
-                          required
-                          disabled={isPending}
-                        />
-                      </div>
-                      {formErrors.email && (
-                        <p className="text-sm text-red-600 flex items-center gap-1">
-                          <X className="h-3 w-3" />
-                          {formErrors.email}
-                        </p>
-                      )}
-                    </div>
+            {/* Product preview: uses the real chat classes */}
+            <div className="col g-3 space-t-8" aria-hidden="true">
+              <div className="msg msg-user">
+                  <div className="msg-body">
+                   <div className="msg-bubble t-onbrand">
+                     How do I change my billing email?
                   </div>
                 </div>
+              </div>
+              <div className="msg msg-bot">
+                <span className="avatar avatar-sm avatar-ai">AI</span>
+                <div className="msg-body">
+                  <div className="msg-bubble">
+                    Go to Settings → Billing and edit the contact email. Changes apply to your next invoice.
+                  </div>
+                  <div className="source-list">
+                    <span className="source-chip">Billing guide.pdf</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Organization Information */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Building className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm font-medium text-gray-700">Organization Details</span>
+          <ul className="auth-feature-list">
+            <li>
+              <MessageSquareText className="ico" />
+              Embeddable chat widget with human handoff
+            </li>
+            <li>
+              <BookOpen className="ico" />
+              Upload PDFs, DOCX, TXT and CSV files
+            </li>
+            <li>
+              <BarChart3 className="ico" />
+              Track resolution rate and satisfaction
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      {/* ---------- Form panel ---------- */}
+      <main className="auth-form-panel">
+        <div className="auth-form-wrap-wide">
+          <div className="auth-mobile-logo">
+            <span className="auth-logo-mark auth-logo-solid">
+              <Building2 className="ico-lg" />
+            </span>
+            <span className="t-xl t-semibold">ClientSync</span>
+          </div>
+
+          <div className="surface-raised">
+            <div className="auth-card-head">
+              <h1 className="auth-card-title">
+                <Sparkles className="ico-lg t-brand" />
+                Create your account
+              </h1>
+              <p className="auth-card-sub">
+                Set up your AI support assistant in a few minutes
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="auth-card-body">
+                {error && (
+                  <div role="alert" className="callout callout-danger">
+                    <X className="space-t-0.5 ico t-danger" />
+                    <span className="t-danger">
+                      {(error as { message?: string })?.message}
+                    </span>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="organizationName" className="text-sm font-medium text-gray-700">
-                      Organization Name *
-                    </Label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="organizationName"
-                        placeholder="Acme Corporation"
-                        value={formData.organizationName}
-                        onChange={(e) => {
-                          setFormData(prev => ({ ...prev, organizationName: e.target.value }));
-                          if (formErrors.organizationName) {
-                            setFormErrors(prev => ({ ...prev, organizationName: '' }));
-                          }
-                        }}
-                        className={cn(
-                          "pl-10 h-12 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-colors",
-                          formErrors.organizationName && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                        )}
-                        required
-                        disabled={isPending}
-                      />
-                    </div>
-                    {formErrors.organizationName && (
-                      <p className="text-sm text-red-600 flex items-center gap-1">
-                        <X className="h-3 w-3" />
-                        {formErrors.organizationName}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="subdomain" className="text-sm font-medium text-gray-700">
-                      Choose your subdomain *
-                    </Label>
-                    <div className={cn(
-                      "flex rounded-lg overflow-hidden border border-gray-200 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-colors",
-                      formErrors.subdomain && "border-red-300 focus-within:border-red-500 focus-within:ring-red-500"
-                    )}>
-                      <Input
-                        id="subdomain"
-                        placeholder="acme"
-                        value={formData.subdomain}
-                        onChange={(e) => {
-                          const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                          setFormData(prev => ({ ...prev, subdomain: value }));
-                          if (formErrors.subdomain) {
-                            setFormErrors(prev => ({ ...prev, subdomain: '' }));
-                          }
-                        }}
-                        className="border-0 rounded-none h-12 focus:ring-0 focus:border-0"
-                        required
-                        disabled={isPending}
-                      />
-                      <div className="flex items-center px-4 bg-gray-50 border-l">
-                        <span className="text-sm text-gray-600 font-medium">.clientsync.com</span>
+                )}
+
+                {/* Personal */}
+                <fieldset className="stack">
+                  <legend className="auth-legend">
+                    <User className="ico t-brand" />
+                    Personal information
+                  </legend>
+
+                  <div className="auth-field-grid">
+                    <Field id="name" label="Full name" error={formErrors.name}>
+                      <div className="input-wrap">
+                        <User className="input-icon" />
+                        <input
+                          id="name"
+                          className="input"
+                          placeholder="John Doe"
+                          autoComplete="name"
+                          value={formData.name}
+                          onChange={(e) => setField('name', e.target.value)}
+                          aria-invalid={!!formErrors.name}
+                          disabled={isPending}
+                        />
                       </div>
+                    </Field>
+
+                    <Field id="email" label="Work email" error={formErrors.email}>
+                      <div className="input-wrap">
+                        <Mail className="input-icon" />
+                        <input
+                          id="email"
+                          type="email"
+                          className="input"
+                          placeholder="john@company.com"
+                          autoComplete="email"
+                          value={formData.email}
+                          onChange={(e) => setField('email', e.target.value)}
+                          aria-invalid={!!formErrors.email}
+                          disabled={isPending}
+                        />
+                      </div>
+                    </Field>
+                  </div>
+                </fieldset>
+
+                {/* Organization */}
+                <fieldset className="stack">
+                  <legend className="auth-legend">
+                    <Building className="ico t-brand" />
+                    Organization
+                  </legend>
+
+                  <Field id="organizationName" label="Organization name" error={formErrors.organizationName}>
+                    <div className="input-wrap">
+                      <Building className="input-icon" />
+                      <input
+                        id="organizationName"
+                        className="input"
+                        placeholder="Acme Corporation"
+                        autoComplete="organization"
+                        value={formData.organizationName}
+                        onChange={(e) => setField('organizationName', e.target.value)}
+                        aria-invalid={!!formErrors.organizationName}
+                        disabled={isPending}
+                      />
                     </div>
-                    
+                  </Field>
+
+                  <Field
+                    id="subdomain"
+                    label="Your workspace address"
+                    error={formErrors.subdomain}
+                    hint="Customers and your team will use this to reach your workspace."
+                  >
+                    <div className={`input-group ${formErrors.subdomain ? 'is-invalid' : ''}`}>
+                      <input
+                        id="subdomain"
+                        className="input"
+                        placeholder="acme"
+                        autoComplete="off"
+                        value={formData.subdomain}
+                        onChange={(e) =>
+                          setField('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
+                        }
+                        disabled={isPending}
+                      />
+                      <span className="input-addon">.clientsync.com</span>
+                    </div>
+
                     {formData.subdomain && (
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="auth-subdomain-status" aria-live="polite">
                         {subdomainStatus === 'checking' && (
                           <>
-                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                            <span className="text-sm text-gray-600">Checking availability...</span>
+                            <Loader2 className="ico spin t-muted" />
+                            <span className="t-sm t-muted">Checking availability…</span>
                           </>
                         )}
                         {subdomainStatus === 'available' && (
-                          <>
-                            <Check className="h-4 w-4 text-emerald-600" />
-                            <Badge variant="outline" className="text-emerald-600 border-emerald-600 bg-emerald-50">
-                              Available
-                            </Badge>
-                          </>
+                          <span className="badge badge-success">
+                            <Check className="ico-xs" />
+                            Available
+                          </span>
                         )}
                         {subdomainStatus === 'unavailable' && (
-                          <>
-                            <X className="h-4 w-4 text-red-600" />
-                            <Badge variant="outline" className="text-red-600 border-red-600 bg-red-50">
-                              Not available
-                            </Badge>
-                          </>
+                          <span className="badge badge-danger">
+                            <X className="ico-xs" />
+                            Not available
+                          </span>
                         )}
                       </div>
                     )}
-                    
-                    {formErrors.subdomain && (
-                      <p className="text-sm text-red-600 flex items-center gap-1">
-                        <X className="h-3 w-3" />
-                        {formErrors.subdomain}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  </Field>
+                </fieldset>
 
                 {/* Security */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Lock className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm font-medium text-gray-700">Security</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                        Password *
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                        <Input
+                <fieldset className="stack">
+                  <legend className="auth-legend">
+                    <Lock className="ico t-brand" />
+                    Security
+                  </legend>
+
+                  <div className="auth-field-grid">
+                    <Field id="password" label="Password" error={formErrors.password}>
+                      <div className="input-wrap has-action">
+                        <Lock className="input-icon" />
+                        <input
                           id="password"
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Create password"
+                          className="input"
+                          placeholder="At least 6 characters"
+                          autoComplete="new-password"
                           value={formData.password}
-                          onChange={(e) => {
-                            setFormData(prev => ({ ...prev, password: e.target.value }));
-                            if (formErrors.password) {
-                              setFormErrors(prev => ({ ...prev, password: '' }));
-                            }
-                          }}
-                          className={cn(
-                            "pl-10 pr-10 h-12 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-colors",
-                            formErrors.password && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          )}
-                          required
+                          onChange={(e) => setField('password', e.target.value)}
+                          aria-invalid={!!formErrors.password}
                           disabled={isPending}
                         />
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
-                          onClick={() => setShowPassword(!showPassword)}
+                          className="input-action"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
                           disabled={isPending}
                         >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-gray-400" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-gray-400" />
-                          )}
-                        </Button>
+                          {showPassword ? <EyeOff className="ico" /> : <Eye className="ico" />}
+                        </button>
                       </div>
-                      {formErrors.password && (
-                        <p className="text-sm text-red-600 flex items-center gap-1">
-                          <X className="h-3 w-3" />
-                          {formErrors.password}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                        Confirm Password *
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                        <Input
+                    </Field>
+
+                    <Field id="confirmPassword" label="Confirm password" error={formErrors.confirmPassword}>
+                      <div className="input-wrap has-action">
+                        <Lock className="input-icon" />
+                        <input
                           id="confirmPassword"
                           type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirm password"
+                          className="input"
+                          placeholder="Repeat password"
+                          autoComplete="new-password"
                           value={formData.confirmPassword}
-                          onChange={(e) => {
-                            setFormData(prev => ({ ...prev, confirmPassword: e.target.value }));
-                            if (formErrors.confirmPassword) {
-                              setFormErrors(prev => ({ ...prev, confirmPassword: '' }));
-                            }
-                          }}
-                          className={cn(
-                            "pl-10 pr-10 h-12 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-colors",
-                            formErrors.confirmPassword && "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          )}
-                          required
+                          onChange={(e) => setField('confirmPassword', e.target.value)}
+                          aria-invalid={!!formErrors.confirmPassword}
                           disabled={isPending}
                         />
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="input-action"
+                          onClick={() => setShowConfirmPassword((v) => !v)}
+                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                           disabled={isPending}
                         >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-gray-400" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-gray-400" />
-                          )}
-                        </Button>
+                          {showConfirmPassword ? <EyeOff className="ico" /> : <Eye className="ico" />}
+                        </button>
                       </div>
-                      {formErrors.confirmPassword && (
-                        <p className="text-sm text-red-600 flex items-center gap-1">
-                          <X className="h-3 w-3" />
-                          {formErrors.confirmPassword}
-                        </p>
-                      )}
-                    </div>
+                    </Field>
                   </div>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="px-6 pt-4 pb-6">
-                <div className="w-full space-y-4">
-                  <Button 
-                    type="submit" 
-                    className={cn(
-                      "w-full h-12 font-medium transition-all duration-200 shadow-lg hover:shadow-xl group",
-                      isFormValid 
-                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white" 
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    )}
-                    disabled={isPending || !isFormValid}
-                  >
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      <>
-                        Create account
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </Button>
-                  
-                  <div className="text-center">
-                    <span className="text-sm text-gray-600">Already have an account? </span>
-                    <Link 
-                      href="/auth/login" 
-                      className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
-                    >
-                      Sign in instead
-                    </Link>
-                  </div>
-                </div>
-              </CardFooter>
-            </form>
-          </Card>
+                </fieldset>
+              </div>
 
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-xs text-gray-500">
-              By creating an account, you agree to our 
-              <Link href="/terms" className="hover:text-gray-700 transition-colors mx-1">
-                Terms of Service
-              </Link>
-              and
-              <Link href="/privacy" className="hover:text-gray-700 transition-colors ml-1">
-                Privacy Policy
-              </Link>
-            </p>
+              <div className="auth-card-foot">
+                <button
+                  type="submit"
+                  className="btn btn-brand btn-lg full-w"
+                  disabled={isPending || !isFormValid}
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="spin" />
+                      Creating account…
+                    </>
+                  ) : (
+                    <>
+                      Create account
+                      <ArrowRight />
+                    </>
+                  )}
+                </button>
+
+                <p className="align-center t-sm t-muted">
+                  Already have an account?{' '}
+                  <Link href="/auth/login" className="t-medium t-brand t-hover-underline">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </form>
           </div>
+
+          <p className="auth-legal">
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="t-underline t-hover-underline">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="t-underline t-hover-underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

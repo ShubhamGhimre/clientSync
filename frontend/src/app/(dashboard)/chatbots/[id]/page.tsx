@@ -1,342 +1,265 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { FilesTable } from '@/components/tables/files-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  ArrowLeft, 
-  Bot, 
-  FileText, 
-  MessageSquare, 
-  Settings, 
+import Link from 'next/link';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  ArrowLeft,
+  Bot,
+  FileText,
+  MessageSquare,
+  Settings,
   Upload,
-  Play,
-  Pause,
-  BarChart3,
-  Sparkles,
-  Activity,
   Database,
-  Zap
-} from 'lucide-react'
-import Link from 'next/link'
-import { FileUpload } from '@/components/file-upload/file-upload'
-import { ChatInterface } from '@/components/chatbot/chat-interface'
-
+  Sparkles,
+  CheckCircle2,
+  type LucideIcon,
+} from 'lucide-react';
+import { FilesTable } from '@/components/tables/files-table';
+import { FileUpload } from '@/components/file-upload/file-upload';
+import { ChatInterface } from '@/components/chatbot/chat-interface';
+import KnowledgeBaseInitializer from '@/components/chatbot/knowledge-base-initializer';
 import { useChatBot } from '@/hooks/api/useChatBots';
-import { useParams, useRouter } from 'next/navigation'
-import KnowledgeBaseInitializer from '@/components/chatbot/knowledge-base-initializer'
+
+const TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'files', label: 'Files' },
+  { id: 'knowledge', label: 'Knowledge base' },
+  { id: 'chat', label: 'Chat' },
+  { id: 'analytics', label: 'Analytics' },
+] as const;
+
+type TabId = (typeof TABS)[number]['id'];
+
+function Stat({
+  label,
+  value,
+  note,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  note: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="stat-card">
+      <div className="row-between">
+        <span className="stat-label">{label}</span>
+        <Icon className="ico t-muted" />
+      </div>
+      <span className="stat-value">{value}</span>
+      <span className="field-hint">{note}</span>
+    </div>
+  );
+}
 
 export default function ChatbotDetailPage() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const {id} = useParams()
-  const { data, isLoading, error } = useChatBot(id as string);
-  const chatbot = data?.data;
+  const { id } = useParams();
+  const chatbotId = id as string;
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const handleChatStart = () => {
-    router.push(`/chatbots/${id}/chats`);
-  }
+  const { data, isLoading, error } = useChatBot(chatbotId);
+  const chatbot = data?.data;
 
+  // The active tab lives in the URL, so ?tab=knowledge (used after creating a bot) works
+  // and tabs can be linked to or reloaded.
+  const tabParam = searchParams.get('tab');
+  const activeTab: TabId = TABS.some((t) => t.id === tabParam) ? (tabParam as TabId) : 'overview';
+  const setTab = (tab: TabId) => router.replace(`${pathname}?tab=${tab}`, { scroll: false });
+
+  /* ---------- Loading ---------- */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50/50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-slate-200 rounded-lg w-48"></div>
-            <div className="h-12 bg-slate-200 rounded-lg w-full"></div>
-            <div className="grid grid-cols-4 gap-6">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="h-32 bg-slate-200 rounded-xl"></div>
-              ))}
-            </div>
+      <div className="page" aria-busy="true">
+        <div className="skeleton space-b-6" />
+        <div className="page-header">
+          <div className="stack-sm">
+            <div className="skeleton" />
+            <div className="skeleton" />
           </div>
+          <div className="skeleton" />
+        </div>
+        <div className="skeleton space-b-6" />
+        <div className="grid-stats">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="skeleton" />
+          ))}
         </div>
       </div>
     );
   }
-  
+
+  /* ---------- Error ---------- */
   if (error || !chatbot) {
     return (
-      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Bot className="w-8 h-8 text-red-500" />
+      <div className="page-narrow">
+        <div className="empty-state">
+          <span className="doc-icon">
+            <Bot className="ico-xl" />
+          </span>
+          <h1 className="empty-state-title">Couldn&apos;t load this chatbot</h1>
+          <p className="empty-state-text">
+            It may have been deleted, or something went wrong. Try again, or go back to your chatbots.
+          </p>
+          <div className="cluster">
+            <button type="button" className="btn btn-secondary" onClick={() => window.location.reload()}>
+              Try again
+            </button>
+            <Link href="/chatbots" className="btn btn-ghost">
+              Back to chatbots
+            </Link>
           </div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Failed to load chatbot</h2>
-          <p className="text-slate-600">Please try refreshing the page or contact support.</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50/50">
-      {/* Header Section */}
-      <div className="bg-white border-b border-slate-200/60">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          {/* Breadcrumb */}
-          <div className="mb-6">
-            <Button variant="ghost" size="sm" asChild className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 -ml-2">
-              <Link href="/chatbots">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Chatbots
-              </Link>
-            </Button>
-          </div>
+  const ready = chatbot.isKnowledgeInitialized;
 
-          {/* Main Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <Bot className="h-8 w-8 text-white" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold text-slate-900">{chatbot.name}</h1>
-                  <Badge 
-                    variant={chatbot.isKnowledgeInitialized ? 'default' : 'secondary'}
-                    className={`px-3 py-1 text-sm font-medium ${
-                      chatbot.isKnowledgeInitialized 
-                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-                        : 'bg-amber-100 text-amber-700 border-amber-200'
-                    }`}
-                  >
-                    {chatbot.isKnowledgeInitialized ? (
-                      <>
-                        <Zap className="w-3 h-3 mr-1.5" />
-                        Active
-                      </>
-                    ) : (
-                      <>
-                        <Activity className="w-3 h-3 mr-1.5" />
-                        Inactive
-                      </>
-                    )}
-                  </Badge>
-                </div>
-                <p className="text-slate-600 text-lg max-w-2xl">{chatbot.description}</p>
-              </div>
+  return (
+    <div className="page">
+      <Link href="/chatbots" className="btn btn-ghost btn-sm space-b-4">
+        <ArrowLeft />
+        Chatbots
+      </Link>
+
+      {/* Header */}
+      <header className="page-header">
+        <div className="row-start min-zero g-4">
+          <span className="doc-icon">
+            <Bot className="ico-xl" />
+          </span>
+          <div className="min-zero">
+            <div className="cluster g-3">
+              <h1 className="page-title ellipsis">{chatbot.name}</h1>
+              <span className={`badge ${ready ? 'badge-success' : 'badge-warning'}`}>
+                <span className={`status-dot ${ready ? 'is-online' : 'is-busy'}`} />
+                {ready ? 'Ready' : 'Setup pending'}
+              </span>
             </div>
-            
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="default" className="border-slate-200 hover:bg-slate-50">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button size="default" className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25" onClick={
-                handleChatStart
-              }>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Start Chat
-              </Button>
-            </div>
+            {chatbot.description && <p className="page-subtitle">{chatbot.description}</p>}
           </div>
+        </div>
+
+        <div className="cluster">
+          <Link href={`/chatbots/${chatbotId}/edit`} className="btn btn-secondary">
+            <Settings />
+            Settings
+          </Link>
+          <Link href={`/chatbots/${chatbotId}/chats`} className="btn btn-brand">
+            <MessageSquare />
+            Start chat
+          </Link>
+        </div>
+      </header>
+
+      {/* Tabs */}
+      <div className="space-b-6 scroll-x">
+        <div className="tabs" role="tablist" aria-label="Chatbot sections">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
+              className="tab ellipsis"
+              onClick={() => setTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          {/* Modern Tab Navigation */}
-          <TabsList className="h-12 p-1 bg-white border border-slate-200/60 shadow-sm rounded-xl">
-            <TabsTrigger 
-              value="overview" 
-              className="px-6 py-2 text-sm font-medium data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-lg transition-all"
-            >
-              Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="files" 
-              className="px-6 py-2 text-sm font-medium data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-lg transition-all"
-            >
-              Files
-            </TabsTrigger>
-            <TabsTrigger 
-              value="knowledge" 
-              className="px-6 py-2 text-sm font-medium data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-lg transition-all"
-            >
-              Knowledge Base
-            </TabsTrigger>
-            <TabsTrigger 
-              value="chat" 
-              className="px-6 py-2 text-sm font-medium data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-lg transition-all"
-            >
-              Chat
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              className="px-6 py-2 text-sm font-medium data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-lg transition-all"
-            >
-              Analytics
-            </TabsTrigger>
-          </TabsList>
+      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+        {activeTab === 'overview' && (
+          <div className="stack-lg">
+            <section className="grid-stats">
+              <Stat
+                label="Knowledge chunks"
+                value={chatbot.totalChunks?.toLocaleString() || '0'}
+                note="Searchable pieces of your documents"
+                icon={Database}
+              />
+              <Stat
+                label="Conversations"
+                value={chatbot._count?.chatRooms ?? 0}
+                note="Chat rooms with this chatbot"
+                icon={MessageSquare}
+              />
+              <Stat
+                label="Files"
+                value={chatbot._count?.files ?? 0}
+                note="Uploaded documents"
+                icon={Upload}
+              />
+              <Stat
+                label="Status"
+                value={ready ? 'Ready' : 'Pending'}
+                note={ready ? 'Answering from your documents' : 'Needs a knowledge base'}
+                icon={ready ? CheckCircle2 : Bot}
+              />
+            </section>
 
-          <TabsContent value="overview" className="space-y-8">
-            {/* Stats Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-slate-600">Total Chunks</CardTitle>
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <Database className="h-4 w-4 text-blue-600" />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-2xl font-bold text-slate-900">{chatbot.totalChunks?.toLocaleString() || '0'}</div>
-                  <p className="text-xs text-slate-500 mt-1">Knowledge pieces</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-slate-600">Chat Rooms</CardTitle>
-                  <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-                    <MessageSquare className="h-4 w-4 text-emerald-600" />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-2xl font-bold text-slate-900">{chatbot._count?.chatRooms ?? 0}</div>
-                  <p className="text-xs text-slate-500 mt-1">Active conversations</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-slate-600">Files Uploaded</CardTitle>
-                  <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-                    <Upload className="h-4 w-4 text-purple-600" />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-2xl font-bold text-slate-900">{chatbot._count?.files ?? 0}</div>
-                  <p className="text-xs text-slate-500 mt-1">Training documents</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-300">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-slate-600">Status</CardTitle>
-                  <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-slate-600" />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-2xl font-bold">
-                    {chatbot.isKnowledgeInitialized ? (
-                      <span className="text-emerald-600">Ready</span>
-                    ) : (
-                      <span className="text-amber-600">Pending</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">System status</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Activity Feed */}
-            <Card className="border-0 shadow-sm bg-white">
-              <CardHeader className="pb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                    <Activity className="h-5 w-5 text-slate-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-slate-900">Recent Activity</CardTitle>
-                    <CardDescription className="text-slate-500">Latest updates and interactions</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-900">Knowledge base updated</p>
-                        <span className="text-xs text-slate-500">2 hours ago</span>
-                      </div>
-                      <p className="text-sm text-slate-600">Successfully processed 3 new documents</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-900">New conversation started</p>
-                        <span className="text-xs text-slate-500">5 hours ago</span>
-                      </div>
-                      <p className="text-sm text-slate-600">User initiated chat session #1247</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-900">File uploaded: technical-docs.pdf</p>
-                        <span className="text-xs text-slate-500">1 day ago</span>
-                      </div>
-                      <p className="text-sm text-slate-600">Document processing completed successfully</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="files">
-            <div className="space-y-8">
-              <FileUpload chatbotId={id as string} />
-              <div className="bg-white rounded-xl border-0 shadow-sm p-6">
-                <FilesTable chatbotId={id as string} />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="knowledge">
-            <div className="bg-white rounded-xl border-0 shadow-sm p-6">
-              <KnowledgeBaseInitializer chatbotId={id as string} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="chat">
-            <div className="bg-white rounded-xl border-0 shadow-sm">
-              <ChatInterface chatbotId={id as string} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <Card className="border-0 shadow-sm bg-white">
-              <CardHeader className="pb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                    <BarChart3 className="h-5 w-5 text-slate-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-slate-900">Analytics</CardTitle>
-                    <CardDescription className="text-slate-500">Performance metrics and insights</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-16">
-                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Sparkles className="h-8 w-8 text-slate-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3">Analytics Coming Soon</h3>
-                  <p className="text-slate-600 max-w-md mx-auto">
-                    Get detailed insights into your chatbot's performance, user engagement, and knowledge base effectiveness.
+            {!ready && (
+              <div className="callout callout-warning">
+                <FileText className="space-t-0.5 ico t-warning" />
+                <div className="stack-sm">
+                  <p className="t-medium">Finish setting up this chatbot</p>
+                  <p className="t-muted">
+                    Upload your documents, then build the knowledge base so it can answer questions.
                   </p>
+                  <div className="cluster space-t-1">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setTab('files')}>
+                      Upload files
+                    </button>
+                    <button type="button" className="btn btn-brand btn-sm" onClick={() => setTab('knowledge')}>
+                      Build knowledge base
+                    </button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'files' && (
+          <div className="stack-lg">
+            <FileUpload chatbotId={chatbotId} />
+            <div className="surface surface-pad">
+              <FilesTable chatbotId={chatbotId} />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'knowledge' && (
+          <div className="surface surface-pad">
+            <KnowledgeBaseInitializer chatbotId={chatbotId} />
+          </div>
+        )}
+
+        {activeTab === 'chat' && (
+          <div className="surface clip">
+            <ChatInterface chatbotId={chatbotId} />
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="empty-state">
+            <span className="doc-icon">
+              <Sparkles className="ico-xl" />
+            </span>
+            <h2 className="empty-state-title">Analytics are coming soon</h2>
+            <p className="empty-state-text">
+              You&apos;ll see how often this chatbot resolves questions, what customers ask, and where your documents have gaps.
+            </p>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }

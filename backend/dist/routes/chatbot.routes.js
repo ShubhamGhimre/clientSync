@@ -1,7 +1,7 @@
 import express from 'express';
-import { PrismaClient } from '../../generated/prisma';
-import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import { authenticateToken } from '../middleware/auth.middleware';
 import { CreateChatBotSchema } from '../utils/validation';
+import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 /**
@@ -46,6 +46,13 @@ const prisma = new PrismaClient();
  */
 router.get('/', authenticateToken, async (req, res) => {
     try {
+        // const subDomain = req.subdomain
+        // if(!subDomain) {
+        //   return res.status(400).json({
+        //     success: false,
+        //     message: 'Subdomain is required'
+        //   });
+        // }
         const chatBots = await prisma.chatBot.findMany({
             where: { organizationId: req.user.organizationId },
             include: {
@@ -116,7 +123,7 @@ router.post('/', authenticateToken, async (req, res) => {
         const chatBot = await prisma.chatBot.create({
             data: {
                 name: validatedData.name,
-                description: validatedData.description,
+                description: validatedData.description === undefined ? null : validatedData.description,
                 organizationId: req.user.organizationId
             }
         });
@@ -195,9 +202,16 @@ router.post('/', authenticateToken, async (req, res) => {
  */
 router.get('/:id', authenticateToken, async (req, res) => {
     try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: 'ChatBot ID is required'
+            });
+        }
         const chatBot = await prisma.chatBot.findFirst({
             where: {
-                id: req.params.id,
+                id: id,
                 organizationId: req.user.organizationId
             },
             include: {

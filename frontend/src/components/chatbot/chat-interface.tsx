@@ -1,21 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  RefreshCw, 
-  MessageSquare, 
-  Clock,
-  CheckCircle,
+import {
+  Send,
+  Bot,
+  RefreshCw,
+  MessageSquare,
   Copy,
   ThumbsUp,
   ThumbsDown,
@@ -31,7 +21,8 @@ import {
   Volume2,
   VolumeX,
   AlertCircle,
-  WifiOff
+  WifiOff,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -48,21 +39,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Import the updated type-safe API hooks
-import { 
-  useClearConversations, 
-  useConversations, 
-  useSendMessage,
+import {
+  useClearConversations,
+  useConversations,
   useOptimisticSendMessage,
-  type Conversation
+  type Conversation,
 } from '@/hooks/api/useConversations';
-import { 
+import {
   useChatRooms,
   useChatRoom,
   useCreateChatRoom,
-  type ChatRoom 
 } from '@/hooks/api/useChatRooms';
-import { Skeleton } from '../ui/skeleton';
 
 interface ChatInterfaceProps {
   chatbotId: string;
@@ -94,296 +81,226 @@ interface Message {
   };
 }
 
-// Enhanced Streaming Text Component with better performance
-const StreamingText = ({ text, onComplete, speed = 20 }: { 
-  text: string; 
+/* -------------------------------------------------------------------------- */
+/*  Streaming text (caret comes from .stream-caret in globals.css)             */
+/* -------------------------------------------------------------------------- */
+
+const StreamingText = ({
+  text,
+  onComplete,
+  speed = 20,
+}: {
+  text: string;
   onComplete?: () => void;
   speed?: number;
 }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [count, setCount] = useState(0);
+  const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
-    if (currentIndex < text.length) {
-      intervalRef.current = setTimeout(() => {
-        setDisplayedText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
-      }, speed);
-    } else if (currentIndex >= text.length && onComplete) {
-      onComplete();
-    }
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
-    return () => {
-      if (intervalRef.current) {
-        clearTimeout(intervalRef.current);
-      }
-    };
-  }, [currentIndex, text, onComplete, speed]);
-
-  // Reset when text changes
+  // Restart when the text changes
   useEffect(() => {
-    setDisplayedText('');
-    setCurrentIndex(0);
+    setCount(0);
   }, [text]);
 
+  useEffect(() => {
+    if (count < text.length) {
+      const timer = setTimeout(() => setCount((c) => c + 1), speed);
+      return () => clearTimeout(timer);
+    }
+    onCompleteRef.current?.();
+  }, [count, text, speed]);
+
   return (
-    <span className="inline-block">
-      {displayedText}
-      {currentIndex < text.length && (
-        <span className="animate-pulse text-primary">|</span>
-      )}
+    <span className={count < text.length ? 'stream-caret' : undefined}>
+      {text.slice(0, count)}
     </span>
   );
 };
 
-// Loading Skeleton Component
-const MessageSkeleton = () => (
-  <div className="flex gap-3 justify-start animate-in slide-in-from-left-1">
-    <Skeleton className="h-8 w-8 rounded-full" />
-    <div className="flex-1 space-y-2">
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-4 w-1/2" />
-    </div>
-  </div>
-);
+/* -------------------------------------------------------------------------- */
+/*  Message                                                                    */
+/* -------------------------------------------------------------------------- */
 
-// Enhanced Message Component
-const MessageComponent = ({ 
-  message, 
-  chatbotId, 
-  isStreaming, 
+const MessageComponent = ({
+  message,
+  isStreaming,
   onStreamingComplete,
   onCopy,
   onReact,
-  onRetry
+  onRetry,
 }: {
   message: Message;
-  chatbotId: string;
   isStreaming: boolean;
   onStreamingComplete: (id: string) => void;
   onCopy: (content: string) => void;
   onReact: (messageId: string, reaction: 'like' | 'dislike') => void;
   onRetry?: (messageId: string) => void;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [showFullSources, setShowFullSources] = useState(false);
+  const [showAllSources, setShowAllSources] = useState(false);
+  const [reaction, setReaction] = useState<'like' | 'dislike' | null>(null);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const isUser = message.role === 'user';
+  const isPending = message.id.startsWith('temp-');
+  const sources = message.sources ?? [];
+  const visibleSources = showAllSources ? sources : sources.slice(0, 2);
+  const hiddenCount = sources.length - visibleSources.length;
+  const meta = !isUser ? message.metadata : undefined;
+  const alwaysShowMeta = isPending || message.isError;
 
-  const getMessageStatusIcon = () => {
-    if (message.id.startsWith('temp-')) {
-      return <Loader2 className="h-3 w-3 animate-spin text-blue-500" />;
-    }
-    if (message.isError) {
-      return <AlertCircle className="h-3 w-3 text-red-500" />;
-    }
-    return <CheckCircle className="h-3 w-3 text-green-500" />;
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  const handleReact = (value: 'like' | 'dislike') => {
+    setReaction(value);
+    onReact(message.id, value);
   };
 
   return (
-    <div
-      className={`group flex gap-3 animate-in slide-in-from-${message.role === 'user' ? 'right' : 'left'}-1 ${
-        message.role === 'user' ? 'justify-end' : 'justify-start'
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {message.role === 'assistant' && (
-        <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-primary/10">
-          <AvatarImage src={`https://api.dicebear.com/7.x/bottts/svg?seed=${chatbotId}`} />
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600">
-            <Bot className="h-4 w-4 text-white" />
-          </AvatarFallback>
-        </Avatar>
+    <div className={`msg group ${isUser ? 'msg-user' : 'msg-bot'}`}>
+      {!isUser && (
+        <span className="avatar avatar-sm avatar-ai" aria-hidden="true">
+          <Bot className="ico-sm" />
+        </span>
       )}
-      
-      <div className={`max-w-[85%] min-w-0 ${message.role === 'user' ? 'order-2' : ''}`}>
-        <div
-          className={`relative rounded-2xl p-4 shadow-sm transition-all duration-200 ${
-            message.role === 'user'
-              ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ml-auto'
-              : 'bg-gradient-to-br from-muted to-muted/80 hover:from-muted/90 hover:to-muted/70'
-          } ${
-            message.id.startsWith('temp-') ? 'opacity-70' : ''
-          } ${
-            message.isError ? 'border-2 border-red-200 bg-red-50' : ''
-          }`}
-        >
-          {/* Message Content */}
-          <div className="whitespace-pre-wrap break-words leading-relaxed">
-            {message.role === 'assistant' && isStreaming ? (
-              <StreamingText 
-                text={message.content} 
-                onComplete={() => onStreamingComplete(message.id)}
-                speed={15}
-              />
-            ) : (
-              <span className={message.isError ? 'text-red-700' : ''}>{message.content}</span>
-            )}
-          </div>
-          
-          {/* Error Message */}
-          {message.isError && (
-            <div className="mt-3 pt-3 border-t border-red-200">
-              <div className="flex items-center gap-2 text-red-600">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm">Failed to send message</span>
-                {onRetry && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-6 px-2 ml-auto"
-                    onClick={() => onRetry(message.id)}
-                  >
-                    Retry
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Sources */}
-          {message.sources && message.sources.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border/30">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  Sources ({message.sources.length})
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => setShowFullSources(!showFullSources)}
-                >
-                  {showFullSources ? 'Show less' : 'Show more'}
-                </Button>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {message.sources.slice(0, showFullSources ? undefined : 2).map((source, index) => (
-                  <div key={index} className="text-xs bg-background/80 backdrop-blur-sm rounded-lg p-3 border">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium truncate flex-1">{source.title}</span>
-                      <Badge variant="secondary" className="text-xs ml-2">
-                        {Math.round(source.score * 100)}%
-                      </Badge>
-                    </div>
-                    <p className="text-muted-foreground line-clamp-2">{source.content}</p>
-                    {source.url && (
-                      <a 
-                        href={source.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline mt-1 inline-block"
-                      >
-                        View source →
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Metadata */}
-          {message.metadata && (
-            <div className="mt-3 pt-3 border-t border-border/30">
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                {message.metadata.processingTime && (
-                  <span className="flex items-center gap-1">
-                    <Zap className="h-3 w-3" />
-                    {message.metadata.processingTime}ms
-                  </span>
-                )}
-                {message.metadata.tokens && (
-                  <span>{message.metadata.tokens} tokens</span>
-                )}
-                {message.metadata.model && (
-                  <span>{message.metadata.model}</span>
-                )}
-              </div>
-            </div>
+      <div className="msg-body">
+        <div className={`msg-bubble ${message.isError ? 'is-error' : ''}`}>
+          {!isUser && isStreaming ? (
+            <StreamingText
+              text={message.content}
+              onComplete={() => onStreamingComplete(message.id)}
+              speed={15}
+            />
+          ) : (
+            message.content
           )}
         </div>
-        
-        {/* Message Actions */}
-        <div className={`flex items-center gap-2 mt-2 transition-opacity duration-200 ${
-          isHovered || message.isError ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        } ${
-          message.role === 'user' ? 'justify-end' : 'justify-start'
-        }`}>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            {getMessageStatusIcon()}
-            <span>{formatTime(message.timestamp)}</span>
+
+        {/* Knowledge-base citations */}
+        {sources.length > 0 && (
+          <div className="source-list" role="group" aria-label="Sources">
+            {visibleSources.map((source, index) => {
+              const label = (
+                <>
+                  <FileText className="ico-xs" />
+                  <span className="ellipsis">{source.title}</span>
+                  <span className="tabular no-shrink">
+                    {Math.round(source.score * 100)}%
+                  </span>
+                </>
+              );
+              return source.url ? (
+                <a
+                  key={index}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="source-chip"
+                  title={source.content}
+                >
+                  {label}
+                </a>
+              ) : (
+                <span key={index} className="source-chip" title={source.content}>
+                  {label}
+                </span>
+              );
+            })}
+            {(hiddenCount > 0 || showAllSources) && sources.length > 2 && (
+              <button
+                type="button"
+                className="source-chip"
+                onClick={() => setShowAllSources((v) => !v)}
+              >
+                {showAllSources ? 'Show fewer' : `+${hiddenCount} more`}
+              </button>
+            )}
           </div>
-          
-          {!message.id.startsWith('temp-') && !message.isError && (
-            <TooltipProvider>
-              <div className="flex items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 w-6 p-0 hover:bg-muted"
-                      onClick={() => onCopy(message.content)}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copy message</TooltipContent>
-                </Tooltip>
-                
-                {message.role === 'assistant' && (
-                  <>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0 hover:bg-green-50 hover:text-green-600"
-                          onClick={() => onReact(message.id, 'like')}
-                        >
-                          <ThumbsUp className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Good response</TooltipContent>
-                    </Tooltip>
-                    
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => onReact(message.id, 'dislike')}
-                        >
-                          <ThumbsDown className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Poor response</TooltipContent>
-                    </Tooltip>
-                  </>
-                )}
-              </div>
-            </TooltipProvider>
+        )}
+
+        {/* Failed send */}
+        {message.isError && onRetry && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onRetry(message.id)}
+          >
+            <RefreshCw /> Retry
+          </button>
+        )}
+
+        {/* Time, status, metadata, actions */}
+        <div
+          className={`msg-meta chat-actions ${
+            alwaysShowMeta ? 'chat-actions-visible' : ''
+          }`}
+        >
+          <span>{formatTime(message.timestamp)}</span>
+
+          {isPending && <Loader2 className="ico-xs spin" aria-label="Sending" />}
+
+          {message.isError && (
+            <span className="inline-row g-1 t-danger">
+              <AlertCircle className="ico-xs" /> Not sent
+            </span>
+          )}
+
+          {meta?.processingTime && (
+            <span className="inline-row g-1 tabular">
+              <Zap className="ico-xs" /> {meta.processingTime}ms
+            </span>
+          )}
+          {meta?.tokens && <span className="tabular">{meta.tokens} tokens</span>}
+          {meta?.model && <span>{meta.model}</span>}
+
+          {!isPending && !message.isError && (
+            <span className="inline-row">
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon btn-sm"
+                onClick={() => onCopy(message.content)}
+                aria-label="Copy message"
+                title="Copy message"
+              >
+                <Copy className="ico-xs" />
+              </button>
+
+              {!isUser && (
+                <>
+                  <button
+                    type="button"
+                    className={`btn btn-ghost btn-icon btn-sm ${
+                      reaction === 'like' ? 't-success' : ''
+                    }`}
+                    onClick={() => handleReact('like')}
+                    aria-label="Good response"
+                    aria-pressed={reaction === 'like'}
+                    title="Good response"
+                  >
+                    <ThumbsUp className="ico-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-ghost btn-icon btn-sm ${
+                      reaction === 'dislike' ? 't-danger' : ''
+                    }`}
+                    onClick={() => handleReact('dislike')}
+                    aria-label="Poor response"
+                    aria-pressed={reaction === 'dislike'}
+                    title="Poor response"
+                  >
+                    <ThumbsDown className="ico-xs" />
+                  </button>
+                </>
+              )}
+            </span>
           )}
         </div>
       </div>
-      
-      {message.role === 'user' && (
-        <Avatar className="h-8 w-8 flex-shrink-0 order-3 ring-2 ring-primary/20">
-          <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600">
-            <User className="h-4 w-4 text-white" />
-          </AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 };
@@ -398,19 +315,25 @@ const transformConversationToMessage = (conversation: Conversation): Message => 
   metadata: (conversation as any).metadata,
 });
 
-// Enhanced Chat Room Initializer
-const ChatRoomInitializer = ({ chatbotId, onChatRoomReady }: { 
-  chatbotId: string; 
+/* -------------------------------------------------------------------------- */
+/*  Chat room initializer                                                      */
+/* -------------------------------------------------------------------------- */
+
+const ChatRoomInitializer = ({
+  chatbotId,
+  onChatRoomReady,
+}: {
+  chatbotId: string;
   onChatRoomReady: (chatRoomId: string) => void;
 }) => {
   const [isInitializing, setIsInitializing] = useState(false);
   const [progress, setProgress] = useState(0);
-  
-  const { 
-    data: chatRooms, 
+
+  const {
+    data: chatRooms,
     isLoading: chatRoomsLoading,
     error: chatRoomsError,
-    refetch: refetchChatRooms
+    refetch: refetchChatRooms,
   } = useChatRooms();
 
   const createChatRoomMutation = useCreateChatRoom({
@@ -431,8 +354,8 @@ const ChatRoomInitializer = ({ chatbotId, onChatRoomReady }: {
 
   useEffect(() => {
     if (chatRooms && !isInitializing) {
-      const existingChatRoom = chatRooms.find(room => room.chatBotId === chatbotId);
-      
+      const existingChatRoom = chatRooms.find((room) => room.chatBotId === chatbotId);
+
       if (existingChatRoom) {
         setProgress(100);
         setTimeout(() => onChatRoomReady(existingChatRoom.id), 300);
@@ -447,40 +370,34 @@ const ChatRoomInitializer = ({ chatbotId, onChatRoomReady }: {
     }
   }, [chatRooms, chatbotId, onChatRoomReady, isInitializing, createChatRoomMutation]);
 
-  // Simulate progress
+  // Simulate progress while the room is being created
   useEffect(() => {
     if (isInitializing && progress < 90) {
-      const timer = setTimeout(() => {
-        setProgress(prev => prev + 10);
-      }, 200);
+      const timer = setTimeout(() => setProgress((prev) => prev + 10), 200);
       return () => clearTimeout(timer);
     }
   }, [isInitializing, progress]);
 
   if (chatRoomsLoading || isInitializing || createChatRoomMutation.isPending) {
     return (
-      <div className="h-[700px] flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
-        <div className="flex flex-col items-center gap-6 max-w-md text-center">
-          <div className="relative">
-            <div className="h-16 w-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-            <Bot className="h-8 w-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary" />
-          </div>
-          
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">
-              {chatRoomsLoading ? 'Loading...' : 'Initializing Chat'}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Setting up your conversation with the AI assistant
-            </p>
-          </div>
-          
-          <div className="w-full bg-muted rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+      <div className="chat-h700">
+        <span className="avatar avatar-ai avatar-lg" aria-hidden="true">
+          <Bot className="ico-xl" />
+        </span>
+        <div className="stack-sm center">
+          <h3 className="section-title">
+            {chatRoomsLoading ? 'Loading chat' : 'Setting up chat'}
+          </h3>
+          <p className="field-hint">Preparing your conversation with the assistant.</p>
+        </div>
+        <div
+          className="progress chat-max-width"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          <span style={{ width: `${progress}%` }} />
         </div>
       </div>
     );
@@ -488,20 +405,15 @@ const ChatRoomInitializer = ({ chatbotId, onChatRoomReady }: {
 
   if (chatRoomsError) {
     return (
-      <div className="h-[700px] flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="mb-4">
-            <WifiOff className="h-12 w-12 text-red-500 mx-auto mb-2" />
-            <p className="text-lg font-semibold text-destructive">Connection Failed</p>
-          </div>
-          <p className="text-sm text-muted-foreground mb-6">
-            Unable to connect to chat services. Please check your internet connection and try again.
-          </p>
-          <Button onClick={() => refetchChatRooms()} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Retry Connection
-          </Button>
-        </div>
+      <div className="empty-state chat-h700">
+        <WifiOff className="ico-2xl t-danger" />
+        <h3 className="empty-state-title">Can't connect to chat</h3>
+        <p className="empty-state-text">
+          Check your internet connection, then try again.
+        </p>
+        <button type="button" className="btn btn-primary" onClick={() => refetchChatRooms()}>
+          <RefreshCw /> Try again
+        </button>
       </div>
     );
   }
@@ -509,15 +421,17 @@ const ChatRoomInitializer = ({ chatbotId, onChatRoomReady }: {
   return null;
 };
 
-// Main Chat Interface Component
-const ChatInterfaceMain = ({ 
-  chatbotId, 
-  chatRoomId, 
+/* -------------------------------------------------------------------------- */
+/*  Main chat                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const ChatInterfaceMain = ({
+  chatRoomId,
   enableSounds = false,
   maxHeight = '700px',
-  showHeader = true 
-}: { 
-  chatbotId: string; 
+  showHeader = true,
+}: {
+  chatbotId: string;
   chatRoomId: string;
   enableSounds?: boolean;
   maxHeight?: string;
@@ -529,27 +443,23 @@ const ChatInterfaceMain = ({
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(enableSounds);
-  const [retryingMessages, setRetryingMessages] = useState<Set<string>>(new Set());
-  
+  const [, setRetryingMessages] = useState<Set<string>>(new Set());
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastPlayedSoundRef = useRef<number>(0);
 
-  // API Hooks with optimized queries
-  const { 
-    data: conversations, 
+  const {
+    data: conversations,
     isLoading: conversationsLoading,
     error: conversationsError,
-    refetch: refetchConversations
+    refetch: refetchConversations,
   } = useConversations(chatRoomId, {
-    refetchInterval: isTyping ? 1000 : 3000, // Faster polling when expecting response
+    refetchInterval: isTyping ? 1000 : 3000, // Faster polling while expecting a reply
     staleTime: 1000,
   });
 
-  const { 
-    data: chatRoomData, 
-    isLoading: chatRoomLoading 
-  } = useChatRoom(chatRoomId);
+  const { data: chatRoomData, isLoading: chatRoomLoading } = useChatRoom(chatRoomId);
 
   const sendMessageMutation = useOptimisticSendMessage({
     onSuccess: () => {
@@ -558,7 +468,6 @@ const ChatInterfaceMain = ({
         lastPlayedSoundRef.current = Date.now();
       }
       setIsTyping(false);
-      // Focus input after successful send
       setTimeout(() => inputRef.current?.focus(), 100);
     },
     onError: (error) => {
@@ -580,110 +489,119 @@ const ChatInterfaceMain = ({
     },
   });
 
-  // Memoized transformations for better performance
-  const messages: Message[] = useMemo(() => 
-    conversations ? conversations.map(transformConversationToMessage) : [],
+  const messages: Message[] = useMemo(
+    () => (conversations ? conversations.map(transformConversationToMessage) : []),
     [conversations]
   );
 
   const displayMessages = useMemo(() => {
     if (messages.length === 0) {
-      return [{
-        id: 'welcome',
-        content: '👋 Hello! I\'m your AI assistant. I\'m here to help you with questions, provide information, and have engaging conversations. How can I assist you today?',
-        role: 'assistant' as const,
-        timestamp: new Date(),
-      }];
+      return [
+        {
+          id: 'welcome',
+          content:
+            "👋 Hello! I'm your AI assistant. I'm here to help you with questions, provide information, and have engaging conversations. How can I assist you today?",
+          role: 'assistant' as const,
+          timestamp: new Date(),
+        },
+      ];
     }
     return messages;
   }, [messages]);
 
-  // Enhanced conversation starters
-  const conversationStarters = useMemo(() => [
-    { text: "What are your capabilities?", icon: Sparkles },
-    { text: "How can you help me today?", icon: MessageSquare },
-    { text: "Tell me about your features", icon: Settings },
-    { text: "Show me what you can do", icon: Zap },
-  ], []);
+  const conversationStarters = useMemo(
+    () => [
+      { text: 'What are your capabilities?', icon: Sparkles },
+      { text: 'How can you help me today?', icon: MessageSquare },
+      { text: 'Tell me about your features', icon: Settings },
+      { text: 'Show me what you can do', icon: Zap },
+    ],
+    []
+  );
 
-  // Optimized scroll to bottom
+  const isBusy = isTyping || sendMessageMutation.isPending;
+
   const scrollToBottom = useCallback(() => {
-    if (scrollAreaRef.current) {
-      const scrollArea = scrollAreaRef.current;
-      scrollArea.scrollTo({
-        top: scrollArea.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+    const el = scrollAreaRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, []);
 
-  // Detect new messages and handle streaming
+  // Detect new messages and start streaming the newest AI reply
   useEffect(() => {
     if (conversations && conversations.length > lastMessageCount) {
       const newMessages = conversations.slice(lastMessageCount);
-      const newAIMessage = newMessages.find(msg => msg.sender !== 'user');
-      
+      const newAIMessage = newMessages.find((msg) => msg.sender !== 'user');
+
       if (newAIMessage && !newAIMessage.id.startsWith('temp-')) {
         setStreamingMessageId(newAIMessage.id);
         setIsTyping(false);
       }
-      
+
       setLastMessageCount(conversations.length);
       scrollToBottom();
     }
   }, [conversations, lastMessageCount, scrollToBottom]);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     scrollToBottom();
-  }, [displayMessages.length, scrollToBottom]);
+  }, [displayMessages.length, isBusy, scrollToBottom]);
 
   // Focus input on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      inputRef.current?.focus();
-    }, 500);
+    const timer = setTimeout(() => inputRef.current?.focus(), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle message sending
-  const handleSendMessage = useCallback(async (content?: string) => {
-    const messageContent = content || inputValue.trim();
-    if (!messageContent || sendMessageMutation.isPending) return;
+  // Grow the composer with its content (capped by .chat-input max-height)
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [inputValue]);
 
-    setInputValue('');
-    setIsTyping(true);
+  const handleSendMessage = useCallback(
+    async (content?: string) => {
+      const messageContent = content || inputValue.trim();
+      if (!messageContent || sendMessageMutation.isPending) return;
 
-    try {
-      await sendMessageMutation.mutateAsync({
-        chatRoomId,
-        sender: 'user',
-        message: messageContent,
-      });
-    } catch (error) {
-      setIsTyping(false);
-    }
-  }, [inputValue, sendMessageMutation, chatRoomId]);
+      setInputValue('');
+      setIsTyping(true);
 
-  // Handle message actions
+      try {
+        await sendMessageMutation.mutateAsync({
+          chatRoomId,
+          sender: 'user',
+          message: messageContent,
+        });
+      } catch (error) {
+        setIsTyping(false);
+      }
+    },
+    [inputValue, sendMessageMutation, chatRoomId]
+  );
+
   const handleCopyMessage = useCallback((content: string) => {
     navigator.clipboard.writeText(content);
     toast.success('Message copied to clipboard');
   }, []);
 
-  const handleMessageReaction = useCallback((messageId: string, reaction: 'like' | 'dislike') => {
-    // Implement API call for message reaction
-    toast.success(`${reaction === 'like' ? 'Liked' : 'Disliked'} message`);
-  }, []);
+  const handleMessageReaction = useCallback(
+    (messageId: string, reaction: 'like' | 'dislike') => {
+      // Implement API call for message reaction
+      toast.success(`${reaction === 'like' ? 'Liked' : 'Disliked'} message`);
+    },
+    []
+  );
 
   const handleRetryMessage = useCallback(async (messageId: string) => {
-    setRetryingMessages(prev => new Set([...prev, messageId]));
+    setRetryingMessages((prev) => new Set([...prev, messageId]));
     // Implement retry logic
     setTimeout(() => {
-      setRetryingMessages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(messageId);
-        return newSet;
+      setRetryingMessages((prev) => {
+        const next = new Set(prev);
+        next.delete(messageId);
+        return next;
       });
     }, 2000);
   }, []);
@@ -696,308 +614,263 @@ const ChatInterfaceMain = ({
     }
   }, [clearConversationsMutation, chatRoomId]);
 
-  const handleStreamingComplete = useCallback((messageId: string) => {
-    if (streamingMessageId === messageId) {
-      setStreamingMessageId(null);
-    }
-  }, [streamingMessageId]);
+  const handleStreamingComplete = useCallback(
+    (messageId: string) => {
+      if (streamingMessageId === messageId) setStreamingMessageId(null);
+    },
+    [streamingMessageId]
+  );
 
-  // Loading state
+  /* ---------- Loading ---------- */
   if (chatRoomLoading || conversationsLoading) {
     return (
-      <div className="h-[700px] flex flex-col">
-        <Card className="flex-1 flex flex-col">
-          {showHeader && (
-            <CardHeader className="flex-shrink-0 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                </div>
-                <Skeleton className="h-8 w-24" />
-              </div>
-            </CardHeader>
-          )}
-          <CardContent className="flex-1 p-4">
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <MessageSkeleton key={i} />
-              ))}
+      <div className="chat-window" style={{ height: maxHeight }} aria-busy="true">
+        {showHeader && (
+          <div className="chat-header">
+            <div className="skeleton avatar" />
+            <div className="stack-sm">
+              <div className="skeleton skeleton-line-short" />
+              <div className="skeleton skeleton-line" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Error state
-  if (conversationsError && !conversationsLoading) {
-    return (
-      <div className="h-[700px] flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-lg font-semibold text-destructive mb-2">Failed to load conversations</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            There was an error loading your chat history
-          </p>
-          <Button onClick={() => refetchConversations()} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Try Again
-          </Button>
+          </div>
+        )}
+        <div className="chat-messages">
+          <div className="msg msg-bot">
+            <div className="skeleton avatar-sm" />
+            <div className="skeleton skeleton-bubble chat-round-2xl" />
+          </div>
+          <div className="msg msg-user">
+            <div className="skeleton skeleton-line chat-round-2xl" />
+          </div>
+          <div className="msg msg-bot">
+            <div className="skeleton avatar-sm" />
+            <div className="skeleton skeleton-card chat-round-2xl" />
+          </div>
         </div>
       </div>
     );
   }
 
+  /* ---------- Error ---------- */
+  if (conversationsError && !conversationsLoading) {
+    return (
+      <div className="empty-state chat-h700" style={{ height: maxHeight }}>
+        <AlertCircle className="ico-2xl t-danger" />
+        <h3 className="empty-state-title">Couldn't load this conversation</h3>
+        <p className="empty-state-text">
+          Your chat history didn't load. Try again, or refresh the page if it keeps failing.
+        </p>
+        <button type="button" className="btn btn-primary" onClick={() => refetchConversations()}>
+          <RefreshCw /> Try again
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div 
-      className={`flex flex-col transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''
-      }`}
-      style={{ height: isFullscreen ? '100vh' : maxHeight }}
+    <div
+      className={isFullscreen ? 'chat-fs-shell' : ''}
+      style={{ height: isFullscreen ? '100dvh' : maxHeight }}
     >
-      <Card className="flex-1 flex flex-col shadow-xl border-0 bg-gradient-to-br from-background to-muted/20">
+      <section
+        className={`chat-window ${isFullscreen ? 'chat-fs-inner' : ''}`}
+        aria-label="Chat"
+      >
         {showHeader && (
-          <CardHeader className="flex-shrink-0 border-b bg-gradient-to-r from-background to-muted/30 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 ring-2 ring-primary/20 ring-offset-2">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/bottts/svg?seed=${chatbotId}`} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600">
-                    <Bot className="h-5 w-5 text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-lg font-semibold">
-                    {chatRoomData?.title || 'AI Assistant'}
-                  </CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Online & Ready</span>
-                    {(isTyping || sendMessageMutation.isPending) && (
-                      <>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 animate-pulse">
-                          <Sparkles className="h-3 w-3" />
-                          Thinking...
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setSoundEnabled(!soundEnabled)}
-                        className="h-8 w-8 p-0"
-                      >
-                        {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {soundEnabled ? 'Disable sounds' : 'Enable sounds'}
-                    </TooltipContent>
-                  </Tooltip>
-                  
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setIsFullscreen(!isFullscreen)}
-                        className="h-8 w-8 p-0"
-                      >
-                        {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleClearChat} disabled={clearConversationsMutation.isPending || displayMessages.length <= 1}>
-                      {clearConversationsMutation.isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                      )}
-                      Clear Chat
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Share2 className="mr-2 h-4 w-4" />
-                      Share Conversation
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Download className="mr-2 h-4 w-4" />
-                      Export Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+          <header className="chat-header">
+            <span className="avatar avatar-ai" aria-hidden="true">
+              <Bot className="ico" />
+            </span>
+
+            <div className="flex-fill">
+              <h2 className="chat-header-title">
+                {chatRoomData?.title || 'AI Assistant'}
+              </h2>
+              <p className="chat-header-meta" aria-live="polite">
+                {isBusy ? (
+                  <>
+                    <Loader2 className="ico-xs spin" /> Thinking…
+                  </>
+                ) : (
+                  <>
+                    <span className="status-dot is-online" /> Online
+                  </>
+                )}
+              </p>
             </div>
-          </CardHeader>
+
+            <div className="cluster g-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-icon btn-sm"
+                    onClick={() => setSoundEnabled((v) => !v)}
+                    aria-label={soundEnabled ? 'Turn sounds off' : 'Turn sounds on'}
+                    aria-pressed={soundEnabled}
+                  >
+                    {soundEnabled ? <Volume2 /> : <VolumeX />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{soundEnabled ? 'Turn sounds off' : 'Turn sounds on'}</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-icon btn-sm"
+                    onClick={() => setIsFullscreen((v) => !v)}
+                    aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+                  >
+                    {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isFullscreen ? 'Exit full screen' : 'Full screen'}</TooltipContent>
+              </Tooltip>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-icon btn-sm"
+                    aria-label="More options"
+                  >
+                    <MoreVertical />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={handleClearChat}
+                    disabled={clearConversationsMutation.isPending || displayMessages.length <= 1}
+                  >
+                    {clearConversationsMutation.isPending ? (
+                      <Loader2 className="space-r-2 ico spin" />
+                    ) : (
+                      <RefreshCw className="space-r-2 ico" />
+                    )}
+                    Clear chat
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {/* Not wired up yet, so shown disabled */}
+                  <DropdownMenuItem disabled>
+                    <Share2 className="space-r-2 ico" />
+                    Share conversation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    <Download className="space-r-2 ico" />
+                    Export chat
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
         )}
 
-        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-          <ScrollArea 
-            className="flex-1 p-4" 
-            ref={scrollAreaRef}
-          >
-            <div className="space-y-6 max-w-4xl mx-auto">
-              {displayMessages.map((message) => (
-                <MessageComponent
-                  key={message.id}
-                  message={message}
-                  chatbotId={chatbotId}
-                  isStreaming={streamingMessageId === message.id}
-                  onStreamingComplete={handleStreamingComplete}
-                  onCopy={handleCopyMessage}
-                  onReact={handleMessageReaction}
-                  onRetry={handleRetryMessage}
-                />
-              ))}
+        {/* Messages */}
+        <div
+          ref={scrollAreaRef}
+          className="chat-messages"
+          role="log"
+          aria-live="polite"
+          aria-label="Conversation"
+        >
+          {displayMessages.map((message) => (
+            <MessageComponent
+              key={message.id}
+              message={message}
+              isStreaming={streamingMessageId === message.id}
+              onStreamingComplete={handleStreamingComplete}
+              onCopy={handleCopyMessage}
+              onReact={handleMessageReaction}
+              onRetry={handleRetryMessage}
+            />
+          ))}
 
-              {/* Enhanced Typing Indicator */}
-              {(isTyping || sendMessageMutation.isPending) && (
-                <div className="flex gap-3 justify-start animate-in slide-in-from-left-1">
-                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-primary/10">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/bottts/svg?seed=${chatbotId}`} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600">
-                      <Bot className="h-4 w-4 text-white" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="max-w-[80%]">
-                    <div className="bg-gradient-to-br from-muted to-muted/80 rounded-2xl p-4 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                        <span className="text-sm text-muted-foreground font-medium">
-                          AI is processing your request...
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-
-          {/* Enhanced Conversation Starters */}
-          {displayMessages.length <= 1 && !isTyping && !sendMessageMutation.isPending && (
-            <div className="p-4 border-t bg-gradient-to-br from-muted/30 to-background backdrop-blur-sm">
-              <p className="text-sm font-semibold mb-4 text-center text-muted-foreground">
-                💡 Get started with these suggestions:
-              </p>
-              <div className="grid gap-3 md:grid-cols-2 max-w-2xl mx-auto">
-                {conversationStarters.map((starter, index) => {
-                  const IconComponent = starter.icon;
-                  return (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="justify-start text-left h-auto p-4 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 group"
-                      onClick={() => handleSendMessage(starter.text)}
-                      disabled={sendMessageMutation.isPending || isTyping}
-                    >
-                      <IconComponent className="h-4 w-4 mr-3 flex-shrink-0 text-primary group-hover:scale-110 transition-transform" />
-                      <span className="truncate text-sm">{starter.text}</span>
-                    </Button>
-                  );
-                })}
+          {isBusy && (
+            <div className="msg msg-bot">
+              <span className="avatar avatar-sm avatar-ai" aria-hidden="true">
+                <Bot className="ico-sm" />
+              </span>
+              <div className="typing" role="status" aria-label="Assistant is typing">
+                <span />
+                <span />
+                <span />
               </div>
             </div>
           )}
+        </div>
 
-          {/* Enhanced Input Area */}
-          <div className="p-4 border-t bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
-            <div className="max-w-4xl mx-auto">
-              <div className="relative flex gap-3">
-                <div className="relative flex-1">
-                  <Input
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Type your message here..."
-                    disabled={sendMessageMutation.isPending || isTyping}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    className="pr-12 py-3 text-sm rounded-xl border-0 bg-muted/50 backdrop-blur-sm focus:bg-background transition-all duration-200 resize-none"
-                    maxLength={2000}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    {inputValue.length}/2000
-                  </div>
-                </div>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={() => handleSendMessage()}
-                        disabled={!inputValue.trim() || sendMessageMutation.isPending || isTyping}
-                        size="lg"
-                        className="px-6 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200"
-                      >
-                        {sendMessageMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Send message (Enter)</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                <p>Press Enter to send • Shift + Enter for new line</p>
-                <div className="flex items-center gap-2">
-                  <span>Powered by AI</span>
-                  <Sparkles className="h-3 w-3" />
-                </div>
-              </div>
-            </div>
+        {/* Suggested prompts, only before the first message */}
+        {displayMessages.length <= 1 && !isBusy && (
+          <div className="quick-replies" role="group" aria-label="Suggested questions">
+            {conversationStarters.map(({ text, icon: Icon }) => (
+              <button
+                key={text}
+                type="button"
+                className="quick-reply inline-row g-2"
+                onClick={() => handleSendMessage(text)}
+              >
+                <Icon className="ico-sm t-ai" />
+                {text}
+              </button>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Composer */}
+        <div className="chat-composer">
+          <textarea
+            ref={inputRef}
+            rows={1}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Type your message"
+            aria-label="Message"
+            disabled={isBusy}
+            maxLength={2000}
+            className="chat-input"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="chat-send"
+            onClick={() => handleSendMessage()}
+            disabled={!inputValue.trim() || isBusy}
+            aria-label="Send message"
+          >
+            {sendMessageMutation.isPending ? (
+              <Loader2 className="ico spin" />
+            ) : (
+              <Send className="ico" />
+            )}
+          </button>
+        </div>
+        <p className="chat-footnote">
+          {inputValue.length > 1500
+            ? `${inputValue.length} / 2000 characters`
+            : 'Enter to send, Shift + Enter for a new line'}
+        </p>
+      </section>
     </div>
   );
 };
 
-// Main Export Component with Error Boundary
-export function ChatInterface({ 
-  chatbotId, 
+/* -------------------------------------------------------------------------- */
+/*  Export                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export function ChatInterface({
+  chatbotId,
   theme = 'system',
   enableSounds = false,
   maxHeight = '700px',
-  showHeader = true 
+  showHeader = true,
 }: ChatInterfaceProps) {
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
@@ -1013,42 +886,33 @@ export function ChatInterface({
       console.error('Chat interface error:', event.error);
       setHasError(true);
     };
-
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
 
   if (hasError) {
     return (
-      <div className="h-[700px] flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            The chat interface encountered an error. Please refresh the page to try again.
-          </p>
-          <Button onClick={() => window.location.reload()} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh Page
-          </Button>
-        </div>
+      <div className="empty-state chat-h700">
+        <AlertCircle className="ico-2xl t-danger" />
+        <h3 className="empty-state-title">Something went wrong</h3>
+        <p className="empty-state-text">
+          The chat hit an unexpected error. Refresh the page to start again.
+        </p>
+        <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
+          <RefreshCw /> Refresh page
+        </button>
       </div>
     );
   }
 
   if (!chatRoomId) {
-    return (
-      <ChatRoomInitializer 
-        chatbotId={chatbotId} 
-        onChatRoomReady={handleChatRoomReady}
-      />
-    );
+    return <ChatRoomInitializer chatbotId={chatbotId} onChatRoomReady={handleChatRoomReady} />;
   }
 
   return (
     <TooltipProvider>
-      <ChatInterfaceMain 
-        chatbotId={chatbotId} 
+      <ChatInterfaceMain
+        chatbotId={chatbotId}
         chatRoomId={chatRoomId}
         enableSounds={enableSounds}
         maxHeight={maxHeight}

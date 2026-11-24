@@ -225,61 +225,61 @@ export default function TicketsPage() {
   };
 
   return (
-    <div className="space-y-6 px-8">
-      <div className="flex items-center justify-between">
+    <div className="page stack">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Support Tickets</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Support Tickets</h1>
+          <p className="page-subtitle">
             Manage and track customer support requests
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="page-actions">
           <Button variant="outline" onClick={() => setCategoryModalOpen(true)}>
-            <Tag className="mr-2 h-4 w-4" />
+            <Tag className="ico space-r-2" />
             Manage Categories
           </Button>
           <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="ico space-r-2" />
             Create Ticket
           </Button>
         </div>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-blue-500" />
-              <span className="text-sm font-medium">Total Tickets</span>
+          <CardContent className="pad-6">
+            <div className="row g-2">
+              <HelpCircle className="ico-lg t-brand" />
+              <span className="t-sm t-medium">Total Tickets</span>
             </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              {/* <p className="text-xs text-muted-foreground">+12% from last month</p> */}
+            <div className="space-t-2">
+              <div className="t-2xl t-bold">{stats.total}</div>
+              {/* <p className="t-xs t-muted">+12% from last month</p> */}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <span className="text-sm font-medium">By Priority</span>
+          <CardContent className="pad-6">
+            <div className="row g-2">
+              <Clock className="ico-lg t-warning" />
+              <span className="t-sm t-medium">By Priority</span>
             </div>
-            <div className="mt-2">
-              <div className="">
+            <div className="space-t-2">
+              <div>
                 {stats.byPriority
                   ? Object.entries(stats.byPriority).map(
                       ([priority, count], idx, arr) => (
                         <Badge
                           variant="secondary"
                           key={priority}
-                          className="mr-1"
+                          className="space-r-1"
                         >
-                          <span className="text-sm">
+                          <span className="t-sm">
                             {priority.toLowerCase()}:
                           </span>{" "}
-                          <span className="font-bold">{count}</span>
+                          <span className="t-bold">{count}</span>
                         </Badge>
                       )
                     )
@@ -290,37 +290,37 @@ export default function TicketsPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-yellow-500" />
-              <span className="text-sm font-medium">By Status</span>
+          <CardContent className="pad-6">
+            <div className="row g-2">
+              <AlertCircle className="ico-lg t-warning" />
+              <span className="t-sm t-medium">By Status</span>
             </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">
+            <div className="space-t-2">
+              <div className="t-2xl t-bold">
                 {stats.byStatus
                   ? Object.entries(stats.byStatus)
                       .map(([status, count]) => `${status}: ${count}`)
                       .join(", ")
                   : "N/A"}
               </div>
-              <p className="text-xs text-muted-foreground">Being resolved</p>
+              <p className="t-xs t-muted">Being resolved</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="text-sm font-medium">Recent</span>
+          <CardContent className="pad-6">
+            <div className="row g-2">
+              <CheckCircle className="ico-lg t-success" />
+              <span className="t-sm t-medium">Recent</span>
             </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">
+            <div className="space-t-2">
+              <div className="t-2xl t-bold">
                 {Array.isArray(stats.recent)
                   ? stats.recent.length
                   : stats.recent}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="t-xs t-muted">
                 80.3% resolution rate
               </p>
             </div>
@@ -330,21 +330,21 @@ export default function TicketsPage() {
 
       {/* Filters and Actions */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <CardContent className="pad-6">
+          <div className="row-between g-4">
+            <div className="row g-2 flex-fill">
+              <div className="pos-rel toolbar-search">
+                <Search className="search-icon" />
                 <Input
                   placeholder="Search tickets..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="search-input"
                 />
               </div>
 
               <Select defaultValue="all">
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -356,7 +356,7 @@ export default function TicketsPage() {
               </Select>
 
               <Select defaultValue="all">
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -369,13 +369,13 @@ export default function TicketsPage() {
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="row g-2">
               <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
+                <Filter className="ico space-r-2" />
                 Filters
               </Button>
               <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="ico space-r-2" />
                 Export
               </Button>
             </div>
@@ -383,14 +383,14 @@ export default function TicketsPage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs defaultValue="all" className="stack">
         <TabsList>
           <TabsTrigger value="all">All Tickets</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="stack">
           <Card>
-            <CardContent className="p-0">
+            <CardContent>
               <TicketsTable
                 data={tickets.map((ticket: any) => ({
                   ...ticket,
@@ -410,16 +410,16 @@ export default function TicketsPage() {
 
       {/* Create/Update Ticket Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="dialog-shell">
           <DialogHeader>
             <DialogTitle>
               {editingTicket ? "Update Ticket" : "Create Ticket"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">
+          <div className="stack">
+            <div className="form-grid">
+              <div className="full-w">
+                <label className="label space-b-1">
                   Title *
                 </label>
                 <Input
@@ -430,21 +430,21 @@ export default function TicketsPage() {
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">
+              <div className="full-w">
+                <label className="label space-b-1">
                   Description *
                 </label>
                 <textarea
                   name="description"
                   value={form.description}
                   onChange={handleFormChange}
-                  className="w-full border rounded p-2 h-24 resize-none"
+                  className="textarea"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="label space-b-1">
                   Customer Name *
                 </label>
                 <Input
@@ -456,7 +456,7 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="label space-b-1">
                   Customer Email *
                 </label>
                 <Input
@@ -469,7 +469,7 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="label space-b-1">
                   Customer Phone
                 </label>
                 <Input
@@ -480,14 +480,14 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="label space-b-1">
                   Priority
                 </label>
                 <select
                   name="priority"
                   value={form.priority}
                   onChange={handleFormChange}
-                  className="w-full border rounded p-2"
+                  className="select"
                 >
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
@@ -498,7 +498,7 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="label space-b-1">
                   Category
                 </label>
                 <Popover
@@ -510,12 +510,12 @@ export default function TicketsPage() {
                       variant="outline"
                       role="combobox"
                       aria-expanded={categoryComboOpen}
-                      className="w-full justify-between"
+                      className="full-w row-between"
                     >
                       {selectedCategory ? (
-                        <div className="flex items-center gap-2">
+                        <div className="row g-2">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="color-dot"
                             style={{ backgroundColor: selectedCategory.color }}
                           />
                           {selectedCategory.name}
@@ -523,15 +523,15 @@ export default function TicketsPage() {
                       ) : (
                         "Select category..."
                       )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ico space-l-2 no-shrink t-muted" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent className="full-w">
                     <Command>
                       <CommandInput placeholder="Search categories..." />
                       <CommandEmpty>
-                        <div className="p-2">
-                          <p className="text-sm text-muted-foreground mb-2">
+                        <div className="pad-2">
+                          <p className="t-sm t-muted space-b-2">
                             No categories found.
                           </p>
                           <Button
@@ -542,7 +542,7 @@ export default function TicketsPage() {
                               setCategoryModalOpen(true);
                             }}
                           >
-                            <Plus className="mr-1 h-3 w-3" />
+                            <Plus className="ico-xs space-r-1" />
                             Add Category
                           </Button>
                         </div>
@@ -559,21 +559,21 @@ export default function TicketsPage() {
                           >
                             <Check
                               className={cn(
-                                "mr-2 h-4 w-4",
+                                "ico space-r-2",
                                 form.categoryId === category.id
-                                  ? "opacity-100"
-                                  : "opacity-0"
+                                  ? "t-brand"
+                                  : "hide"
                               )}
                             />
-                            <div className="flex items-center gap-2">
+                            <div className="row g-2">
                               <div
-                                className="w-3 h-3 rounded-full"
+                                className="color-dot"
                                 style={{ backgroundColor: category.color }}
                               />
                               <div>
-                                <p className="font-medium">{category.name}</p>
+                                <p className="t-medium">{category.name}</p>
                                 {category.description && (
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="t-xs t-muted">
                                     {category.description}
                                   </p>
                                 )}
@@ -587,7 +587,7 @@ export default function TicketsPage() {
                             setCategoryModalOpen(true);
                           }}
                         >
-                          <Plus className="mr-2 h-4 w-4" />
+                          <Plus className="ico space-r-2" />
                           Add new category
                         </CommandItem>
                       </CommandGroup>
@@ -597,7 +597,7 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="label space-b-1">
                   Assigned Agent ID
                 </label>
                 <Input
@@ -668,9 +668,9 @@ export default function TicketsPage() {
           <DialogHeader>
             <DialogTitle>Create New Category</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="stack">
             <div>
-              <label className="block text-sm font-medium mb-1">Name *</label>
+              <label className="label space-b-1">Name *</label>
               <Input
                 name="name"
                 value={categoryForm.name}
@@ -680,33 +680,33 @@ export default function TicketsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="label space-b-1">
                 Description
               </label>
               <textarea
                 name="description"
                 value={categoryForm.description}
                 onChange={handleCategoryFormChange}
-                className="w-full border rounded p-2 h-20 resize-none"
+                className="textarea"
                 placeholder="Brief description of this category"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Color</label>
-              <div className="flex gap-2 items-center">
+              <label className="label space-b-1">Color</label>
+              <div className="row g-2">
                 <input
                   type="color"
                   name="color"
                   value={categoryForm.color}
                   onChange={handleCategoryFormChange}
-                  className="w-12 h-10 rounded border"
+                  className="surface shape-square"
                 />
                 <Input
                   name="color"
                   value={categoryForm.color}
                   onChange={handleCategoryFormChange}
                   placeholder="#3B82F6"
-                  className="font-mono"
+                  className="t-sm"
                 />
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { getAuthToken } from '@/lib/axios';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function AuthLayout({
   children,
@@ -25,7 +26,8 @@ export default function AuthLayout({
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="screen-h">
+      <ThemeToggle />
       {children}
     </div>
   );

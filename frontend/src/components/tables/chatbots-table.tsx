@@ -9,17 +9,6 @@ import {
   SortingState,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,20 +70,20 @@ export function ChatbotsTable({
     columnHelper.accessor('name', {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <button
+            type="button"
+            className="ui-button ui-button-ghost ui-button-size-sm t-medium"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 font-medium"
           >
             Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown className="ico space-l-2" />
+          </button>
         )
       },
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.getValue('name')}</div>
-          <p className="text-sm text-muted-foreground truncate max-w-xs">
+          <div className="t-medium">{row.getValue('name')}</div>
+          <p className="t-sm t-muted ellipsis">
             {row.original.description || 'No description'}
           </p>
         </div>
@@ -107,31 +96,31 @@ export function ChatbotsTable({
         const isActive = row.original.isActive
         
         if (!isInitialized) {
-          return <Badge variant="secondary">Pending</Badge>
+          return <span className="badge badge-warning">Pending</span>
         }
         
         return (
-          <Badge variant={isActive !== false ? 'default' : 'outline'}>
+          <span className={isActive !== false ? 'badge badge-success' : 'badge badge-neutral'}>
             {isActive !== false ? 'Active' : 'Inactive'}
-          </Badge>
+          </span>
         )
       },
     }),
     columnHelper.accessor('totalChunks', {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <button
+            type="button"
+            className="ui-button ui-button-ghost ui-button-size-sm t-medium"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 font-medium"
           >
             Chunks
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown className="ico space-l-2" />
+          </button>
         )
       },
       cell: ({ getValue }) => (
-        <span className="font-mono text-sm">
+        <span className="tabular t-sm">
           {getValue()?.toLocaleString() || '0'}
         </span>
       ),
@@ -139,8 +128,8 @@ export function ChatbotsTable({
     columnHelper.accessor('_count.chatRooms', {
       header: 'Chats',
       cell: ({ getValue }) => (
-        <div className="flex items-center gap-1">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+        <div className="row g-1">
+          <MessageSquare className="ico t-muted" />
           <span>{getValue() || 0}</span>
         </div>
       ),
@@ -148,8 +137,8 @@ export function ChatbotsTable({
     columnHelper.accessor('_count.files', {
       header: 'Files',
       cell: ({ getValue }) => (
-        <div className="flex items-center gap-1">
-          <FileText className="h-4 w-4 text-muted-foreground" />
+        <div className="row g-1">
+          <FileText className="ico t-muted" />
           <span>{getValue() || 0}</span>
         </div>
       ),
@@ -157,19 +146,19 @@ export function ChatbotsTable({
     columnHelper.accessor('createdAt', {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
+          <button
+            type="button"
+            className="ui-button ui-button-ghost ui-button-size-sm t-medium"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-auto p-0 font-medium"
           >
             Created
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <ArrowUpDown className="ico space-l-2" />
+          </button>
         )
       },
       cell: ({ getValue }) => (
-        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4" />
+        <div className="row g-1 t-sm t-muted">
+          <Calendar className="ico" />
           <span>{new Date(getValue()).toLocaleDateString()}</span>
         </div>
       ),
@@ -180,43 +169,43 @@ export function ChatbotsTable({
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
+            <button type="button" className="btn btn-ghost btn-icon btn-sm">
+              <MoreVertical />
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onChatbotSelect?.(row.original)}>
-              <Eye className="mr-2 h-4 w-4" />
+              <Eye className="ico space-r-2" />
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onChatbotEdit?.(row.original)}>
-              <Edit className="mr-2 h-4 w-4" />
+              <Edit className="ico space-r-2" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href={`/chatbots/${row.original.id}?tab=chat`}>
-                <MessageSquare className="mr-2 h-4 w-4" />
+                <MessageSquare className="ico space-r-2" />
                 Test Chat
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {row.original.isActive !== false ? (
               <DropdownMenuItem onClick={() => onChatbotToggle?.(row.original.id, false)}>
-                <Pause className="mr-2 h-4 w-4" />
+                <Pause className="ico space-r-2" />
                 Pause
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={() => onChatbotToggle?.(row.original.id, true)}>
-                <Play className="mr-2 h-4 w-4" />
+                <Play className="ico space-r-2" />
                 Activate
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem 
-              className="text-destructive"
+              className="t-danger"
               onClick={() => onChatbotDelete?.(row.original.id)}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="ico space-r-2" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -238,75 +227,75 @@ export function ChatbotsTable({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Chatbots</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="surface">
+        <div className="surface-header">
+          <h3 className="section-title">Chatbots</h3>
+        </div>
+        <div className="surface-pad vstack-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="skeleton pad-6" />
+          ))}
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Chatbots</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow 
-                  key={row.id} 
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => onChatbotSelect?.(row.original)}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+    <div className="surface">
+      <div className="surface-header">
+        <h3 className="section-title">Chatbots</h3>
+      </div>
+      <div className="surface-pad">
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </th>
                   ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No chatbots found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <tr 
+                    key={row.id} 
+                    className="ui-table-row pointer"
+                    onClick={() => onChatbotSelect?.(row.original)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="align-center pad-6"
+                  >
+                    No chatbots found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   )
 }

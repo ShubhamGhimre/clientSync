@@ -13,7 +13,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
@@ -24,17 +23,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,7 +59,6 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-// Types
 interface ChatRoom {
   id: string;
   title: string;
@@ -115,24 +107,23 @@ export function ChatsTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  // Helper functions
   const getStatusBadge = (chat: ChatRoom) => {
     if (chat.isArchived) {
-      return <Badge variant="secondary">Archived</Badge>;
+      return <span className="badge badge-neutral">Archived</span>;
     }
     
     const status = chat.status || 'active';
     const statusConfig = {
-      active: { variant: 'default' as const, label: 'Active', className: 'bg-green-100 text-green-800 hover:bg-green-100' },
-      paused: { variant: 'secondary' as const, label: 'Paused', className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' },
-      archived: { variant: 'outline' as const, label: 'Archived', className: 'bg-gray-100 text-gray-800 hover:bg-gray-100' },
+      active: { badgeClass: 'badge badge-success', label: 'Active' },
+      paused: { badgeClass: 'badge badge-warning', label: 'Paused' },
+      archived: { badgeClass: 'badge badge-outline', label: 'Archived' },
     };
 
     const config = statusConfig[status];
     return (
-      <Badge variant={config.variant} className={config.className}>
+      <span className={config.badgeClass}>
         {config.label}
-      </Badge>
+      </span>
     );
   };
 
@@ -158,12 +149,12 @@ export function ChatsTable({
     return formatDate(dateString);
   };
 
-  // Column definitions
   const columns: ColumnDef<ChatRoom>[] = [
     {
       id: 'select',
       header: ({ table }) => (
         <Checkbox
+          className="ui-checkbox"
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -171,6 +162,7 @@ export function ChatsTable({
       ),
       cell: ({ row }) => (
         <Checkbox
+          className="ui-checkbox"
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
@@ -182,47 +174,47 @@ export function ChatsTable({
     {
       accessorKey: 'title',
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-8 px-2"
         >
           Chat Room
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown className="ico space-l-2" />
+        </button>
       ),
       cell: ({ row }) => {
         const chat = row.original;
         return (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center">
+          <div className="row g-3">
+            <div className="row">
               {chat.isPinned && (
-                <Pin className="h-3 w-3 text-orange-500 mr-1" />
+                <Pin className="ico-xs t-warning space-r-1" />
               )}
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <MessageSquare className="ico t-muted" />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="font-medium truncate">{chat.title}</p>
+            <div className="flex-fill">
+              <div className="row g-2">
+                <p className="t-medium ellipsis">{chat.title}</p>
                 {chat.isPinned && (
-                  <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                  <span className="badge badge-warning">
                     Pinned
-                  </Badge>
+                  </span>
                 )}
               </div>
               {chat.description && (
-                <p className="text-sm text-muted-foreground truncate">
+                <p className="t-sm t-muted ellipsis">
                   {chat.description}
                 </p>
               )}
               {chat.lastMessage && (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="row g-2 space-t-1">
                   {chat.lastMessage.sender === 'bot' ? (
-                    <Bot className="h-3 w-3 text-blue-500" />
+                    <Bot className="ico-xs t-brand" />
                   ) : (
-                    <User className="h-3 w-3 text-green-500" />
+                    <User className="ico-xs t-success" />
                   )}
-                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                  <p className="t-xs t-muted ellipsis">
                     {chat.lastMessage.content}
                   </p>
                 </div>
@@ -238,38 +230,38 @@ export function ChatsTable({
       cell: ({ row }) => {
         const chatBot = row.original.chatBot;
         return chatBot ? (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
+          <div className="row g-2">
+            <Avatar className="avatar avatar-sm">
               <AvatarImage src={`https://api.dicebear.com/7.x/bottts/svg?seed=${chatBot.name}`} />
               <AvatarFallback>
-                <Bot className="h-3 w-3" />
+                <Bot className="ico-xs" />
               </AvatarFallback>
             </Avatar>
-            <span className="font-medium">{chatBot.name}</span>
+            <span className="t-medium">{chatBot.name}</span>
           </div>
         ) : (
-          <span className="text-muted-foreground">No chatbot</span>
+          <span className="t-muted">No chatbot</span>
         );
       },
     },
     {
       accessorKey: 'conversations',
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-8 px-2"
         >
           Messages
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown className="ico space-l-2" />
+        </button>
       ),
       cell: ({ row }) => {
         const count = row.original._count?.conversations || 0;
         return (
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{count}</span>
+          <div className="row g-2">
+            <MessageSquare className="ico t-muted" />
+            <span className="t-medium tabular">{count}</span>
           </div>
         );
       },
@@ -292,21 +284,21 @@ export function ChatsTable({
     {
       accessorKey: 'updatedAt',
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-8 px-2"
         >
           Last Activity
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown className="ico space-l-2" />
+        </button>
       ),
       cell: ({ row }) => {
         const updatedAt = row.getValue('updatedAt') as string;
         return (
-          <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-sm">{getTimeAgo(updatedAt)}</span>
+          <div className="row g-2">
+            <Clock className="ico-xs t-muted" />
+            <span className="t-sm">{getTimeAgo(updatedAt)}</span>
           </div>
         );
       },
@@ -325,10 +317,10 @@ export function ChatsTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <button type="button" className="btn btn-ghost btn-icon btn-sm">
+                <span className="sr">Open menu</span>
+                <MoreHorizontal />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -340,16 +332,16 @@ export function ChatsTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/chats/${chat.id}`}>
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye className="ico space-r-2" />
                   View chat
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onChatSelect?.(chat)}>
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="ico space-r-2" />
                 Open in new tab
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onChatEdit?.(chat)}>
-                <Edit className="mr-2 h-4 w-4" />
+                <Edit className="ico space-r-2" />
                 Edit chat
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -358,28 +350,28 @@ export function ChatsTable({
               >
                 {chat.isPinned ? (
                   <>
-                    <PinOff className="mr-2 h-4 w-4" />
+                    <PinOff className="ico space-r-2" />
                     Unpin chat
                   </>
                 ) : (
                   <>
-                    <Pin className="mr-2 h-4 w-4" />
+                    <Pin className="ico space-r-2" />
                     Pin chat
                   </>
                 )}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onChatArchive?.(chat.id)}>
-                <Archive className="mr-2 h-4 w-4" />
+                <Archive className="ico space-r-2" />
                 {chat.isArchived ? 'Unarchive' : 'Archive'} chat
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
+                    className="t-danger"
                     onSelect={(e) => e.preventDefault()}
                   >
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="ico space-r-2" />
                     Delete chat
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
@@ -392,10 +384,10 @@ export function ChatsTable({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="btn btn-secondary">Cancel</AlertDialogCancel>
                     <AlertDialogAction
+                      className="btn btn-danger"
                       onClick={() => onChatDelete?.(chat.id)}
-                      className="bg-red-600 hover:bg-red-700"
                     >
                       Delete
                     </AlertDialogAction>
@@ -437,7 +429,6 @@ export function ChatsTable({
       return;
     }
 
-    // Handle bulk delete logic here
     selectedChatIds.forEach(id => onChatDelete?.(id));
     toast.success(`${selectedChatIds.length} chats deleted`);
     setRowSelection({});
@@ -463,7 +454,6 @@ export function ChatsTable({
       ? selectedRows.map(row => row.original)
       : data;
 
-    // Simple CSV export
     const headers = ['Title', 'Description', 'Chatbot', 'Messages', 'Status', 'Created', 'Last Activity'];
     const csvContent = [
       headers.join(','),
@@ -490,23 +480,21 @@ export function ChatsTable({
   };
 
   return (
-    <div className="w-full space-y-4">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {/* Status Filter */}
+    <div className="stack">
+      <div className="table-tools">
+        <div className="row g-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
+              <button type="button" className="btn btn-secondary push">
                 Status
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+                <ChevronDown className="ico space-l-2" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {['active', 'paused', 'archived'].map((status) => (
                 <DropdownMenuCheckboxItem
                   key={status}
-                  className="capitalize"
+                  className="capitalize-label"
                   checked={(table.getColumn('status')?.getFilterValue() as string[])?.includes(status)}
                   onCheckedChange={(value) => {
                     const currentFilter = (table.getColumn('status')?.getFilterValue() as string[]) || [];
@@ -523,35 +511,33 @@ export function ChatsTable({
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center space-x-2">
-          {/* Bulk Actions */}
+        <div className="row g-2">
           {Object.keys(rowSelection).length > 0 && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">
+            <div className="row g-2">
+              <span className="t-sm t-muted">
                 {Object.keys(rowSelection).length} selected
               </span>
-              <Button variant="outline" size="sm" onClick={handleBulkArchive}>
-                <Archive className="mr-2 h-4 w-4" />
+              <button type="button" className="btn btn-secondary btn-sm" onClick={handleBulkArchive}>
+                <Archive className="ico space-r-2" />
                 Archive
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleBulkDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={handleBulkDelete}>
+                <Trash2 className="ico space-r-2" />
                 Delete
-              </Button>
+              </button>
             </div>
           )}
 
-          <Button variant="outline" size="sm" onClick={exportChats}>
-            <Download className="mr-2 h-4 w-4" />
+          <button type="button" className="btn btn-secondary btn-sm" onClick={exportChats}>
+            <Download className="ico space-r-2" />
             Export
-          </Button>
+          </button>
 
-          {/* Column Visibility */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+              <button type="button" className="btn btn-secondary push">
+                Columns <ChevronDown className="ico space-l-2" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {table
@@ -561,7 +547,7 @@ export function ChatsTable({
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
-                      className="capitalize"
+                      className="capitalize-label"
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
@@ -576,83 +562,81 @@ export function ChatsTable({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <th key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                    </TableHead>
+                    </th>
                   );
                 })}
-              </TableRow>
+              </tr>
             ))}
-          </TableHeader>
-          <TableBody>
+          </thead>
+          <tbody>
             {loading ? (
               Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
+                <tr key={index}>
                   {columns.map((_, cellIndex) => (
-                    <TableCell key={cellIndex}>
-                      <div className="h-4 bg-muted animate-pulse rounded" />
-                    </TableCell>
+                    <td key={cellIndex}>
+                      <div className="skeleton pad-2" />
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <tr
                   key={row.id}
+                  className="ui-table-row pointer"
                   data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => onChatSelect?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <td key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </TableCell>
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : (
-              <TableRow>
-                <TableCell
+              <tr>
+                <td
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="align-center pad-6"
                 >
                   No chat rooms found.
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div className="table-pager">
+        <div className="flex-fill t-sm t-muted">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length} chat(s) selected.
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
+        <div className="pager-controls">
+          <div className="row g-2">
+            <p className="t-sm t-medium">Rows per page</p>
             <select
+              className="pager-select"
               value={table.getState().pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-[70px] rounded border border-input bg-background px-3 py-1 text-sm"
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>
@@ -661,47 +645,47 @@ export function ChatsTable({
               ))}
             </select>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="center t-sm t-medium">
             Page {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+          <div className="pager-controls">
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm show-lg-row"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to first page</span>
+              <span className="sr">Go to first page</span>
               «
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to previous page</span>
+              <span className="sr">Go to previous page</span>
               ‹
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to next page</span>
+              <span className="sr">Go to next page</span>
               ›
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm show-lg-row"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to last page</span>
+              <span className="sr">Go to last page</span>
               »
-            </Button>
+            </button>
           </div>
         </div>
       </div>

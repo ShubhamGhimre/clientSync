@@ -1,158 +1,158 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useCreateChatBot } from '@/hooks/api/useChatBots'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Bot, CheckCircle } from 'lucide-react'
-import Link from 'next/link'
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Bot, Loader2, X } from 'lucide-react';
+import { useCreateChatBot } from '@/hooks/api/useChatBots';
+
+const NEXT_STEPS = [
+  {
+    title: 'Create the chatbot',
+    text: 'It starts with a basic configuration you can change later.',
+  },
+  {
+    title: 'Upload your documents',
+    text: 'Add PDF, TXT or CSV files the assistant should learn from.',
+  },
+  {
+    title: 'Build the knowledge base',
+    text: 'We process your files so the assistant can search them.',
+  },
+  {
+    title: 'Start chatting',
+    text: 'Test it, then embed it on your website.',
+  },
+];
 
 export default function CreateChatbotPage() {
-
-  const router = useRouter()
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  })
+  const router = useRouter();
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { mutateAsync, isPending } = useCreateChatBot();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     try {
       const res = await mutateAsync({
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
       });
       if (res?.data?.id) {
         router.push(`/chatbots/${res.data.id}?tab=knowledge`);
       } else {
-        // fallback: go to list
+        // fallback: go to the list
         router.push('/chatbots');
       }
     } catch (error) {
-      // Optionally show error toast
-      // eslint-disable-next-line no-console
       console.error('Failed to create chatbot:', error);
+      setSubmitError(
+        (error as { message?: string })?.message || 'Could not create the chatbot. Please try again.'
+      );
     }
-  }
+  };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/chatbots">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Chatbots
-          </Link>
-        </Button>
-      </div>
+    <div className="page-narrow">
+      <Link href="/chatbots" className="btn btn-ghost btn-sm space-b-4">
+        <ArrowLeft />
+        Chatbots
+      </Link>
 
-      <div className="flex items-center gap-2">
-        <Bot className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Create New Chatbot</h1>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
-              Provide basic details about your new chatbot
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Chatbot Name *</Label>
-              <Input
-                id="name"
-                placeholder="Enter a descriptive name for your chatbot"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe what your chatbot will do and what it specializes in..."
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Next Steps */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              What happens next?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                  1
-                </div>
-                <div>
-                  <p className="font-medium">Chatbot Creation</p>
-                  <p className="text-muted-foreground">Your chatbot will be created with basic configuration</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                  2
-                </div>
-                <div>
-                  <p className="font-medium">Upload Training Data</p>
-                  <p className="text-muted-foreground">Upload files (PDF, TXT, CSV) to train your chatbot</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                  3
-                </div>
-                <div>
-                  <p className="font-medium">Initialize Knowledge Base</p>
-                  <p className="text-muted-foreground">Process uploaded files to create the knowledge base</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                  4
-                </div>
-                <div>
-                  <p className="font-medium">Start Chatting</p>
-                  <p className="text-muted-foreground">Your chatbot will be ready to answer questions</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex gap-2 justify-end">
-          <Button type="button" variant="outline" asChild>
-            <Link href="/chatbots">Cancel</Link>
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            <Bot className="mr-2 h-4 w-4" />
-            {isPending ? 'Creating...' : 'Create Chatbot'}
-          </Button>
+      <header className="page-header">
+        <div>
+          <h1 className="page-title">Create a chatbot</h1>
+          <p className="page-subtitle">
+            Give it a name now. You&apos;ll add documents in the next step.
+          </p>
         </div>
+      </header>
+
+      <form onSubmit={handleSubmit} className="stack-lg">
+        <div className="surface">
+          <div className="surface-header">
+            <h2 className="card-title">Basic information</h2>
+          </div>
+
+          <div className="stack pad-5">
+            {submitError && (
+              <div role="alert" className="callout callout-danger">
+                <X className="space-t-0.5 ico t-danger" />
+                <span className="t-danger">{submitError}</span>
+              </div>
+            )}
+
+            <div className="field">
+              <label htmlFor="name" className="label">Name</label>
+              <input
+                id="name"
+                className="input"
+                placeholder="e.g. Billing support"
+                autoComplete="off"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                required
+                disabled={isPending}
+              />
+              <p className="field-hint">Your team sees this name. Customers don&apos;t.</p>
+            </div>
+
+            <div className="field">
+              <label htmlFor="description" className="label">
+                Description <span className="t-muted">(optional)</span>
+              </label>
+              <textarea
+                id="description"
+                className="textarea"
+                placeholder="What should this assistant help with?"
+                rows={4}
+                value={formData.description}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                disabled={isPending}
+              />
+            </div>
+          </div>
+
+          <div className="surface-footer">
+            <Link href="/chatbots" className="btn btn-secondary">
+              Cancel
+            </Link>
+            <button type="submit" className="btn btn-brand" disabled={isPending || !formData.name.trim()}>
+              {isPending ? (
+                <>
+                  <Loader2 className="spin" />
+                  Creating…
+                </>
+              ) : (
+                <>
+                  <Bot />
+                  Create chatbot
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* These really are sequential, so numbering is information here */}
+        <section aria-labelledby="next-steps">
+          <h2 id="next-steps" className="section-title space-b-3">What happens next</h2>
+          <ol className="surface-muted stack pad-5">
+            {NEXT_STEPS.map((step, i) => (
+              <li key={step.title} className="row-start g-3">
+                <span className="surface center ico-xl shape-round t-xs t-medium tabular">
+                  {i + 1}
+                </span>
+                <div>
+                  <p className="t-sm t-medium">{step.title}</p>
+                  <p className="t-sm t-muted">{step.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
       </form>
     </div>
-  )
+  );
 }

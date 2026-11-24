@@ -3,22 +3,15 @@
 import { useState, useCallback } from 'react';
 import { useUploadFile } from '@/hooks/api/useFiles';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, 
-  File, 
-  X, 
-  CheckCircle, 
+import {
+  X,
+  CheckCircle,
   AlertCircle,
   FileText,
   FileSpreadsheet,
   FileType,
   Loader2,
   CloudUpload,
-  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,41 +40,53 @@ interface UploadedFile {
 }
 
 const allowedTypes = {
-  'application/pdf': { icon: FileText, label: 'PDF', color: 'bg-red-50 text-red-600 border-red-200' },
-  'text/plain': { icon: FileType, label: 'TXT', color: 'bg-slate-50 text-slate-600 border-slate-200' },
-  'text/csv': { icon: FileSpreadsheet, label: 'CSV', color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { 
-    icon: FileText, 
-    label: 'DOCX', 
-    color: 'bg-blue-50 text-blue-600 border-blue-200' 
+  'application/pdf': { icon: FileText, label: 'PDF' },
+  'text/plain': { icon: FileType, label: 'TXT' },
+  'text/csv': { icon: FileSpreadsheet, label: 'CSV' },
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+    icon: FileText,
+    label: 'DOCX',
   },
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': { 
-    icon: FileSpreadsheet, 
-    label: 'XLSX', 
-    color: 'bg-emerald-50 text-emerald-600 border-emerald-200' 
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+    icon: FileSpreadsheet,
+    label: 'XLSX',
   },
 };
 
-export function FileUpload({ 
+const getFileIcon = (fileType: string) =>
+  allowedTypes[fileType as keyof typeof allowedTypes]?.icon ?? FileType;
+
+const getFileLabel = (fileType: string) =>
+  allowedTypes[fileType as keyof typeof allowedTypes]?.label ?? 'FILE';
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+export function FileUpload({
   chatbotId,
   onUploadComplete,
   maxFiles = 10,
   maxSize = 10 * 1024 * 1024, // 10MB
-  className 
+  className = '',
 }: FileUploadProps) {
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [completedFiles, setCompletedFiles] = useState<UploadedFile[]>([]);
 
   const uploadFileMutation = useUploadFile();
 
-  const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
-    // Handle rejected files
-    if (rejectedFiles.length > 0) {
+  const onDrop = useCallback(
+    async (acceptedFiles: File[], rejectedFiles: any[]) => {
+      // Report rejected files
       rejectedFiles.forEach((rejection) => {
         const { file, errors } = rejection;
         errors.forEach((error: any) => {
           if (error.code === 'file-too-large') {
-            toast.error(`${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)}MB`);
+            toast.error(`${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)} MB`);
           } else if (error.code === 'file-invalid-type') {
             toast.error(`${file.name} is not a supported file type`);
           } else {
@@ -89,32 +94,30 @@ export function FileUpload({
           }
         });
       });
-    }
 
-    // Check if adding these files would exceed the limit
-    const totalFiles = uploadingFiles.length + completedFiles.length + acceptedFiles.length;
-    if (totalFiles > maxFiles) {
-      toast.error(`Cannot upload more than ${maxFiles} files`);
-      return;
-    }
+      // Enforce the file limit
+      const totalFiles = uploadingFiles.length + completedFiles.length + acceptedFiles.length;
+      if (totalFiles > maxFiles) {
+        toast.error(`Cannot upload more than ${maxFiles} files`);
+        return;
+      }
 
-    // Initialize uploading files
-    const newUploadingFiles = acceptedFiles.map(file => ({
-      file,
-      progress: 0,
-      status: 'uploading' as const,
-      id: Math.random().toString(36).substr(2, 9),
-    }));
-    
-    setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
+      const newUploadingFiles: UploadingFile[] = acceptedFiles.map((file) => ({
+        file,
+        progress: 0,
+        status: 'uploading' as const,
+        id: Math.random().toString(36).slice(2, 11),
+      }));
 
-    // Real file upload using API
-    for (const uploadingFile of newUploadingFiles) {
-      try {
-        // Simulate progress updates (optional, for UI feedback)
+      setUploadingFiles((prev) => [...prev, ...newUploadingFiles]);
+
+      const uploadedInThisBatch: UploadedFile[] = [];
+
+      for (const uploadingFile of newUploadingFiles) {
+        // Simulated progress for UI feedback
         const progressInterval = setInterval(() => {
-          setUploadingFiles(prev =>
-            prev.map(uf =>
+          setUploadingFiles((prev) =>
+            prev.map((uf) =>
               uf.id === uploadingFile.id
                 ? { ...uf, progress: Math.min(uf.progress + 10, 90) }
                 : uf
@@ -122,63 +125,55 @@ export function FileUpload({
           );
         }, 200);
 
-        // Prepare FormData
-        const formData = new FormData();
-        formData.append('file', uploadingFile.file);
-        if (chatbotId) formData.append('chatBotId', chatbotId);
+        try {
+          const formData = new FormData();
+          formData.append('file', uploadingFile.file);
+          if (chatbotId) formData.append('chatBotId', chatbotId);
 
-        // Upload via API
-        const res = await uploadFileMutation.mutateAsync(formData);
+          const res = await uploadFileMutation.mutateAsync(formData);
 
-        clearInterval(progressInterval);
+          setUploadingFiles((prev) =>
+            prev.map((uf) =>
+              uf.id === uploadingFile.id ? { ...uf, progress: 100, status: 'completed' } : uf
+            )
+          );
 
-        // Mark as completed
-        setUploadingFiles(prev =>
-          prev.map(uf =>
-            uf.id === uploadingFile.id
-              ? { ...uf, progress: 100, status: 'completed' }
-              : uf
-          )
-        );
+          const completedFile: UploadedFile = {
+            id: res?.data?.id || uploadingFile.id,
+            fileName: res?.data?.fileName || uploadingFile.file.name,
+            fileSize: res?.data?.fileSize || uploadingFile.file.size,
+            fileType: res?.data?.fileType || uploadingFile.file.type,
+            uploadedAt: res?.data?.uploadedAt || new Date().toISOString(),
+          };
 
-        // Add to completed files
-        const completedFile: UploadedFile = {
-          id: res?.data?.id || uploadingFile.id,
-          fileName: res?.data?.fileName || uploadingFile.file.name,
-          fileSize: res?.data?.fileSize || uploadingFile.file.size,
-          fileType: res?.data?.fileType || uploadingFile.file.type,
-          uploadedAt: res?.data?.uploadedAt || new Date().toISOString(),
-        };
+          uploadedInThisBatch.push(completedFile);
+          setCompletedFiles((prev) => [...prev, completedFile]);
+          toast.success(`${uploadingFile.file.name} uploaded`);
 
-        setCompletedFiles(prev => [...prev, completedFile]);
-        toast.success(`${uploadingFile.file.name} uploaded successfully`);
-
-        // Remove from uploading after a delay
-        setTimeout(() => {
-          setUploadingFiles(prev => prev.filter(uf => uf.id !== uploadingFile.id));
-        }, 2000);
-
-      } catch (error: any) {
-        setUploadingFiles(prev =>
-          prev.map(uf =>
-            uf.id === uploadingFile.id
-              ? {
-                  ...uf,
-                  status: 'error',
-                  error: error.message || 'Upload failed'
-                }
-              : uf
-          )
-        );
-        toast.error(`Failed to upload ${uploadingFile.file.name}`);
+          // Clear the finished row after a short delay
+          setTimeout(() => {
+            setUploadingFiles((prev) => prev.filter((uf) => uf.id !== uploadingFile.id));
+          }, 2000);
+        } catch (error: any) {
+          setUploadingFiles((prev) =>
+            prev.map((uf) =>
+              uf.id === uploadingFile.id
+                ? { ...uf, status: 'error', error: error.message || 'Upload failed' }
+                : uf
+            )
+          );
+          toast.error(`Failed to upload ${uploadingFile.file.name}`);
+        } finally {
+          clearInterval(progressInterval);
+        }
       }
-    }
 
-    // Call completion callback
-    if (onUploadComplete && completedFiles.length > 0) {
-      onUploadComplete(completedFiles);
-    }
-  }, [chatbotId, maxFiles, maxSize, onUploadComplete, uploadingFiles.length, completedFiles]);
+      if (onUploadComplete && uploadedInThisBatch.length > 0) {
+        onUploadComplete(uploadedInThisBatch);
+      }
+    },
+    [chatbotId, maxFiles, maxSize, onUploadComplete, uploadingFiles.length, completedFiles.length, uploadFileMutation]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -191,226 +186,166 @@ export function FileUpload({
     maxFiles,
   });
 
-  const removeUploadingFile = (id: string) => {
-    setUploadingFiles(prev => prev.filter(uf => uf.id !== id));
-  };
+  const removeUploadingFile = (id: string) =>
+    setUploadingFiles((prev) => prev.filter((uf) => uf.id !== id));
 
-  const removeCompletedFile = (id: string) => {
-    setCompletedFiles(prev => prev.filter(cf => cf.id !== id));
-  };
-
-  const getFileIcon = (fileType: string) => {
-    const typeInfo = allowedTypes[fileType as keyof typeof allowedTypes];
-    return typeInfo ? typeInfo.icon : FileType;
-  };
-
-  const getFileLabel = (fileType: string) => {
-    const typeInfo = allowedTypes[fileType as keyof typeof allowedTypes];
-    return typeInfo ? typeInfo.label : 'Unknown';
-  };
-
-  const getFileColor = (fileType: string) => {
-    const typeInfo = allowedTypes[fileType as keyof typeof allowedTypes];
-    return typeInfo ? typeInfo.color : 'bg-slate-50 text-slate-600 border-slate-200';
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const removeCompletedFile = (id: string) =>
+    setCompletedFiles((prev) => prev.filter((cf) => cf.id !== id));
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Upload Area */}
-      <Card className="border-0 shadow-sm bg-white overflow-hidden">
-        <CardContent className="p-0">
-          <div
-            {...getRootProps()}
-            className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 ${
-              isDragActive
-                ? 'border-blue-400 bg-blue-50/50 scale-[1.02]'
-                : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
-            }`}
-          >
-            <input {...getInputProps()} />
-            
-            {/* Upload Icon */}
-            <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-              isDragActive ? 'bg-blue-100 scale-110' : 'bg-slate-100'
-            }`}>
-              <CloudUpload className={`h-8 w-8 transition-colors duration-300 ${
-                isDragActive ? 'text-blue-600' : 'text-slate-600'
-              }`} />
-            </div>
+    <div className={`stack-lg ${className}`}>
+      {/* Drop zone */}
+      <div
+        {...getRootProps()}
+        className={`dropzone ${isDragActive ? 'is-dragging' : ''}`}
+      >
+        <input {...getInputProps()} />
 
-            {/* Upload Text */}
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <p className={`text-xl font-semibold transition-colors duration-300 ${
-                  isDragActive ? 'text-blue-900' : 'text-slate-900'
-                }`}>
-                  {isDragActive ? 'Drop your files here' : 'Upload training files'}
-                </p>
-                <p className="text-slate-600">
-                  Drag and drop files here, or{' '}
-                  <span className="text-blue-600 font-medium">click to browse</span>
-                </p>
-              </div>
+        <span className="doc-icon upload-icon">
+          <CloudUpload className="ico-xl" />
+        </span>
 
-              {/* Supported File Types */}
-              <div className="flex flex-wrap justify-center gap-2 pt-2">
-                {Object.entries(allowedTypes).map(([type, info]) => (
-                  <Badge key={type} variant="outline" className={`${info.color} font-medium`}>
-                    <info.icon className="w-3 h-3 mr-1.5" />
-                    {info.label}
-                  </Badge>
-                ))}
-              </div>
+        <div className="stack-sm center">
+          <p className="upload-title">
+            {isDragActive ? 'Drop files to upload' : 'Upload training files'}
+          </p>
+          <p className="t-sm t-muted">
+            Drag and drop files here, or{' '}
+            <span className="t-medium t-brand">browse your computer</span>
+          </p>
+        </div>
 
-              {/* File Limits */}
-              <div className="flex items-center justify-center gap-6 text-xs text-slate-500 pt-2">
-                <span>Max size: {maxSize / (1024 * 1024)}MB</span>
-                <span>•</span>
-                <span>Max files: {maxFiles}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="cluster center" aria-label="Supported file types">
+          {Object.entries(allowedTypes).map(([type, info]) => (
+            <span key={type} className="badge badge-neutral">
+              <info.icon className="ico-xs" />
+              {info.label}
+            </span>
+          ))}
+        </div>
 
-      {/* Uploading Files */}
+        <p className="field-hint">
+          Up to {maxSize / (1024 * 1024)} MB per file, {maxFiles} files total
+        </p>
+      </div>
+
+      {/* In progress */}
       {uploadingFiles.length > 0 && (
-        <Card className="border-0 shadow-sm bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Upload className="h-4 w-4 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-slate-900">Uploading Files ({uploadingFiles.length})</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {uploadingFiles.map((uploadingFile) => {
-                const Icon = getFileIcon(uploadingFile.file.type);
-                
-                return (
-                  <div key={uploadingFile.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
-                      <Icon className="h-5 w-5 text-slate-600" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-slate-900 truncate pr-4">
-                          {uploadingFile.file.name}
-                        </p>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <Badge variant="outline" className={getFileColor(uploadingFile.file.type)}>
-                            {getFileLabel(uploadingFile.file.type)}
-                          </Badge>
-                          <span className="text-sm text-slate-500">
-                            {formatFileSize(uploadingFile.file.size)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {uploadingFile.status === 'uploading' && (
-                        <div className="space-y-2">
-                          <Progress value={uploadingFile.progress} className="h-2" />
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm text-slate-600">
-                              Uploading... {uploadingFile.progress}%
-                            </p>
-                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                          </div>
-                        </div>
-                      )}
-                      
-                      {uploadingFile.status === 'completed' && (
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-emerald-500" />
-                          <p className="text-sm text-emerald-600 font-medium">Upload completed</p>
-                        </div>
-                      )}
-                      
-                      {uploadingFile.status === 'error' && (
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4 text-red-500" />
-                          <p className="text-sm text-red-600">{uploadingFile.error || 'Upload failed'}</p>
-                        </div>
-                      )}
+        <section className="surface" aria-label="Uploading files">
+          <div className="surface-header">
+            <h3 className="section-title">Uploading ({uploadingFiles.length})</h3>
+          </div>
+
+          <ul className="surface-pad stack-sm">
+            {uploadingFiles.map((uploadingFile) => {
+              const Icon = getFileIcon(uploadingFile.file.type);
+
+              return (
+                <li key={uploadingFile.id} className="doc-row">
+                  <span className="doc-icon">
+                    <Icon className="ico-lg" />
+                  </span>
+
+                  <div className="flex-fill stack-sm">
+                    <div className="row-between g-3">
+                      <p className="ellipsis t-medium">{uploadingFile.file.name}</p>
+                      <span className="field-hint no-shrink tabular">
+                        {getFileLabel(uploadingFile.file.type)}, {formatFileSize(uploadingFile.file.size)}
+                      </span>
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeUploadingFile(uploadingFile.id)}
-                      className="h-8 w-8 p-0 hover:bg-slate-200 flex-shrink-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    {uploadingFile.status === 'uploading' && (
+                      <>
+                        <div
+                          className="progress"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={uploadingFile.progress}
+                          aria-label={`Uploading ${uploadingFile.file.name}`}
+                        >
+                          <span style={{ width: `${uploadingFile.progress}%` }} />
+                        </div>
+                        <p className="row g-1.5 t-xs t-muted tabular">
+                          <Loader2 className="ico-xs spin" />
+                          Uploading, {uploadingFile.progress}%
+                        </p>
+                      </>
+                    )}
+
+                    {uploadingFile.status === 'completed' && (
+                      <p className="row g-1.5 t-sm t-medium t-success">
+                        <CheckCircle className="ico" />
+                        Upload complete
+                      </p>
+                    )}
+
+                    {uploadingFile.status === 'error' && (
+                      <p className="row g-1.5 t-sm t-danger" role="alert">
+                        <AlertCircle className="ico no-shrink" />
+                        {uploadingFile.error || 'Upload failed'}
+                      </p>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-icon btn-sm"
+                    onClick={() => removeUploadingFile(uploadingFile.id)}
+                    aria-label={`Remove ${uploadingFile.file.name}`}
+                  >
+                    <X />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
 
-      {/* Completed Files */}
+      {/* Done */}
       {completedFiles.length > 0 && (
-        <Card className="border-0 shadow-sm bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 text-emerald-600" />
-              </div>
-              <h3 className="font-semibold text-slate-900">Successfully Uploaded ({completedFiles.length})</h3>
-            </div>
-            
-            <div className="grid gap-3">
-              {completedFiles.map((file) => {
-                const Icon = getFileIcon(file.fileType);
-                
-                return (
-                  <div key={file.id} className="flex items-center gap-4 p-4 bg-emerald-50/50 rounded-xl border border-emerald-200/60">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-emerald-200">
-                      <Icon className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-medium text-emerald-900 truncate pr-4">
-                          {file.fileName}
-                        </p>
-                        <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 flex-shrink-0">
-                          {getFileLabel(file.fileType)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-emerald-700">
-                        <span>{formatFileSize(file.fileSize)}</span>
-                        <span>•</span>
-                        <span>Uploaded {new Date(file.uploadedAt).toLocaleTimeString()}</span>
-                      </div>
-                    </div>
+        <section className="surface" aria-label="Uploaded files">
+          <div className="surface-header">
+            <h3 className="section-title">Uploaded ({completedFiles.length})</h3>
+          </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCompletedFile(file.id)}
-                      className="h-8 w-8 p-0 hover:bg-emerald-100 flex-shrink-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+          <ul className="surface-pad stack-sm">
+            {completedFiles.map((file) => {
+              const Icon = getFileIcon(file.fileType);
+
+              return (
+                <li key={file.id} className="doc-row">
+                  <span className="doc-icon">
+                    <Icon className="ico-lg" />
+                  </span>
+
+                  <div className="flex-fill">
+                    <p className="ellipsis t-medium">{file.fileName}</p>
+                    <p className="field-hint tabular">
+                      {getFileLabel(file.fileType)}, {formatFileSize(file.fileSize)}, uploaded{' '}
+                      {new Date(file.uploadedAt).toLocaleTimeString()}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+
+                  <span className="badge badge-success">
+                    <CheckCircle className="ico-xs" />
+                    Done
+                  </span>
+
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-icon btn-sm"
+                    onClick={() => removeCompletedFile(file.id)}
+                    aria-label={`Dismiss ${file.fileName}`}
+                  >
+                    <X />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </div>
   );

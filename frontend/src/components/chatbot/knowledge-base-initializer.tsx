@@ -1,17 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Database,
   RefreshCw,
@@ -25,7 +14,7 @@ import {
 } from "lucide-react";
 import { useChatBot } from "@/hooks/api/useChatBots";
 import { useRagManager } from "@/hooks/api/useRag";
-import { FilesResponse, useFiles } from "@/hooks/api/useFiles";
+import { useFiles } from "@/hooks/api/useFiles";
 
 interface KnowledgeBaseInitializerProps {
   chatbotId: string;
@@ -43,7 +32,8 @@ interface File {
 export default function KnowledgeBaseInitializer({
   chatbotId,
 }: KnowledgeBaseInitializerProps) {
-  const [chatbotPollingInterval, setChatbotPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [chatbotPollingInterval, setChatbotPollingInterval] =
+    useState<NodeJS.Timeout | null>(null);
 
   // Fetch chatbot data
   const {
@@ -59,96 +49,56 @@ export default function KnowledgeBaseInitializer({
     isLoading: filesLoading,
     refetch: refetchFiles,
   } = useFiles(chatbotId);
-  
-  // Extract files array from the API response
-  const files: File[] = filesData?.data && Array.isArray(filesData.data) 
-    ? filesData.data 
-    : [];
 
-  // Use the comprehensive RAG manager hook
+  const files: File[] =
+    filesData?.data && Array.isArray(filesData.data) ? filesData.data : [];
+
+  // RAG manager
   const ragManager = useRagManager(chatbotId);
-
-  // Destructure all the states and methods from ragManager
   const {
-    // Initialization
     initialize,
     isInitializing,
     initializeError,
-    
-    // Progress tracking
     progress: progressData,
     isProcessing,
     isCompleted,
     isFailed,
-    progressLoading,
     progressError,
     refetchProgress,
-    
-    // Combined states
     isActive,
     hasError,
   } = ragManager;
-
-  console.log("RAG Manager State:", {
-    progressData,
-    isProcessing,
-    isCompleted,
-    isFailed,
-    isActive,
-    hasError
-  });
 
   const isKnowledgeInitialized = chatbot?.isKnowledgeInitialized || false;
   const totalChunks = chatbot?.totalChunks || 0;
   const lastUpdated = chatbot?.lastKnowledgeUpdate;
 
-  // Determine if we can initialize
   const canInitialize = files.length > 0 && !isKnowledgeInitialized && !isActive;
 
-  // Set up 2-minute interval for chatbot status polling
+  // Poll chatbot status every 2 minutes
   useEffect(() => {
-    const startChatbotPolling = () => {
-      const interval = setInterval(async () => {
-        try {
-          console.log('Polling chatbot status every 2 minutes...');
-          await refetchChatbot();
-        } catch (error) {
-          console.error("Chatbot polling error:", error);
-        }
-      }, 2 * 60 * 1000); // 2 minutes in milliseconds
+    const interval = setInterval(async () => {
+      try {
+        await refetchChatbot();
+      } catch (error) {
+        console.error("Chatbot polling error:", error);
+      }
+    }, 2 * 60 * 1000);
 
-      setChatbotPollingInterval(interval);
-      return interval;
-    };
-
-    const interval = startChatbotPolling();
+    setChatbotPollingInterval(interval);
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
-        setChatbotPollingInterval(null);
-      }
+      clearInterval(interval);
+      setChatbotPollingInterval(null);
     };
   }, [chatbotId, refetchChatbot]);
 
-  // Cleanup intervals on component unmount
-  useEffect(() => {
-    return () => {
-      if (chatbotPollingInterval) {
-        clearInterval(chatbotPollingInterval);
-      }
-    };
-  }, [chatbotPollingInterval]);
-
-  // Refresh chatbot data when RAG process completes
+  // Refresh chatbot data shortly after RAG completes
   useEffect(() => {
     if (isCompleted) {
-      // Delay the refetch to ensure backend has updated
       const timer = setTimeout(() => {
-        console.log('RAG completed, refreshing chatbot data...');
         refetchChatbot();
       }, 2000);
-      
       return () => clearTimeout(timer);
     }
   }, [isCompleted, refetchChatbot]);
@@ -156,8 +106,7 @@ export default function KnowledgeBaseInitializer({
   const handleInitializeKnowledge = async () => {
     try {
       await initialize();
-      console.log('RAG initialization started successfully');
-      // The progress polling will start automatically
+      // Progress polling starts automatically
     } catch (error) {
       console.error("Initialize error:", error);
     }
@@ -186,43 +135,21 @@ export default function KnowledgeBaseInitializer({
   };
 
   const getProgress = () => {
-    // If knowledge is fully initialized, show 100%
     if (isKnowledgeInitialized && !isProcessing) return 100;
-    
-    // If RAG is processing, show actual progress
-    if (progressData && isProcessing) {
-      return progressData.progress || 0;
-    }
-    
-    // If just completed but chatbot not yet updated, show 100%
+    if (progressData && isProcessing) return progressData.progress || 0;
     if (isCompleted) return 100;
-    
-    // If failed, show last known progress
-    if (isFailed && progressData) {
-      return progressData.progress || 0;
-    }
-    
+    if (isFailed && progressData) return progressData.progress || 0;
     return 0;
   };
 
   const getCurrentStep = () => {
-    // If knowledge is fully initialized and no processing, show completed
     if (isKnowledgeInitialized && !isProcessing) return "Completed";
-    
-    // If RAG is processing, show current step
     if (progressData && isProcessing) {
       return progressData.currentStep || progressData.message || "Processing...";
     }
-    
-    // If just completed
     if (isCompleted) return "Finalizing...";
-    
-    // If failed
     if (isFailed) return "Failed";
-    
-    // If initializing but no progress data yet
     if (isInitializing) return "Starting initialization...";
-    
     return "Ready to initialize";
   };
 
@@ -233,21 +160,13 @@ export default function KnowledgeBaseInitializer({
     return "Pending";
   };
 
-  const getStatusColor = () => {
-    if (isKnowledgeInitialized && !isActive) return "text-emerald-600";
-    if (isActive) return "text-blue-600";
-    if (isFailed) return "text-red-600";
-    return "text-amber-600";
+  const getStatusDotClass = () => {
+    if (isKnowledgeInitialized && !isActive) return "status-dot is-online";
+    if (isActive) return "status-dot is-busy";
+    if (isFailed) return "status-dot is-error";
+    return "status-dot";
   };
 
-  const getStatusIcon = () => {
-    if (isKnowledgeInitialized && !isActive) return <CheckCircle className="h-4 w-4" />;
-    if (isActive) return <Loader2 className="h-4 w-4 animate-spin" />;
-    if (isFailed) return <AlertCircle className="h-4 w-4" />;
-    return <Clock className="h-4 w-4" />;
-  };
-
-  // Enhanced error handling
   const getErrorMessage = () => {
     if (initializeError) return initializeError.message;
     if (progressError) return "Failed to fetch progress updates";
@@ -255,481 +174,408 @@ export default function KnowledgeBaseInitializer({
     return "An unknown error occurred";
   };
 
-  // Debug logging
-  console.log("Debug - Component State:", {
-    filesCount: files.length,
-    isKnowledgeInitialized,
-    isActive,
-    canInitialize,
-    progressData,
-    chatbotPollingActive: !!chatbotPollingInterval
-  });
-
+  /* ---------- Loading ---------- */
   if (chatbotLoading) {
     return (
-      <div className="min-h-screen bg-slate-50/50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-slate-200 rounded-lg w-64"></div>
-            <div className="grid gap-6 md:grid-cols-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-slate-200 rounded-xl"></div>
-              ))}
-            </div>
+      <div className="page" aria-busy="true">
+        <div className="stack-lg kb-wrap">
+          <div className="skeleton skeleton-input" />
+          <div className="grid-stats">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="skeleton kb-stat-skeleton" />
+            ))}
           </div>
+          <div className="skeleton kb-banner-skeleton" />
         </div>
       </div>
     );
   }
 
+  const progressValue = getProgress();
+
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="page">
+      <div className="stack-lg kb-wrap">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <header className="page-header">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Knowledge Base
-            </h1>
-            <p className="text-slate-600 mt-1">
-              Manage your chatbot's knowledge and content processing
+            <h1 className="page-title">Knowledge base</h1>
+            <p className="page-subtitle">
+              Process your uploaded files so the chatbot can answer from them.
             </p>
-            <div className="flex items-center gap-4 mt-2">
-              <div className="flex items-center gap-1 text-xs text-slate-500">
-                <div className={`w-2 h-2 rounded-full ${chatbotPollingInterval ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
-                Auto-refresh every 2 minutes
-              </div>
+            <div className="cluster space-t-3 g-4 t-xs t-muted">
+              <span className="inline-row g-1.5">
+                <span
+                  className={`status-dot ${chatbotPollingInterval ? "is-online" : ""}`}
+                />
+                Refreshes every 2 minutes
+              </span>
               {isActive && (
-                <div className="flex items-center gap-1 text-xs text-blue-600">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  RAG processing active
-                </div>
+                <span className="inline-row g-1.5 t-ai">
+                  <Loader2 className="ico-xs spin" />
+                  Processing
+                </span>
               )}
               {progressData?.timeElapsed && (
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <Clock className="w-3 h-3" />
+                <span className="inline-row g-1.5">
+                  <Clock className="ico-xs" />
                   {progressData.timeElapsed} elapsed
-                </div>
+                </span>
               )}
             </div>
           </div>
-          <Button
-            variant="outline"
+
+          <button
+            type="button"
+            className="btn btn-secondary"
             onClick={() => {
               refetchChatbot();
               refetchFiles();
               refetchProgress();
             }}
-            className="bg-white shadow-sm border-slate-200 hover:bg-slate-50"
             disabled={isActive}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isActive ? 'animate-spin' : ''}`} />
-            Refresh Now
-          </Button>
-        </div>
+            <RefreshCw className={isActive ? "spin" : ""} />
+            Refresh now
+          </button>
+        </header>
 
-        {/* Status Overview Cards */}
-        <div className="grid gap-6 md:grid-cols-4">
-          <Card className="bg-white shadow-sm border-slate-200/60 hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-700">
-                Total Chunks
-              </CardTitle>
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Database className="h-4 w-4 text-blue-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">
-                {totalChunks.toLocaleString()}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Semantic text chunks
-              </p>
-            </CardContent>
-          </Card>
+        {/* Stats */}
+        <section className="grid-stats" aria-label="Knowledge base overview">
+          <div className="stat-card">
+            <div className="row-between">
+              <span className="stat-label">Chunks</span>
+              <Database className="ico t-muted" />
+            </div>
+            <span className="stat-value">{totalChunks.toLocaleString()}</span>
+            <span className="field-hint">Searchable text segments</span>
+          </div>
 
-          <Card className="bg-white shadow-sm border-slate-200/60 hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-700">
-                Source Files
-              </CardTitle>
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <FileText className="h-4 w-4 text-purple-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">
-                {files.length}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Uploaded documents</p>
-            </CardContent>
-          </Card>
+          <div className="stat-card">
+            <div className="row-between">
+              <span className="stat-label">Files</span>
+              <FileText className="ico t-muted" />
+            </div>
+            <span className="stat-value">{files.length}</span>
+            <span className="field-hint">Uploaded documents</span>
+          </div>
 
-          <Card className="bg-white shadow-sm border-slate-200/60 hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-700">
-                Status
-              </CardTitle>
-              <div className="p-2 bg-emerald-50 rounded-lg">
-                <Activity className="h-4 w-4 text-emerald-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${getStatusColor()} flex items-center gap-2`}>
-                {getStatusIcon()}
-                {getOverallStatus()}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Knowledge base status
-              </p>
-            </CardContent>
-          </Card>
+          <div className="stat-card">
+            <div className="row-between">
+              <span className="stat-label">Status</span>
+              <Activity className="ico t-muted" />
+            </div>
+            <span className="stat-value row g-2">
+              <span className={getStatusDotClass()} aria-hidden="true" />
+              {getOverallStatus()}
+            </span>
+            <span className="field-hint">Current state</span>
+          </div>
 
-          <Card className="bg-white shadow-sm border-slate-200/60 hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-700">
-                Last Updated
-              </CardTitle>
-              <div className="p-2 bg-amber-50 rounded-lg">
-                <Clock className="h-4 w-4 text-amber-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm font-bold text-slate-900">
-                {formatDate(lastUpdated)}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Knowledge base refresh
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          <div className="stat-card">
+            <div className="row-between">
+              <span className="stat-label">Last updated</span>
+              <Clock className="ico t-muted" />
+            </div>
+            <span className="stat-value kb-progress-value">
+              {formatDate(lastUpdated)}
+            </span>
+            <span className="field-hint">Last knowledge refresh</span>
+          </div>
+        </section>
 
-        {/* Enhanced Processing Status */}
+        {/* Processing */}
         {isActive && (
-          <Card className="bg-white shadow-sm border-slate-200/60">
-            <CardHeader className="border-b border-slate-100">
-              <CardTitle className="flex items-center gap-2 text-slate-900">
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                Processing Knowledge Base
-              </CardTitle>
-              <CardDescription className="text-slate-600">
-                {getCurrentStep()}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <Progress value={getProgress()} className="w-full h-3" />
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-700 font-medium">
-                  Progress: {Math.round(getProgress())}%
-                </span>
-                <span className="text-slate-500">
-                  Files: {progressData?.processedFiles || 0}/{progressData?.totalFiles || files.length}
-                </span>
+          <section className="surface">
+            <div className="surface-header">
+              <div>
+                <h2 className="section-title row g-2">
+                  <Loader2 className="ico-lg spin t-ai" />
+                  Processing knowledge base
+                </h2>
+                <p className="field-hint space-t-1">{getCurrentStep()}</p>
               </div>
+              <span className="badge badge-ai tabular">
+                {Math.round(progressValue)}%
+              </span>
+            </div>
+
+            <div className="surface-pad stack">
+              <div
+                className="progress"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(progressValue)}
+                aria-label="Processing progress"
+              >
+                <span style={{ width: `${progressValue}%` }} />
+              </div>
+
+              <div className="kb-progress-label t-muted">
+                <span>
+                  Files {progressData?.processedFiles || 0} of{" "}
+                  {progressData?.totalFiles || files.length}
+                </span>
+                {progressData && (progressData.processedChunks ?? 0) > 0 && (
+                  <span>{progressData.processedChunks!.toLocaleString()} chunks</span>
+                )}
+              </div>
+
               {progressData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-600">
-                  {progressData.timeElapsed && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-slate-400" />
-                      <span><span className="font-medium">Elapsed:</span> {progressData.timeElapsed}</span>
-                    </div>
-                  )}
+                <dl className="kb-progress-grid">
                   {progressData.estimatedTimeRemaining && (
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-slate-400" />
-                      <span><span className="font-medium">Remaining:</span> {progressData.estimatedTimeRemaining}</span>
-                    </div>
-                  )}
-                  {progressData.processedChunks > 0 && (
-                    <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-slate-400" />
-                      <span><span className="font-medium">Chunks:</span> {progressData.processedChunks.toLocaleString()}</span>
+                    <div className="row g-2">
+                      <Activity className="ico t-muted" />
+                      <dt className="t-medium">Remaining</dt>
+                      <dd className="t-muted">
+                        {progressData.estimatedTimeRemaining}
+                      </dd>
                     </div>
                   )}
                   {progressData.totalChunks > 0 && (
-                    <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-slate-400" />
-                      <span><span className="font-medium">Total Chunks:</span> {progressData.totalChunks.toLocaleString()}</span>
+                    <div className="row g-2">
+                      <Database className="ico t-muted" />
+                      <dt className="t-medium">Total chunks</dt>
+                      <dd className="t-muted tabular">
+                        {progressData.totalChunks.toLocaleString()}
+                      </dd>
                     </div>
                   )}
                   {progressData.currentFile && (
-                    <div className="col-span-full flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-slate-400" />
-                      <span><span className="font-medium">Current File:</span> {progressData.currentFile}</span>
+                    <div className="row min-zero g-2">
+                      <FileText className="ico no-shrink t-muted" />
+                      <dt className="t-medium">Current file</dt>
+                      <dd className="ellipsis t-muted">
+                        {progressData.currentFile}
+                      </dd>
                     </div>
                   )}
-                </div>
+                </dl>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         )}
 
-        {/* Enhanced Error Status */}
+        {/* Error */}
         {hasError && (
-          <Alert variant="destructive" className="bg-red-50 border-red-200">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-red-800">
-              <div className="font-medium mb-1">Error Processing Knowledge Base</div>
-              <div className="text-sm">{getErrorMessage()}</div>
+          <div className="callout callout-danger" role="alert">
+            <AlertCircle className="kb-error" />
+            <div>
+              <p className="t-medium">Processing failed</p>
+              <p className="space-t-1 t-muted">{getErrorMessage()}</p>
               {progressData?.lastUpdated && (
-                <div className="text-xs mt-2 opacity-75">
-                  Last update: {new Date(progressData.lastUpdated).toLocaleTimeString()}
-                </div>
+                <p className="space-t-2 t-xs t-muted">
+                  Last update{" "}
+                  {new Date(progressData.lastUpdated).toLocaleTimeString()}
+                </p>
               )}
-            </AlertDescription>
-          </Alert>
+            </div>
+          </div>
         )}
 
-        {/* Main Management Card */}
-        <Card className="bg-white shadow-sm border-slate-200/60">
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="text-slate-900">
-              Knowledge Base Management
-            </CardTitle>
-            <CardDescription className="text-slate-600">
-              Initialize and manage your chatbot's knowledge base
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            {/* Status Alert */}
+        {/* Management */}
+        <section className="surface">
+          <div className="surface-header">
+            <div>
+              <h2 className="section-title">Manage knowledge base</h2>
+              <p className="field-hint space-t-1">
+                Build or rebuild the index your chatbot searches.
+              </p>
+            </div>
+          </div>
+
+          <div className="surface-pad stack">
             {!isKnowledgeInitialized && !isActive ? (
-              <Alert className="bg-amber-50 border-amber-200">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
+              <div className="callout callout-warning">
+                <AlertCircle className="space-t-0.5 ico no-shrink" />
+                <p>
                   {files.length === 0
-                    ? "No files found. Upload files in the Files tab first."
-                    : 'Knowledge base is not initialized. Click "Initialize Knowledge Base" to get started.'}
-                </AlertDescription>
-              </Alert>
+                    ? "No files yet. Upload files in the Files tab first."
+                    : 'The knowledge base isn\'t initialized. Select "Initialize knowledge base" to start.'}
+                </p>
+              </div>
             ) : isKnowledgeInitialized && !isActive ? (
-              <Alert className="bg-emerald-50 border-emerald-200">
-                <CheckCircle className="h-4 w-4 text-emerald-600" />
-                <AlertDescription className="text-emerald-800">
-                  <div className="font-medium">Knowledge base is ready!</div>
-                  <div className="text-sm mt-1">
-                    Your chatbot can now answer questions based on uploaded content.
-                    {totalChunks > 0 && ` ${totalChunks.toLocaleString()} chunks are available for search.`}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            ) : hasError ? (
-              <Alert variant="destructive" className="bg-red-50 border-red-200">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-red-800">
-                  Knowledge base processing encountered an error. Please try again or contact support if the problem persists.
-                </AlertDescription>
-              </Alert>
+              <div className="callout callout-success">
+                <CheckCircle className="space-t-0.5 ico no-shrink t-success" />
+                <div>
+                  <p className="t-medium">Knowledge base is ready</p>
+                  <p className="space-t-1 t-muted">
+                    Your chatbot can answer questions from your uploaded content.
+                    {totalChunks > 0 &&
+                      ` ${totalChunks.toLocaleString()} chunks are available for search.`}
+                  </p>
+                </div>
+              </div>
             ) : null}
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 flex-wrap">
+            <div className="cluster g-3">
               {!isKnowledgeInitialized || isFailed ? (
-                <Button
+                <button
+                  type="button"
+                  className="btn btn-brand"
                   onClick={handleInitializeKnowledge}
                   disabled={!canInitialize || isActive}
-                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm disabled:opacity-50"
                 >
-                  {isActive ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Zap className="h-4 w-4 mr-2" />
-                  )}
+                  {isActive ? <Loader2 className="spin" /> : <Zap />}
                   {isActive
                     ? "Initializing..."
-                    : isFailed 
-                    ? "Retry Initialize"
-                    : "Initialize Knowledge Base"}
-                </Button>
+                    : isFailed
+                    ? "Retry initialization"
+                    : "Initialize knowledge base"}
+                </button>
               ) : (
-                <Button
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={handleReinitialize}
                   disabled={isActive}
-                  variant="outline"
-                  className="bg-white border-slate-200 hover:bg-slate-50"
                 >
-                  {isActive ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                  )}
+                  {isActive ? <Loader2 className="spin" /> : <RefreshCw />}
                   {isActive ? "Reinitializing..." : "Reinitialize"}
-                </Button>
+                </button>
               )}
 
-              {/* Additional action buttons for better UX */}
               {isActive && (
-                <Button
-                  onClick={refetchProgress}
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-slate-900"
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => refetchProgress()}
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Progress
-                </Button>
+                  <RefreshCw /> Refresh progress
+                </button>
               )}
             </div>
 
-            {/* Enhanced Progress Information */}
             {(isActive || isCompleted) && progressData && (
-              <div className="bg-slate-50 rounded-lg p-4 space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-700">Status:</span>
-                    <span className="text-slate-600">{progressData.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-700">Progress:</span>
-                    <span className="text-slate-600">{Math.round(progressData.progress)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-700">Files:</span>
-                    <span className="text-slate-600">
-                      {progressData.processedFiles || 0} / {progressData.totalFiles || files.length}
-                    </span>
-                  </div>
-                  {progressData.processedChunks > 0 && (
-                    <div className="flex justify-between">
-                      <span className="font-medium text-slate-700">Chunks:</span>
-                      <span className="text-slate-600">
-                        {progressData.processedChunks.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
+              <dl className="surface-muted kb-progress-grid pad-4">
+                <div className="row-between g-3">
+                  <dt className="t-medium">Status</dt>
+                  <dd className="t-muted">{progressData.status}</dd>
                 </div>
-                
+                <div className="row-between g-3">
+                  <dt className="t-medium">Progress</dt>
+                  <dd className="t-muted tabular">
+                    {Math.round(progressData.progress)}%
+                  </dd>
+                </div>
+                <div className="row-between g-3">
+                  <dt className="t-medium">Files</dt>
+                  <dd className="t-muted tabular">
+                    {progressData.processedFiles || 0} / {progressData.totalFiles || files.length}
+                  </dd>
+                </div>
+                {progressData.processedChunks > 0 && (
+                  <div className="row-between g-3">
+                    <dt className="t-medium">Chunks</dt>
+                    <dd className="t-muted tabular">
+                      {progressData.processedChunks.toLocaleString()}
+                    </dd>
+                  </div>
+                )}
                 {progressData.currentStep && (
-                  <div className="pt-2 border-t border-slate-200">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium text-slate-700">Current Step:</span>
-                      <span className="text-slate-600">{progressData.currentStep}</span>
-                    </div>
+                  <div className="row-between g-3 border-top pad-y-3">
+                    <dt className="t-medium">Current step</dt>
+                    <dd className="t-muted">{progressData.currentStep}</dd>
                   </div>
                 )}
-                
                 {progressData.startTime && (
-                  <div className="text-xs text-slate-500 pt-1">
-                    Started: {new Date(progressData.startTime).toLocaleString()}
-                  </div>
+                  <p className="field-hint">
+                    Started {new Date(progressData.startTime).toLocaleString()}
+                  </p>
                 )}
-              </div>
+              </dl>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        {/* Enhanced Source Files Display */}
+        {/* Source files */}
         {files.length > 0 && (
-          <Card className="bg-white shadow-sm border-slate-200/60">
-            <CardHeader className="border-b border-slate-100">
-              <CardTitle className="text-slate-900">Source Files</CardTitle>
-              <CardDescription className="text-slate-600">
-                Files available for knowledge base creation ({files.length} files)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                {files.map((file: File, index: number) => {
-                  const isCurrentFile = progressData?.currentFile === (file.fileName || file.name);
-                  const isProcessedFile = file.processed;
-                  
-                  return (
-                    <div
-                      key={file.id || index}
-                      className={`flex items-center justify-between p-4 border rounded-xl transition-all duration-200 ${
-                        isCurrentFile 
-                          ? 'border-blue-300 bg-blue-50 shadow-sm' 
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          isCurrentFile ? 'bg-blue-100' : 'bg-slate-50'
-                        }`}>
-                          <FileText className={`h-5 w-5 ${
-                            isCurrentFile ? 'text-blue-600' : 'text-slate-600'
-                          }`} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-900">
-                            {file.fileName || file.name}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {file.fileType || "Document"} •{" "}
-                            {file.fileSize
-                              ? `${Math.round(file.fileSize / 1024)}KB`
-                              : "Unknown size"}
-                            {isCurrentFile && " • Currently processing"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isCurrentFile && (
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                        )}
-                        <Badge
-                          variant="outline"
-                          className={
-                            isProcessedFile
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : isCurrentFile
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : "bg-gray-50 text-gray-700 border-gray-200"
-                          }
-                        >
-                          {isProcessedFile 
-                            ? "Completed" 
-                            : isCurrentFile
-                            ? "Processing..."
-                            : "Waiting"}
-                        </Badge>
-                      </div>
-                    </div>
-                  );
-                })}
+          <section className="surface">
+            <div className="surface-header">
+              <div>
+                <h2 className="section-title">Source files</h2>
+                <p className="field-hint space-t-1">
+                  {files.length} {files.length === 1 ? "file" : "files"} available for the knowledge base
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <ul className="surface-pad stack-sm">
+              {files.map((file: File, index: number) => {
+                const isCurrentFile =
+                  progressData?.currentFile === (file.fileName || file.name);
+                const isProcessedFile = file.processed;
+
+                return (
+                  <li key={file.id || index} className="doc-row">
+                    <span className="doc-icon">
+                      <FileText className="ico-lg" />
+                    </span>
+
+                    <div className="flex-fill">
+                      <p className="ellipsis t-medium">
+                        {file.fileName || file.name}
+                      </p>
+                      <p className="field-hint">
+                        {file.fileType || "Document"},{" "}
+                        {file.fileSize
+                          ? `${Math.round(file.fileSize / 1024)} KB`
+                          : "unknown size"}
+                      </p>
+                    </div>
+
+                    {isProcessedFile ? (
+                      <span className="badge badge-success">Completed</span>
+                    ) : isCurrentFile ? (
+                      <span className="badge badge-ai">
+                        <Loader2 className="ico-xs spin" />
+                        Processing
+                      </span>
+                    ) : (
+                      <span className="badge badge-neutral">Waiting</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         )}
 
-        {/* No Files State */}
+        {/* No files */}
         {files.length === 0 && !filesLoading && (
-          <Card className="bg-white shadow-sm border-slate-200/60">
-            <CardContent className="pt-12 pb-12">
-              <div className="text-center">
-                <FileText className="h-12 w-12 mx-auto mb-4 text-slate-400" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  No Files Found
-                </h3>
-                <p className="text-slate-600 mb-4">
-                  Upload files in the Files tab to get started with knowledge
-                  base initialization.
-                </p>
-                {/* Debug info for development */}
-                {process.env.NODE_ENV === 'development' && (
-                  <details className="mt-4 text-left">
-                    <summary className="cursor-pointer text-sm text-slate-500 hover:text-slate-700">
-                      Debug Information
-                    </summary>
-                    <div className="mt-2 p-4 bg-gray-100 rounded text-xs text-left">
-                      <pre>{JSON.stringify({ 
-                        filesData, 
-                        filesLoading,
-                        ragManagerState: {
-                          isInitializing,
-                          isProcessing,
-                          isCompleted,
-                          isFailed,
-                          progressData
-                        }
-                      }, null, 2)}</pre>
-                    </div>
-                  </details>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="empty-state">
+            <FileText className="ico-2xl t-muted" />
+            <h3 className="empty-state-title">No files yet</h3>
+            <p className="empty-state-text">
+              Upload files in the Files tab, then come back to build the knowledge base.
+            </p>
+
+            {process.env.NODE_ENV === "development" && (
+              <details className="kb-debug space-t-2">
+                <summary className="pointer t-sm t-muted">
+                  Debug information
+                </summary>
+                <pre className="surface-muted space-t-2 pad-4 t-xs scroll-x">
+                  {JSON.stringify(
+                    {
+                      filesData,
+                      filesLoading,
+                      ragManagerState: {
+                        isInitializing,
+                        isProcessing,
+                        isCompleted,
+                        isFailed,
+                        progressData,
+                      },
+                    },
+                    null,
+                    2
+                  )}
+                </pre>
+              </details>
+            )}
+          </div>
         )}
       </div>
     </div>

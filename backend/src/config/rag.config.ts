@@ -1,4 +1,5 @@
 // src/config/rag.config.ts
+import 'dotenv/config';
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 
 

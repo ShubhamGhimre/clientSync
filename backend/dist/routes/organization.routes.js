@@ -1,7 +1,7 @@
 import express from 'express';
-import { PrismaClient } from '../../generated/prisma';
-import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
-import { UpdateOrganizationSchema } from '../utils/validation';
+import { authenticateToken } from '../middleware/auth.middleware.js';
+import { UpdateOrganizationSchema } from '../utils/validation.js';
+import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 /**
@@ -139,9 +139,16 @@ router.get('/', authenticateToken, async (req, res) => {
 router.put('/', authenticateToken, async (req, res) => {
     try {
         const validatedData = UpdateOrganizationSchema.parse(req.body);
+        const updateData = {};
+        if (validatedData.companyName !== undefined) {
+            updateData.companyName = { set: validatedData.companyName };
+        }
+        if (validatedData.contactEmail !== undefined) {
+            updateData.contactEmail = { set: validatedData.contactEmail };
+        }
         const updatedOrganization = await prisma.organization.update({
             where: { id: req.user.organizationId },
-            data: validatedData
+            data: updateData
         });
         res.json({
             success: true,
@@ -233,69 +240,6 @@ router.get('/users', authenticateToken, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to get users'
-        });
-    }
-});
-/**
- * @swagger
- * /api/organizations/check-subdomain/{subdomain}:
- *   get:
- *     tags: [Organizations]
- *     summary: Check subdomain availability
- *     description: Check if a subdomain is available for registration
- *     parameters:
- *       - in: path
- *         name: subdomain
- *         required: true
- *         schema:
- *           type: string
- *         description: The subdomain to check
- *         example: 'my-company'
- *     responses:
- *       200:
- *         description: Subdomain availability checked successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         available:
- *                           type: boolean
- *                           description: Whether the subdomain is available
- *                         subdomain:
- *                           type: string
- *                           description: The checked subdomain
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get('/check-subdomain/:subdomain', async (req, res) => {
-    try {
-        const { subdomain } = req.params;
-        const existingOrg = await prisma.organization.findUnique({
-            where: { subdomain }
-        });
-        res.json({
-            success: true,
-            data: {
-                available: !existingOrg,
-                subdomain
-            }
-        });
-    }
-    catch (error) {
-        console.error('Check subdomain error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to check subdomain'
         });
     }
 });

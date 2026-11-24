@@ -38,13 +38,13 @@ export function ConfirmationDialog({
   const getIcon = () => {
     switch (icon) {
       case 'delete':
-        return <Trash2 className="h-5 w-5 text-red-500" />;
+        return <Trash2 className="ico-lg" />;
       case 'deactivate':
-        return <UserX className="h-5 w-5 text-orange-500" />;
+        return <UserX className="ico-lg" />;
       case 'activate':
-        return <UserCheck className="h-5 w-5 text-green-500" />;
+        return <UserCheck className="ico-lg" />;
       default:
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="ico-lg" />;
     }
   };
 
@@ -52,11 +52,11 @@ export function ConfirmationDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
+          <AlertDialogTitle className="row g-2">
             {getIcon()}
             {title}
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-left">
+          <AlertDialogDescription>
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -64,7 +64,7 @@ export function ConfirmationDialog({
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className={variant === 'destructive' ? 'bg-red-600 hover:bg-red-700' : ''}
+            className={variant === 'destructive' ? 'ui-button-destructive' : undefined}
           >
             {confirmText}
           </AlertDialogAction>

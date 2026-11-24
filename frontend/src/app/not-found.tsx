@@ -1,25 +1,32 @@
 'use client'
+
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ArrowLeft, Home } from 'lucide-react'
+
+const REDIRECT_SECONDS = 10
 
 export default function Custom404() {
     const router = useRouter()
-    const [countdown, setCountdown] = useState(10)
+    const [countdown, setCountdown] = useState(REDIRECT_SECONDS)
+    const [paused, setPaused] = useState(false)
 
+    // Tick once per second until paused or finished
     useEffect(() => {
+        if (paused) return
         const timer = setInterval(() => {
-            setCountdown((prev) => {
-                if (prev <= 1) {
-                    router.push('/dashboard')
-                    return 0
-                }
-                return prev - 1
-            })
+            setCountdown((prev) => Math.max(prev - 1, 0))
         }, 1000)
-
         return () => clearInterval(timer)
-    }, [router])
+    }, [paused])
+
+    // Navigate from an effect, not from inside the state updater
+    useEffect(() => {
+        if (countdown === 0 && !paused) {
+            router.push('/dashboard')
+        }
+    }, [countdown, paused, router])
 
     const handleGoBack = () => {
         if (window.history.length > 1) {
@@ -30,93 +37,84 @@ export default function Custom404() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 text-center">
-                {/* 404 Number */}
-                <div className="relative">
-                    <h1 className="text-9xl font-extrabold text-gray-200 select-none">
+        <main className="auth-layout">
+            <div className="hero-glow" aria-hidden="true" />
+
+            <div className="notfound-card pos-rel z-mid stack g-8 center">
+                <div className="stack-sm center">
+                    <p
+                        className="gradient-text notfound-code"
+                        aria-hidden="true"
+                    >
                         404
-                    </h1>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-6xl">😵</div>
-                    </div>
-                </div>
-
-                {/* Error Message */}
-                <div className="space-y-4">
-                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-                        Oops! Page not found
-                    </h2>
-                    <p className="text-lg text-gray-600">
-                        The page you're looking for doesn't exist or has been moved.
+                    </p>
+                    <h1 className="page-title">Page not found</h1>
+                    <p className="page-subtitle">
+                        This page doesn't exist or has moved. Check the address, or head back to somewhere familiar.
                     </p>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button
-                            onClick={handleGoBack}
-                            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Go Back
-                        </button>
+                <div className="notfound-actions">
+                    <button type="button" onClick={handleGoBack} className="btn btn-brand">
+                        <ArrowLeft />
+                        Go back
+                    </button>
+                    <Link href="/dashboard" className="btn btn-secondary">
+                        <Home />
+                        Go to dashboard
+                    </Link>
+                </div>
 
-                        <Link href="/dashboard">
-                            <div className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                                Go to Dashboard
-                            </div>
-                        </Link>
-                    </div>
-
-                    {/* Auto-redirect countdown */}
-                    <div className="mt-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-                        <p className="text-sm text-gray-600">
-                            Redirecting to dashboard in{' '}
-                            <span className="font-semibold text-indigo-600">{countdown}</span>{' '}
-                            seconds
-                        </p>
-                        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                                className="bg-indigo-600 h-2 rounded-full transition-all duration-1000 ease-linear"
-                                style={{ width: `${((10 - countdown) / 10) * 100}%` }}
-                            ></div>
+                {/* Auto-redirect */}
+                <div className="surface surface-pad full-w">
+                    {paused ? (
+                        <div className="row-between g-3">
+                            <p className="t-sm t-muted">Redirect cancelled.</p>
                         </div>
-                    </div>
+                    ) : (
+                        <>
+                            <div className="row-between g-3">
+                                <p className="t-sm t-muted" role="timer">
+                                    Redirecting to the dashboard in{' '}
+                                    <span className="t-semibold tabular">
+                                        {countdown}
+                                    </span>{' '}
+                                    {countdown === 1 ? 'second' : 'seconds'}
+                                </p>
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost btn-sm"
+                                    onClick={() => setPaused(true)}
+                                >
+                                    Stay here
+                                </button>
+                            </div>
+                            <div className="progress space-t-3" aria-hidden="true">
+                                <span
+                                    style={{
+                                        width: `${((REDIRECT_SECONDS - countdown) / REDIRECT_SECONDS) * 100}%`,
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
 
-                {/* Additional Links */}
-                <div className="pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-500 mb-4">
-                        Need help? Try these common pages:
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4 text-sm">
-                        <Link href="/auth/login">
-                            <div className="text-indigo-600 hover:text-indigo-500 hover:underline">
-                                Login
-                            </div>
+                <nav className="full-w border-top pad-y-6" aria-label="Common pages">
+                    <p className="field-hint space-b-3">Looking for something else?</p>
+                    <div className="cluster center g-6">
+                        <Link href="/auth/login" className="btn btn-link">
+                            Log in
                         </Link>
-                        <span className="text-gray-300">|</span>
-                        <Link href="/dashboard">
-                            <div className="text-indigo-600 hover:text-indigo-500 hover:underline">
-                                Dashboard
-                            </div>
+                        <Link href="/dashboard" className="btn btn-link">
+                            Dashboard
                         </Link>
-                        <span className="text-gray-300">|</span>
-                        <Link href="/contact">
-                            <div className="text-indigo-600 hover:text-indigo-500 hover:underline">
-                                Contact
-                            </div>
+                        <Link href="/contact" className="btn btn-link">
+                            Contact
                         </Link>
                     </div>
-                </div>
+                </nav>
             </div>
-        </div>
+        </main>
     )
 }

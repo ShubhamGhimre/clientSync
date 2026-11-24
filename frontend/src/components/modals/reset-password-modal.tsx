@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Key, AlertTriangle, User } from 'lucide-react';
 import { useResetPassword, User as UserType } from '@/hooks/api/useUsers';
 
@@ -75,40 +74,40 @@ export function ResetPasswordModal({ open, onOpenChange, user }: ResetPasswordMo
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="dialog-shell">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
+          <DialogTitle className="row g-2">
+            <Key className="ico-lg" />
             Reset Password
           </DialogTitle>
           <DialogDescription>
             Set a new password for{' '}
-            <span className="font-medium">
+            <span className="t-medium">
               {user?.firstName} {user?.lastName}
             </span>
           </DialogDescription>
         </DialogHeader>
 
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
+        <div role="alert" className="callout callout-warning">
+          <AlertTriangle className="ico" />
+          <span>
             The user will need to use this new password on their next login. 
             Consider sending them the new password through a secure channel.
-          </AlertDescription>
-        </Alert>
+          </span>
+        </div>
 
-        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+        <div className="row g-3 pad-3 surface-muted">
+          <div className="avatar icon-tile-brand">
             {user?.firstName?.[0]}{user?.lastName?.[0]}
           </div>
-          <div>
-            <p className="font-medium">{user?.firstName} {user?.lastName}</p>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          <div className="min-zero">
+            <p className="t-medium">{user?.firstName} {user?.lastName}</p>
+            <p className="field-hint">{user?.email}</p>
           </div>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="col g-4">
             <FormField
               control={form.control}
               name="newPassword"
@@ -147,12 +146,13 @@ export function ResetPasswordModal({ open, onOpenChange, user }: ResetPasswordMo
               )}
             />
 
-            <DialogFooter>
+            <DialogFooter className="dialog-foot">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
                 disabled={resetPasswordMutation.isPending}
+                className="btn btn-secondary"
               >
                 Cancel
               </Button>
@@ -160,10 +160,11 @@ export function ResetPasswordModal({ open, onOpenChange, user }: ResetPasswordMo
                 type="submit"
                 disabled={resetPasswordMutation.isPending}
                 variant="destructive"
+                className="btn btn-danger"
               >
                 {resetPasswordMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="ico space-r-2 spin" />
                     Resetting...
                   </>
                 ) : (

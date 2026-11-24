@@ -1,103 +1,95 @@
-"use client";
-import { ChatInterface } from "@/components/chatbot/chat-interface";
-import { Badge } from "@/components/ui/badge";
-import { useChatBot } from "@/hooks/api/useChatBots";
-import { Activity, Bot, Zap } from "lucide-react";
-import { useParams } from "next/navigation";
-import React from "react";
+'use client';
 
-const Page = () => {
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { ArrowLeft, Bot } from 'lucide-react';
+import { ChatInterface } from '@/components/chatbot/chat-interface';
+import { useChatBot } from '@/hooks/api/useChatBots';
+
+export default function ChatbotChatsPage() {
   const { id } = useParams();
-  const { data, isLoading, error } = useChatBot(id as string);
+  const chatbotId = id as string;
+  const { data, isLoading, error } = useChatBot(chatbotId);
   const chatbot = data?.data;
 
+  /* ---------- Loading ---------- */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 flex items-center justify-center">
-        <div className="max-w-3xl w-full">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-slate-200 rounded-md w-48"></div>
-            <div className="h-12 bg-slate-200 rounded-md w-full"></div>
-            <div className="grid grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-28 bg-slate-200 rounded-lg"></div>
-              ))}
-            </div>
-          </div>
+      <div className="page" aria-busy="true">
+        <div className="skeleton space-b-6" />
+        <div className="stack-sm space-b-6">
+          <div className="skeleton" />
+          <div className="skeleton" />
         </div>
+        <div className="skeleton full-w" />
       </div>
     );
   }
 
+  /* ---------- Error ---------- */
   if (error || !chatbot) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-            <Bot className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-2xl font-semibold text-slate-900 mb-2">
-            Failed to load chatbot
-          </h2>
-          <p className="text-slate-600 max-w-sm mx-auto">
-            Please refresh the page or contact support if the issue persists.
+      <div className="page-narrow">
+        <div className="empty-state">
+          <span className="doc-icon">
+            <Bot className="ico-xl" />
+          </span>
+          <h1 className="empty-state-title">Couldn&apos;t load this chatbot</h1>
+          <p className="empty-state-text">
+            Refresh the page, or go back to your chatbots. Contact support if it keeps happening.
           </p>
+          <Link href="/chatbots" className="btn btn-secondary">
+            Back to chatbots
+          </Link>
         </div>
       </div>
     );
   }
 
+  const ready = chatbot.isKnowledgeInitialized;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-slate-50">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* Header Section */}
-        <div className="flex items-center justify-between border-b pb-6 mb-6">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <Bot className="h-8 w-8 text-white" />
+    <div className="page">
+      <Link href={`/chatbots/${chatbotId}`} className="btn btn-ghost btn-sm space-b-4">
+        <ArrowLeft />
+        {chatbot.name}
+      </Link>
+
+      <header className="page-header">
+        <div className="row-start min-zero g-4">
+          <span className="doc-icon">
+            <Bot className="ico-xl" />
+          </span>
+          <div className="min-zero">
+            <div className="cluster g-3">
+              <h1 className="page-title ellipsis">{chatbot.name}</h1>
+              <span className={`badge ${ready ? 'badge-success' : 'badge-warning'}`}>
+                <span className={`status-dot ${ready ? 'is-online' : 'is-busy'}`} />
+                {ready ? 'Ready' : 'Setup pending'}
+              </span>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-slate-900">
-                  {chatbot.name}
-                </h1>
-                <Badge
-                  variant={
-                    chatbot.isKnowledgeInitialized ? "default" : "secondary"
-                  }
-                  className={`px-3 py-1 text-sm font-medium rounded-full ${
-                    chatbot.isKnowledgeInitialized
-                      ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                      : "bg-amber-100 text-amber-700 border border-amber-200"
-                  }`}
-                >
-                  {chatbot.isKnowledgeInitialized ? (
-                    <>
-                      <Zap className="w-3 h-3 mr-1.5" />
-                      Active
-                    </>
-                  ) : (
-                    <>
-                      <Activity className="w-3 h-3 mr-1.5" />
-                      Inactive
-                    </>
-                  )}
-                </Badge>
-              </div>
-              <p className="text-slate-600 text-lg leading-relaxed max-w-2xl">
-                {chatbot.description}
-              </p>
-            </div>
+            {chatbot.description && <p className="page-subtitle">{chatbot.description}</p>}
           </div>
         </div>
+      </header>
 
-        {/* Chat Interface */}
-        <div className="rounded-2xl border bg-white shadow-md overflow-hidden">
-          <ChatInterface chatbotId={id as string} />
+      {!ready && (
+        <div className="callout callout-warning space-b-4">
+          <span>
+            This chatbot has no knowledge base yet, so answers won&apos;t come from your documents.{' '}
+            <Link
+              href={`/chatbots/${chatbotId}?tab=knowledge`}
+              className="t-medium t-underline"
+            >
+              Finish setup
+            </Link>
+          </span>
         </div>
+      )}
+
+      <div className="surface clip">
+        <ChatInterface chatbotId={chatbotId} />
       </div>
     </div>
   );
-};
-
-export default Page;
+}

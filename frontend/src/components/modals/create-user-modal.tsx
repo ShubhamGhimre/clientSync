@@ -114,7 +114,6 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
           icon: Crown,
           label: 'Administrator',
           description: 'Full system access',
-          color: 'bg-red-500',
           badgeVariant: 'destructive' as const,
         };
       case 'AGENT':
@@ -122,7 +121,6 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
           icon: Briefcase,
           label: 'Support Agent',
           description: 'Handle tickets & support',
-          color: 'bg-blue-500',
           badgeVariant: 'default' as const,
         };
       case 'VIEWER':
@@ -130,7 +128,6 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
           icon: Eye,
           label: 'Viewer',
           description: 'Read-only access',
-          color: 'bg-gray-500',
           badgeVariant: 'secondary' as const,
         };
       default:
@@ -138,7 +135,6 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
           icon: User,
           label: 'User',
           description: 'Basic access',
-          color: 'bg-gray-400',
           badgeVariant: 'outline' as const,
         };
     }
@@ -148,15 +144,15 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
-              <UserPlus className="h-5 w-5" />
+      <DialogContent className="dialog-shell">
+        <DialogHeader className="dialog-head">
+          <div className="row g-3">
+            <div className="dialog-icon">
+              <UserPlus className="ico-lg" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-semibold">Create New User</DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
+              <DialogTitle className="dialog-title">Create New User</DialogTitle>
+              <DialogDescription className="t-sm t-muted">
                 Add a new team member to your organization
               </DialogDescription>
             </div>
@@ -164,27 +160,26 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="dialog-body">
             {/* Personal Information */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <User className="h-4 w-4" />
+            <div className="col g-3">
+              <div className="section-head">
+                <User className="ico" />
                 Personal Information
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="form-grid">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">First Name</FormLabel>
+                      <FormLabel className="label">First Name</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="John" 
                           {...field} 
                           disabled={createUserMutation.isPending}
-                          className="h-9"
                         />
                       </FormControl>
                       <FormMessage />
@@ -197,13 +192,12 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Last Name</FormLabel>
+                      <FormLabel className="label">Last Name</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Doe" 
                           {...field} 
                           disabled={createUserMutation.isPending}
-                          className="h-9"
                         />
                       </FormControl>
                       <FormMessage />
@@ -217,8 +211,8 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4" />
+                    <FormLabel className="ui-label">
+                      <Mail className="ico" />
                       Email Address
                     </FormLabel>
                     <FormControl>
@@ -227,7 +221,6 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                         placeholder="john.doe@company.com" 
                         {...field} 
                         disabled={createUserMutation.isPending}
-                        className="h-9"
                       />
                     </FormControl>
                     <FormMessage />
@@ -237,42 +230,40 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
             </div>
 
             {/* Security */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Lock className="h-4 w-4" />
+            <div className="col g-3">
+              <div className="section-head">
+                <Lock className="ico" />
                 Security
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="form-grid">
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Password</FormLabel>
+                      <FormLabel className="label">Password</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input 
+                        <div className="input-wrap has-action">
+                          <input 
                             type={showPassword ? "text" : "password"}
+                            className="input"
                             placeholder="••••••••" 
                             {...field} 
                             disabled={createUserMutation.isPending}
-                            className="h-9 pr-9"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-9 w-9 p-0"
+                            className="input-action"
                             onClick={() => setShowPassword(!showPassword)}
                             disabled={createUserMutation.isPending}
                           >
                             {showPassword ? (
-                              <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                              <EyeOff className="ico-sm" />
                             ) : (
-                              <Eye className="h-3.5 w-3.5 text-gray-400" />
+                              <Eye className="ico-sm" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -285,30 +276,28 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Confirm Password</FormLabel>
+                      <FormLabel className="label">Confirm Password</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input 
+                        <div className="input-wrap has-action">
+                          <input 
                             type={showConfirmPassword ? "text" : "password"}
+                            className="input"
                             placeholder="••••••••" 
                             {...field} 
                             disabled={createUserMutation.isPending}
-                            className="h-9 pr-9"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-9 w-9 p-0"
+                            className="input-action"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             disabled={createUserMutation.isPending}
                           >
                             {showConfirmPassword ? (
-                              <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                              <EyeOff className="ico-sm" />
                             ) : (
-                              <Eye className="h-3.5 w-3.5 text-gray-400" />
+                              <Eye className="ico-sm" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -319,46 +308,46 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
             </div>
 
             {/* Role & Status */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Shield className="h-4 w-4" />
+            <div className="col g-3">
+              <div className="section-head">
+                <Shield className="ico" />
                 Role & Status
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
+              <div className="row g-3">
+                <div className="flex-fill">
                   <FormField
                     control={form.control}
                     name="role"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Role</FormLabel>
+                        <FormLabel className="label">Role</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={field.value}
                           disabled={createUserMutation.isPending}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-9">
+                            <SelectTrigger>
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="VIEWER">
-                              <div className="flex items-center gap-2">
-                                <Eye className="h-3.5 w-3.5" />
+                              <div className="row g-2">
+                                <Eye className="ico-sm" />
                                 <span>Viewer</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="AGENT">
-                              <div className="flex items-center gap-2">
-                                <Briefcase className="h-3.5 w-3.5" />
+                              <div className="row g-2">
+                                <Briefcase className="ico-sm" />
                                 <span>Agent</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="ADMIN">
-                              <div className="flex items-center gap-2">
-                                <Crown className="h-3.5 w-3.5" />
+                              <div className="row g-2">
+                                <Crown className="ico-sm" />
                                 <span>Admin</span>
                               </div>
                             </SelectItem>
@@ -370,16 +359,14 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   />
                 </div>
 
-                <div className="flex flex-col justify-end">
-                  <div className="h-9 flex items-center justify-center border rounded-md bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-5 h-5 ${roleConfig.color} rounded flex items-center justify-center`}>
-                        <roleConfig.icon className="h-3 w-3 text-white" />
-                      </div>
-                      <Badge variant={roleConfig.badgeVariant} className="text-xs h-5">
-                        {roleConfig.label}
-                      </Badge>
+                <div className="center">
+                  <div className="center surface-muted g-2">
+                    <div className="center shape-square pad-1 icon-tile-brand">
+                      <roleConfig.icon className="ico-xs" />
                     </div>
+                    <Badge variant={roleConfig.badgeVariant} className="badge">
+                      {roleConfig.label}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -389,10 +376,10 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 name="isActive"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                    <div className="row-between pad-3 surface-muted">
                       <div>
-                        <FormLabel className="text-sm font-medium">Active Account</FormLabel>
-                        <p className="text-xs text-muted-foreground">
+                        <FormLabel className="label">Active Account</FormLabel>
+                        <p className="field-hint">
                           User can access the system immediately
                         </p>
                       </div>
@@ -410,29 +397,29 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
               />
             </div>
 
-            <DialogFooter className="gap-2 pt-4">
+            <DialogFooter className="dialog-foot">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
                 disabled={createUserMutation.isPending}
-                className="h-9"
+                className="btn btn-secondary"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={createUserMutation.isPending}
-                className="h-9 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                className="btn btn-brand"
               >
                 {createUserMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="ico space-r-2 spin" />
                     Creating...
                   </>
                 ) : (
                   <>
-                    <UserPlus className="mr-2 h-4 w-4" />
+                    <UserPlus className="ico space-r-2" />
                     Create User
                   </>
                 )}

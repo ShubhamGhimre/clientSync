@@ -95,42 +95,42 @@ export default function ChatsPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="stack">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="row-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Chat Rooms</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Chat Rooms</h1>
+          <p className="t-muted">
             Monitor and manage all chat conversations.
           </p>
         </div>
         <Button asChild>
           <Link href="/chats/create">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="space-r-2 ico" />
             Create Chat Room
           </Link>
         </Button>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid-stats">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Chats</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Total Chats</CardTitle>
+            <MessageSquare className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{chats.length}</div>
+            <div className="t-2xl t-bold">{chats.length}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Today</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Active Today</CardTitle>
+            <Clock className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="t-2xl t-bold">
               {chats.filter(chat => 
                 new Date(chat.updatedAt).toDateString() === new Date().toDateString()
               ).length}
@@ -139,37 +139,37 @@ export default function ChatsPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Total Messages</CardTitle>
+            <MessageSquare className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="t-2xl t-bold">
               {chats.reduce((sum, chat) => sum + (chat._count?.conversations || 0), 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Avg. Response Time</CardTitle>
+            <Clock className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.3s</div>
+            <div className="t-2xl t-bold">2.3s</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="row g-4">
+        <div className="search-wrap toolbar-search flex-fill">
+          <Search className="search-icon" />
           <Input
             placeholder="Search chats..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="search-input"
           />
         </div>
       </div>

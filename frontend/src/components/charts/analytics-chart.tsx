@@ -57,11 +57,11 @@ const responseTimeData = [
 ];
 
 const satisfactionData = [
-  { name: 'Very Satisfied', value: 45, color: '#22c55e' },
-  { name: 'Satisfied', value: 35, color: '#84cc16' },
-  { name: 'Neutral', value: 15, color: '#f59e0b' },
-  { name: 'Dissatisfied', value: 3, color: '#f97316' },
-  { name: 'Very Dissatisfied', value: 2, color: '#ef4444' },
+  { name: 'Very Satisfied', value: 45, color: 'var(--success)' },
+  { name: 'Satisfied', value: 35, color: 'var(--chart-4)' },
+  { name: 'Neutral', value: 15, color: 'var(--warning)' },
+  { name: 'Dissatisfied', value: 3, color: 'var(--chart-5)' },
+  { name: 'Very Dissatisfied', value: 2, color: 'var(--destructive)' },
 ];
 
 const resolutionData = [
@@ -103,8 +103,8 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
                 type="monotone"
                 dataKey="conversations"
                 stackId="1"
-                stroke="#3b82f6"
-                fill="#3b82f6"
+                stroke="var(--chart-2)"
+                fill="var(--chart-2)"
                 fillOpacity={0.6}
               />
             </AreaChart>
@@ -123,16 +123,16 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
               <Line
                 type="monotone"
                 dataKey="active"
-                stroke="#10b981"
+                stroke="var(--chart-1)"
                 strokeWidth={2}
-                dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'var(--chart-1)', strokeWidth: 2, r: 4 }}
               />
               <Line
                 type="monotone"
                 dataKey="new"
-                stroke="#8b5cf6"
+                stroke="var(--ai)"
                 strokeWidth={2}
-                dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'var(--ai)', strokeWidth: 2, r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -147,8 +147,8 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="bots" stackId="a" fill="#3b82f6" />
-              <Bar dataKey="humans" stackId="a" fill="#f59e0b" />
+              <Bar dataKey="bots" stackId="a" fill="var(--chart-2)" />
+              <Bar dataKey="humans" stackId="a" fill="var(--warning)" />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -165,18 +165,18 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
               <Line
                 type="monotone"
                 dataKey="avgTime"
-                stroke="#ef4444"
+                stroke="var(--destructive)"
                 strokeWidth={2}
-                dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'var(--destructive)', strokeWidth: 2, r: 4 }}
                 name="Avg Response Time (s)"
               />
               <Line
                 type="monotone"
                 dataKey="targetTime"
-                stroke="#6b7280"
+                stroke="var(--muted-foreground)"
                 strokeWidth={2}
                 strokeDasharray="5 5"
-                dot={{ fill: '#6b7280', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'var(--muted-foreground)', strokeWidth: 2, r: 4 }}
                 name="Target Time (s)"
               />
             </LineChart>
@@ -192,8 +192,8 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
               <YAxis dataKey="category" type="category" />
               <Tooltip />
               <Legend />
-              <Bar dataKey="resolved" stackId="a" fill="#10b981" />
-              <Bar dataKey="unresolved" stackId="a" fill="#ef4444" />
+              <Bar dataKey="resolved" stackId="a" fill="var(--chart-1)" />
+              <Bar dataKey="unresolved" stackId="a" fill="var(--destructive)" />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -209,7 +209,7 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                 outerRadius={80}
-                fill="#8884d8"
+                fill="var(--chart-3)"
                 dataKey="value"
               >
                 {satisfactionData.map((entry, index) => (
@@ -223,7 +223,7 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
 
       default:
         return (
-          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+          <div className="chart-empty">
             <p>Chart type not implemented</p>
           </div>
         );
@@ -231,7 +231,7 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
   };
 
   return (
-    <div className="w-full">
+    <div className="full-w">
       {renderChart()}
     </div>
   );

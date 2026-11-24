@@ -13,7 +13,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
@@ -27,17 +26,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSub,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -98,44 +91,37 @@ export function TicketsTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  // Helper functions
   const getStatusBadge = (status: TicketStatus) => {
     const statusConfig = {
       OPEN: { 
-        variant: 'destructive' as const, 
+        badgeClass: 'badge badge-danger', 
         icon: HelpCircle, 
-        label: 'Open',
-        className: 'bg-red-100 text-red-800 hover:bg-red-100'
+        label: 'Open'
       },
       IN_PROGRESS: { 
-        variant: 'default' as const, 
+        badgeClass: 'badge badge-warning', 
         icon: Clock, 
-        label: 'In Progress',
-        className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
+        label: 'In Progress'
       },
       PENDING_CUSTOMER: { 
-        variant: 'default' as const, 
+        badgeClass: 'badge badge-warning', 
         icon: Clock, 
-        label: 'Pending Customer',
-        className: 'bg-orange-100 text-orange-800 hover:bg-orange-100'
+        label: 'Pending Customer'
       },
       RESOLVED: { 
-        variant: 'secondary' as const, 
+        badgeClass: 'badge badge-success', 
         icon: CheckCircle, 
-        label: 'Resolved',
-        className: 'bg-green-100 text-green-800 hover:bg-green-100'
+        label: 'Resolved'
       },
       CLOSED: { 
-        variant: 'secondary' as const, 
+        badgeClass: 'badge badge-neutral', 
         icon: CheckCircle, 
-        label: 'Closed',
-        className: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
+        label: 'Closed'
       },
       CANCELLED: { 
-        variant: 'secondary' as const, 
+        badgeClass: 'badge badge-neutral', 
         icon: CheckCircle, 
-        label: 'Cancelled',
-        className: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
+        label: 'Cancelled'
       },
     };
 
@@ -143,49 +129,44 @@ export function TicketsTable({
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant} className={config.className}>
-        <Icon className="h-3 w-3 mr-1" />
+      <span className={config.badgeClass}>
+        <Icon className="ico-xs space-r-1" />
         {config.label}
-      </Badge>
+      </span>
     );
   };
 
   const getPriorityBadge = (priority: TicketPriority) => {
     const priorityConfig = {
       LOW: { 
-        variant: 'outline' as const, 
-        label: 'Low',
-        className: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
+        badgeClass: 'badge badge-outline', 
+        label: 'Low'
       },
       MEDIUM: { 
-        variant: 'secondary' as const, 
-        label: 'Medium',
-        className: 'bg-blue-100 text-blue-800 hover:bg-blue-100'
+        badgeClass: 'badge badge-brand', 
+        label: 'Medium'
       },
       HIGH: { 
-        variant: 'default' as const, 
-        label: 'High',
-        className: 'bg-orange-100 text-orange-800 hover:bg-orange-100'
+        badgeClass: 'badge badge-warning', 
+        label: 'High'
       },
       URGENT: { 
-        variant: 'destructive' as const, 
-        label: 'Urgent',
-        className: 'bg-red-100 text-red-800 hover:bg-red-100'
+        badgeClass: 'badge badge-danger', 
+        label: 'Urgent'
       },
       CRITICAL: { 
-        variant: 'destructive' as const, 
-        label: 'Critical',
-        className: 'bg-red-200 text-red-900 hover:bg-red-200'
+        badgeClass: 'badge badge-danger', 
+        label: 'Critical'
       },
     };
 
     const config = priorityConfig[priority];
 
     return (
-      <Badge variant={config.variant} className={config.className}>
-        <AlertCircle className="h-3 w-3 mr-1" />
+      <span className={config.badgeClass}>
+        <AlertCircle className="ico-xs space-r-1" />
         {config.label}
-      </Badge>
+      </span>
     );
   };
 
@@ -211,22 +192,20 @@ export function TicketsTable({
     return formatDate(dateString);
   };
 
-  // Helper to get full name from user
   const getFullName = (user: { firstName: string; lastName: string }) => {
     return `${user.firstName} ${user.lastName}`.trim();
   };
 
-  // Helper to get user initials
   const getUserInitials = (user: { firstName: string; lastName: string }) => {
     return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
   };
 
-  // Column definitions
   const columns: ColumnDef<SupportTicket>[] = [
     {
       id: 'select',
       header: ({ table }) => (
         <Checkbox
+          className="ui-checkbox"
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -234,6 +213,7 @@ export function TicketsTable({
       ),
       cell: ({ row }) => (
         <Checkbox
+          className="ui-checkbox"
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
@@ -248,9 +228,9 @@ export function TicketsTable({
       cell: ({ row }) => {
         const ticket = row.original;
         return (
-          <div className="flex items-center gap-2">
-            <HelpCircle className="h-4 w-4 text-muted-foreground" />
-            <span className="font-mono text-sm">{ticket.ticketNumber || ticket.id}</span>
+          <div className="row g-2">
+            <HelpCircle className="ico t-muted" />
+            <span className="tabular t-sm">{ticket.ticketNumber || ticket.id}</span>
           </div>
         );
       },
@@ -258,33 +238,33 @@ export function TicketsTable({
     {
       accessorKey: 'title',
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-8 px-2"
         >
           Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown className="ico space-l-2" />
+        </button>
       ),
       cell: ({ row }) => {
         const ticket = row.original;
         return (
-          <div className="min-w-0 max-w-[300px]">
-            <p className="font-medium truncate">{ticket.title}</p>
-            <p className="text-sm text-muted-foreground truncate mt-1">
+          <div className="min-zero flex-fill">
+            <p className="t-medium ellipsis">{ticket.title}</p>
+            <p className="t-sm t-muted ellipsis space-t-1">
               {ticket.description}
             </p>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="row g-2 space-t-2">
               {ticket._count?.attachments && ticket._count.attachments > 0 && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Paperclip className="h-3 w-3" />
+                <div className="row g-1 t-xs t-muted">
+                  <Paperclip className="ico-xs" />
                   {ticket._count.attachments}
                 </div>
               )}
               {ticket._count?.comments && ticket._count.comments > 0 && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MessageSquare className="h-3 w-3" />
+                <div className="row g-1 t-xs t-muted">
+                  <MessageSquare className="ico-xs" />
                   {ticket._count.comments}
                 </div>
               )}
@@ -315,9 +295,9 @@ export function TicketsTable({
       cell: ({ row }) => {
         const ticket = row.original;
         return (
-          <div className="min-w-0">
-            <p className="text-sm font-medium truncate">{ticket.customerName}</p>
-            <p className="text-xs text-muted-foreground truncate">{ticket.customerEmail}</p>
+          <div className="min-zero">
+            <p className="t-sm t-medium ellipsis">{ticket.customerName}</p>
+            <p className="t-xs t-muted ellipsis">{ticket.customerEmail}</p>
           </div>
         );
       },
@@ -328,20 +308,20 @@ export function TicketsTable({
       cell: ({ row }) => {
         const createdBy = row.original.createdBy;
         return createdBy ? (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
+          <div className="row g-2">
+            <Avatar className="avatar avatar-sm">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getFullName(createdBy)}`} />
               <AvatarFallback>
                 {getUserInitials(createdBy)}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{getFullName(createdBy)}</p>
-              <p className="text-xs text-muted-foreground truncate">{createdBy.email}</p>
+            <div className="min-zero">
+              <p className="t-sm t-medium ellipsis">{getFullName(createdBy)}</p>
+              <p className="t-xs t-muted ellipsis">{createdBy.email}</p>
             </div>
           </div>
         ) : (
-          <span className="text-muted-foreground">Unknown</span>
+          <span className="t-muted">Unknown</span>
         );
       },
     },
@@ -351,22 +331,20 @@ export function TicketsTable({
       cell: ({ row }) => {
         const assignedAgent = row.original.assignedAgent;
         return assignedAgent ? (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
+          <div className="row g-2">
+            <Avatar className="avatar avatar-sm">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getFullName(assignedAgent)}`} />
               <AvatarFallback>
                 {getUserInitials(assignedAgent)}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{getFullName(assignedAgent)}</p>
-              <p className="text-xs text-muted-foreground truncate">{assignedAgent.email}</p>
+            <div className="min-zero">
+              <p className="t-sm t-medium ellipsis">{getFullName(assignedAgent)}</p>
+              <p className="t-xs t-muted ellipsis">{assignedAgent.email}</p>
             </div>
           </div>
         ) : (
-          <Badge variant="outline" className="text-orange-600">
-            Unassigned
-          </Badge>
+          <span className="badge badge-warning">Unassigned</span>
         );
       },
     },
@@ -376,36 +354,36 @@ export function TicketsTable({
       cell: ({ row }) => {
         const category = row.original.category;
         return category ? (
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
+          <div className="row g-2">
+            <span 
+              className="color-dot" 
               style={{ backgroundColor: category.color || '#3B82F6' }}
             />
-            <span className="text-sm">{category.name}</span>
+            <span className="t-sm">{category.name}</span>
           </div>
         ) : (
-          <span className="text-muted-foreground">No category</span>
+          <span className="t-muted">No category</span>
         );
       },
     },
     {
       accessorKey: 'updatedAt',
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-8 px-2"
         >
           Last Updated
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown className="ico space-l-2" />
+        </button>
       ),
       cell: ({ row }) => {
         const updatedAt = row.original.updatedAt;
         return (
-          <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-sm">{getTimeAgo(updatedAt)}</span>
+          <div className="row g-2">
+            <Clock className="ico-xs t-muted" />
+            <span className="t-sm">{getTimeAgo(updatedAt)}</span>
           </div>
         );
       },
@@ -424,10 +402,10 @@ export function TicketsTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <button type="button" className="btn btn-ghost btn-icon btn-sm">
+                <span className="sr">Open menu</span>
+                <MoreHorizontal />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -439,24 +417,23 @@ export function TicketsTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/tickets/${ticket.id}`}>
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye className="ico space-r-2" />
                   View details
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onTicketSelect?.(ticket)}>
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="ico space-r-2" />
                 Open in new tab
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onTicketEdit?.(ticket)}>
-                <Edit className="mr-2 h-4 w-4" />
+                <Edit className="ico space-r-2" />
                 Edit ticket
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               
-              {/* Status Change Submenu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
-                  <CheckCircle className="mr-2 h-4 w-4" />
+                  <CheckCircle className="ico space-r-2" />
                   Change status
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
@@ -472,10 +449,9 @@ export function TicketsTable({
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
-              {/* Priority Change Submenu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
-                  <AlertCircle className="mr-2 h-4 w-4" />
+                  <AlertCircle className="ico space-r-2" />
                   Change priority
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
@@ -492,7 +468,7 @@ export function TicketsTable({
               </DropdownMenuSub>
 
               <DropdownMenuItem onClick={() => onTicketAssign?.(ticket.id, 'current-user')}>
-                <UserCheck className="mr-2 h-4 w-4" />
+                <UserCheck className="ico space-r-2" />
                 Assign to me
               </DropdownMenuItem>
 
@@ -500,10 +476,10 @@ export function TicketsTable({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
+                    className="t-danger"
                     onSelect={(e) => e.preventDefault()}
                   >
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="ico space-r-2" />
                     Delete ticket
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
@@ -516,10 +492,10 @@ export function TicketsTable({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="btn btn-secondary">Cancel</AlertDialogCancel>
                     <AlertDialogAction
+                      className="btn btn-danger"
                       onClick={() => onTicketDelete?.(ticket.id)}
-                      className="bg-red-600 hover:bg-red-700"
                     >
                       Delete
                     </AlertDialogAction>
@@ -586,7 +562,6 @@ export function TicketsTable({
       ? selectedRows.map(row => row.original)
       : data;
 
-    // Simple CSV export
     const headers = ['ID', 'Ticket Number', 'Title', 'Status', 'Priority', 'Customer Name', 'Customer Email', 'Created By', 'Assigned To', 'Category', 'Created', 'Updated'];
     const csvContent = [
       headers.join(','),
@@ -618,24 +593,22 @@ export function TicketsTable({
   };
 
   return (
-    <div className="w-full space-y-4 p-4">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {/* Status Filter */}
+    <div className="stack pad-4">
+      <div className="table-tools">
+        <div className="row g-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
+              <button type="button" className="btn btn-secondary">
+                <Filter className="ico space-r-2" />
                 Status
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+                <ChevronDown className="ico space-l-2" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED'].map((status) => (
                 <DropdownMenuCheckboxItem
                   key={status}
-                  className="capitalize"
+                  className="capitalize-label"
                   checked={(table.getColumn('status')?.getFilterValue() as string[])?.includes(status)}
                   onCheckedChange={(value) => {
                     const currentFilter = (table.getColumn('status')?.getFilterValue() as string[]) || [];
@@ -651,19 +624,18 @@ export function TicketsTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Priority Filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <button type="button" className="btn btn-secondary">
                 Priority
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+                <ChevronDown className="ico space-l-2" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'].map((priority) => (
                 <DropdownMenuCheckboxItem
                   key={priority}
-                  className="capitalize"
+                  className="capitalize-label"
                   checked={(table.getColumn('priority')?.getFilterValue() as string[])?.includes(priority)}
                   onCheckedChange={(value) => {
                     const currentFilter = (table.getColumn('priority')?.getFilterValue() as string[]) || [];
@@ -680,20 +652,19 @@ export function TicketsTable({
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center space-x-2">
-          {/* Bulk Actions */}
+        <div className="row g-2">
           {Object.keys(rowSelection).length > 0 && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">
+            <div className="row g-2">
+              <span className="t-sm t-muted">
                 {Object.keys(rowSelection).length} selected
               </span>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <CheckCircle className="mr-2 h-4 w-4" />
+                  <button type="button" className="btn btn-secondary btn-sm">
+                    <CheckCircle className="ico space-r-2" />
                     Update Status
-                  </Button>
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {(['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED'] as const).map((status) => (
@@ -707,24 +678,23 @@ export function TicketsTable({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button variant="outline" size="sm" onClick={() => handleBulkAssign('current-user')}>
-                <Users className="mr-2 h-4 w-4" />
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleBulkAssign('current-user')}>
+                <Users className="ico space-r-2" />
                 Assign to Me
-              </Button>
+              </button>
             </div>
           )}
 
-          <Button variant="outline" size="sm" onClick={exportTickets}>
-            <Download className="mr-2 h-4 w-4" />
+          <button type="button" className="btn btn-secondary btn-sm" onClick={exportTickets}>
+            <Download className="ico space-r-2" />
             Export
-          </Button>
+          </button>
 
-          {/* Column Visibility */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+              <button type="button" className="btn btn-secondary">
+                Columns <ChevronDown className="ico space-l-2" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {table
@@ -734,7 +704,7 @@ export function TicketsTable({
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
-                      className="capitalize"
+                      className="capitalize-label"
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
@@ -749,83 +719,81 @@ export function TicketsTable({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <th key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                    </TableHead>
+                    </th>
                   );
                 })}
-              </TableRow>
+              </tr>
             ))}
-          </TableHeader>
-          <TableBody>
+          </thead>
+          <tbody>
             {loading ? (
               Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
+                <tr key={index}>
                   {columns.map((_, cellIndex) => (
-                    <TableCell key={cellIndex}>
-                      <div className="h-4 bg-muted animate-pulse rounded" />
-                    </TableCell>
+                    <td key={cellIndex}>
+                      <div className="skeleton pad-2" />
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <tr
                   key={row.id}
+                  className="ui-table-row pointer"
                   data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => onTicketSelect?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <td key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </TableCell>
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : (
-              <TableRow>
-                <TableCell
+              <tr>
+                <td
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="align-center pad-6"
                 >
                   No support tickets found.
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div className="table-pager">
+        <div className="flex-fill t-sm t-muted">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length} ticket(s) selected.
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
+        <div className="pager-controls">
+          <div className="row g-2">
+            <p className="t-sm t-medium">Rows per page</p>
             <select
+              className="pager-select"
               value={table.getState().pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-[70px] rounded border border-input bg-background px-3 py-1 text-sm"
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>
@@ -834,47 +802,47 @@ export function TicketsTable({
               ))}
             </select>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="center t-sm t-medium">
             Page {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+          <div className="pager-controls">
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm show-lg-row"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to first page</span>
+              <span className="sr">Go to first page</span>
               «
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to previous page</span>
+              <span className="sr">Go to previous page</span>
               ‹
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to next page</span>
+              <span className="sr">Go to next page</span>
               ›
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon btn-sm show-lg-row"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to last page</span>
+              <span className="sr">Go to last page</span>
               »
-            </Button>
+            </button>
           </div>
         </div>
       </div>

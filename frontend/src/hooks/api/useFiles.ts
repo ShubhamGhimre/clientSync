@@ -17,6 +17,7 @@ export interface FilesResponse {
 }
 
 export interface UploadFileResponse {
+  data: any;
   file: File;
   message?: string;
 }

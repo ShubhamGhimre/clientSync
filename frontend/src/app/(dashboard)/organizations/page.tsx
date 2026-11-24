@@ -61,66 +61,66 @@ export default function OrganizationsPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="page stack">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
-          <p className="text-muted-foreground">
+          <h1 className="page-title">Organizations</h1>
+          <p className="page-subtitle">
             Manage organizations and their configurations.
           </p>
         </div>
         <Button asChild>
           <Link href="/organizations/create">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="ico space-r-2" />
             Add Organization
           </Link>
         </Button>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Total Organizations</CardTitle>
+            <Building className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockOrganizations.length}</div>
+            <div className="t-2xl t-bold">{mockOrganizations.length}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Total Users</CardTitle>
+            <Users className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="t-2xl t-bold">
               {mockOrganizations.reduce((sum, org) => sum + org._count.users, 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Chatbots</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Total Chatbots</CardTitle>
+            <Bot className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="t-2xl t-bold">
               {mockOrganizations.reduce((sum, org) => sum + org._count.chatBots, 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Users/Org</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="row-between pad-y-2">
+            <CardTitle className="t-sm t-medium">Avg Users/Org</CardTitle>
+            <Users className="ico t-muted" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="t-2xl t-bold">
               {Math.round(mockOrganizations.reduce((sum, org) => sum + org._count.users, 0) / mockOrganizations.length)}
             </div>
           </CardContent>
@@ -128,42 +128,42 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="row g-4">
+        <div className="pos-rel toolbar-search">
+          <Search className="search-icon" />
           <Input
             placeholder="Search organizations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="search-input"
           />
         </div>
       </div>
 
       {/* Organizations Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid-3">
         {filteredOrganizations.map((org) => (
-          <Card key={org.id} className="hover:shadow-lg transition-shadow">
+          <Card key={org.id} className="card-hover">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  <CardTitle className="text-lg">{org.name}</CardTitle>
+              <div className="row-between">
+                <div className="row g-2">
+                  <Building className="ico-lg" />
+                  <CardTitle className="t-lg">{org.name}</CardTitle>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="ico" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
-                      <Edit className="mr-2 h-4 w-4" />
+                      <Edit className="ico space-r-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem className="t-danger">
+                      <Trash2 className="ico space-r-2" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -174,19 +174,19 @@ export default function OrganizationsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="stack">
+                <div className="grid-2 t-sm">
+                  <div className="row g-2">
+                    <Users className="ico t-muted" />
                     <span>{org._count.users} users</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-muted-foreground" />
+                  <div className="row g-2">
+                    <Bot className="ico t-muted" />
                     <span>{org._count.chatBots} chatbots</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+                <div className="row g-2 t-sm t-muted">
+                  <Calendar className="ico" />
                   <span>Created {new Date(org.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>

@@ -1,9 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '../../generated/prisma';
-import { RegisterOrganizationSchema, LoginSchema } from '../utils/validation';
-import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import { LoginSchema, RegisterOrganizationSchema } from '../utils/validation.js';
+import { authenticateToken } from '../middleware/auth.middleware.js';
+import { PrismaClient, UserRole } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 /**
@@ -94,7 +94,8 @@ router.post('/register', async (req, res) => {
                     lastName: validatedData.lastName,
                     email: validatedData.email,
                     password: hashedPassword,
-                    organizationId: organization.id
+                    organizationId: organization.id,
+                    role: UserRole.ADMIN,
                 }
             });
             // Create default settings
@@ -193,10 +194,17 @@ router.post('/register', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
     try {
+        const subdomain = req.subdomain;
+        if (!subdomain) {
+            return res.status(400).json({
+                success: false,
+                message: 'Subdomain is required for organization login'
+            });
+        }
         const validatedData = LoginSchema.parse(req.body);
         // Find organization by subdomain
         const organization = await prisma.organization.findUnique({
-            where: { subdomain: validatedData.subdomain }
+            where: { subdomain: subdomain }
         });
         if (!organization) {
             return res.status(404).json({
@@ -306,6 +314,13 @@ router.post('/login', async (req, res) => {
  */
 router.get('/me', authenticateToken, async (req, res) => {
     try {
+        const subdomain = req.subdomain;
+        if (!subdomain) {
+            return res.status(400).json({
+                success: false,
+                message: 'Subdomain is required for organization login'
+            });
+        }
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
             include: {
@@ -332,7 +347,8 @@ router.get('/me', authenticateToken, async (req, res) => {
                     id: user.id,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                    email: user.email
+                    email: user.email,
+                    role: user.role
                 },
                 organization: user.organization
             }
@@ -395,6 +411,91 @@ router.post('/refresh', authenticateToken, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Token refresh failed'
+        });
+    }
+});
+/**
+ * @swagger
+ * /api/auth/check-subdomain:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Check subdomain availability
+ *     description: Check if a subdomain is available for registration
+ *     parameters:
+ *       - in: query
+ *         name: subdomain
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The subdomain to check
+ *         example: 'my-company'
+ *     responses:
+ *       200:
+ *         description: Subdomain availability checked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/ApiResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         available:
+ *                           type: boolean
+ *                           description: Whether the subdomain is available
+ *                         subdomain:
+ *                           type: string
+ *                           description: The checked subdomain
+ *       400:
+ *         description: Missing subdomain parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/check-subdomain', async (req, res) => {
+    try {
+        const { subdomain } = req.query;
+        console.log('🔍 Checking subdomain availability:', { subdomain, query: req.query });
+        if (!subdomain || typeof subdomain !== 'string') {
+            return res.status(400).json({
+                success: false,
+                message: 'Subdomain query parameter is required'
+            });
+        }
+        // Validate subdomain format (optional)
+        const subdomainRegex = /^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$/;
+        if (!subdomainRegex.test(subdomain)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid subdomain format. Use only lowercase letters, numbers, and hyphens.'
+            });
+        }
+        const existingOrg = await prisma.organization.findUnique({
+            where: { subdomain }
+        });
+        console.log('✅ Subdomain check result:', { subdomain, available: !existingOrg });
+        res.json({
+            success: true,
+            data: {
+                available: !existingOrg,
+                subdomain
+            }
+        });
+    }
+    catch (error) {
+        console.error('❌ Check subdomain error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to check subdomain'
         });
     }
 });

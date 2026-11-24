@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes.js';
@@ -21,9 +21,6 @@ import { extractSubdomain } from './middleware/subdomain.middleware.js';
 import type { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();
