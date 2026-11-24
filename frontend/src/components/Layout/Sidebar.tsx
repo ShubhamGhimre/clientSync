@@ -86,19 +86,19 @@ export default function Sidebar({ className }: SidebarProps) {
   const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   const shell = cn(
-    'sidebar-shell',
-    collapsed ? 'sidebar-collapsed' : 'sidebar-expanded',
+    'flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200',
+    collapsed ? 'w-16' : 'w-64',
     className
   );
 
   if (!isAuthenticated || isLoading || !displayUser) {
     return (
       <aside className={shell} aria-busy="true" aria-label="Loading navigation">
-        <div className="sidebar-loading">
-          <div className="skeleton skeleton-heading" />
-          <div className="skeleton skeleton-line space-t-4" />
-          <div className="skeleton skeleton-line" />
-          <div className="skeleton skeleton-line" />
+        <div className="flex flex-col gap-2 p-4">
+          <div className="skeleton h-8 w-56" />
+          <div className="skeleton h-4 w-full mt-4" />
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-full" />
         </div>
       </aside>
     );
@@ -114,23 +114,23 @@ export default function Sidebar({ className }: SidebarProps) {
     pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
 
   const navClass = (href: string) =>
-    cn('nav-item', collapsed && 'center', isActive(href) && 'is-active');
+    cn('nav-item', collapsed && 'flex items-center justify-center', isActive(href) && 'is-active');
 
   return (
     <aside className={shell} aria-label="Main navigation">
       {/* Header */}
-      <div className={cn('sidebar-head', collapsed && 'center')}>
+      <div className={cn('flex h-14 shrink-0 items-center gap-2 px-3', collapsed && 'flex items-center justify-center')}>
         {!collapsed && (
           <>
-            <span className="sidebar-logo">
-              <Zap className="ico" />
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-strong text-on-brand">
+              <Zap className="size-4 shrink-0" />
             </span>
-            <span className="sidebar-org">{orgName}</span>
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{orgName}</span>
           </>
         )}
         <button
           type="button"
-          className="btn btn-ghost btn-icon btn-sm no-shrink"
+          className="btn btn-ghost btn-icon btn-sm shrink-0"
           onClick={() => setCollapsed((v) => !v)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -139,11 +139,11 @@ export default function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="sidebar-nav">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
         {canCreateBot && (
           <Link
             href="/chatbots/create"
-            className={cn('btn btn-brand btn-sm space-b-3 full-w', collapsed && 'btn-icon')}
+            className={cn('btn btn-brand btn-sm mb-3 w-full', collapsed && 'btn-icon')}
             title={collapsed ? 'New chatbot' : undefined}
             aria-label="New chatbot"
           >
@@ -162,15 +162,15 @@ export default function Sidebar({ className }: SidebarProps) {
             aria-current={isActive(item.href) ? 'page' : undefined}
           >
             <item.icon />
-            {!collapsed && <span className="ellipsis">{item.name}</span>}
+            {!collapsed && <span className="overflow-hidden text-ellipsis whitespace-nowrap">{item.name}</span>}
           </Link>
         ))}
 
-        <div className="sidebar-spacer">
+        <div className="mt-auto pt-3">
           <button
             type="button"
             onClick={toggleTheme}
-            className={cn('nav-item full-w', collapsed && 'center')}
+            className={cn('nav-item w-full', collapsed && 'flex items-center justify-center')}
             title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
@@ -191,31 +191,31 @@ export default function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* Account */}
-      <div className="sidebar-account">
+      <div className="shrink-0 border-t border-sidebar-border p-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className={cn('sidebar-account-btn', collapsed && 'center')}
+              className={cn('flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-sidebar-accent', collapsed && 'flex items-center justify-center')}
               aria-label="Account menu"
             >
               <span className="avatar avatar-sm">{getUserInitials(userName)}</span>
               {!collapsed && (
                 <>
-                  <span className="flex-fill">
-                    <span className="sidebar-account-name">{userName}</span>
-                    <span className="sidebar-account-role">{formatRole(role)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium leading-tight">{userName}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{formatRole(role)}</span>
                   </span>
-                  <ChevronsUpDown className="sidebar-chevron" />
+                  <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
                 </>
               )}
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" side={collapsed ? 'right' : 'top'} className="sidebar-menu">
+          <DropdownMenuContent align="end" side={collapsed ? 'right' : 'top'} className="w-60">
             <DropdownMenuLabel>
-              <span className="sidebar-account-name">{userName}</span>
-              <span className="sidebar-account-role">{displayUser.email}</span>
+              <span className="block truncate text-sm font-medium leading-tight">{userName}</span>
+              <span className="block truncate text-xs text-muted-foreground">{displayUser.email}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
