@@ -193,7 +193,7 @@ export function FileUpload({
     setCompletedFiles((prev) => prev.filter((cf) => cf.id !== id));
 
   return (
-    <div className={`stack-lg ${className}`}>
+    <div className={`flex flex-col gap-8 ${className}`}>
       {/* Drop zone */}
       <div
         {...getRootProps()}
@@ -201,24 +201,24 @@ export function FileUpload({
       >
         <input {...getInputProps()} />
 
-        <span className="doc-icon upload-icon">
-          <CloudUpload className="ico-xl" />
+        <span className="doc-icon !size-12 !rounded-xl">
+          <CloudUpload className="size-6 shrink-0" />
         </span>
 
-        <div className="stack-sm center">
-          <p className="upload-title">
+        <div className="flex flex-col gap-2 items-center justify-center">
+          <p className="text-lg font-semibold">
             {isDragActive ? 'Drop files to upload' : 'Upload training files'}
           </p>
-          <p className="t-sm t-muted">
+          <p className="text-sm text-muted-foreground">
             Drag and drop files here, or{' '}
-            <span className="t-medium t-brand">browse your computer</span>
+            <span className="font-medium text-brand-strong">browse your computer</span>
           </p>
         </div>
 
-        <div className="cluster center" aria-label="Supported file types">
+        <div className="cluster flex items-center justify-center" aria-label="Supported file types">
           {Object.entries(allowedTypes).map(([type, info]) => (
             <span key={type} className="badge badge-neutral">
-              <info.icon className="ico-xs" />
+              <info.icon className="size-3 shrink-0" />
               {info.label}
             </span>
           ))}
@@ -233,23 +233,23 @@ export function FileUpload({
       {uploadingFiles.length > 0 && (
         <section className="surface" aria-label="Uploading files">
           <div className="surface-header">
-            <h3 className="section-title">Uploading ({uploadingFiles.length})</h3>
+            <h3 className="text-lg font-semibold">Uploading ({uploadingFiles.length})</h3>
           </div>
 
-          <ul className="surface-pad stack-sm">
+          <ul className="surface-pad flex flex-col gap-2">
             {uploadingFiles.map((uploadingFile) => {
               const Icon = getFileIcon(uploadingFile.file.type);
 
               return (
-                <li key={uploadingFile.id} className="doc-row">
+                <li key={uploadingFile.id} className="doc-flex items-center">
                   <span className="doc-icon">
-                    <Icon className="ico-lg" />
+                    <Icon className="size-5 shrink-0" />
                   </span>
 
-                  <div className="flex-fill stack-sm">
-                    <div className="row-between g-3">
-                      <p className="ellipsis t-medium">{uploadingFile.file.name}</p>
-                      <span className="field-hint no-shrink tabular">
+                  <div className="min-w-0 flex-1 flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">{uploadingFile.file.name}</p>
+                      <span className="field-hint shrink-0 tabular">
                         {getFileLabel(uploadingFile.file.type)}, {formatFileSize(uploadingFile.file.size)}
                       </span>
                     </div>
@@ -266,23 +266,23 @@ export function FileUpload({
                         >
                           <span style={{ width: `${uploadingFile.progress}%` }} />
                         </div>
-                        <p className="row g-1.5 t-xs t-muted tabular">
-                          <Loader2 className="ico-xs spin" />
+                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular">
+                          <Loader2 className="size-3 shrink-0 animate-spin" />
                           Uploading, {uploadingFile.progress}%
                         </p>
                       </>
                     )}
 
                     {uploadingFile.status === 'completed' && (
-                      <p className="row g-1.5 t-sm t-medium t-success">
-                        <CheckCircle className="ico" />
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-success">
+                        <CheckCircle className="size-4 shrink-0" />
                         Upload complete
                       </p>
                     )}
 
                     {uploadingFile.status === 'error' && (
-                      <p className="row g-1.5 t-sm t-danger" role="alert">
-                        <AlertCircle className="ico no-shrink" />
+                      <p className="flex items-center gap-1.5 text-sm text-destructive" role="alert">
+                        <AlertCircle className="size-4 shrink-0" />
                         {uploadingFile.error || 'Upload failed'}
                       </p>
                     )}
@@ -307,21 +307,21 @@ export function FileUpload({
       {completedFiles.length > 0 && (
         <section className="surface" aria-label="Uploaded files">
           <div className="surface-header">
-            <h3 className="section-title">Uploaded ({completedFiles.length})</h3>
+            <h3 className="text-lg font-semibold">Uploaded ({completedFiles.length})</h3>
           </div>
 
-          <ul className="surface-pad stack-sm">
+          <ul className="surface-pad flex flex-col gap-2">
             {completedFiles.map((file) => {
               const Icon = getFileIcon(file.fileType);
 
               return (
-                <li key={file.id} className="doc-row">
+                <li key={file.id} className="doc-flex items-center">
                   <span className="doc-icon">
-                    <Icon className="ico-lg" />
+                    <Icon className="size-5 shrink-0" />
                   </span>
 
-                  <div className="flex-fill">
-                    <p className="ellipsis t-medium">{file.fileName}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">{file.fileName}</p>
                     <p className="field-hint tabular">
                       {getFileLabel(file.fileType)}, {formatFileSize(file.fileSize)}, uploaded{' '}
                       {new Date(file.uploadedAt).toLocaleTimeString()}
@@ -329,7 +329,7 @@ export function FileUpload({
                   </div>
 
                   <span className="badge badge-success">
-                    <CheckCircle className="ico-xs" />
+                    <CheckCircle className="size-3 shrink-0" />
                     Done
                   </span>
 
