@@ -74,40 +74,40 @@ export function ResetPasswordModal({ open, onOpenChange, user }: ResetPasswordMo
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="dialog-shell">
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="row g-2">
-            <Key className="ico-lg" />
+          <DialogTitle className="flex items-center gap-2">
+            <Key className="size-5 shrink-0" />
             Reset Password
           </DialogTitle>
           <DialogDescription>
             Set a new password for{' '}
-            <span className="t-medium">
+            <span className="font-medium">
               {user?.firstName} {user?.lastName}
             </span>
           </DialogDescription>
         </DialogHeader>
 
         <div role="alert" className="callout callout-warning">
-          <AlertTriangle className="ico" />
+          <AlertTriangle className="size-4 shrink-0" />
           <span>
             The user will need to use this new password on their next login. 
             Consider sending them the new password through a secure channel.
           </span>
         </div>
 
-        <div className="row g-3 pad-3 surface-muted">
-          <div className="avatar icon-tile-brand">
+        <div className="flex items-center gap-3 p-3 surface-muted">
+          <div className="avatar icon-tile brand-gradient text-on-brand">
             {user?.firstName?.[0]}{user?.lastName?.[0]}
           </div>
-          <div className="min-zero">
-            <p className="t-medium">{user?.firstName} {user?.lastName}</p>
+          <div className="min-w-0">
+            <p className="font-medium">{user?.firstName} {user?.lastName}</p>
             <p className="field-hint">{user?.email}</p>
           </div>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="col g-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <FormField
               control={form.control}
               name="newPassword"
@@ -146,7 +146,7 @@ export function ResetPasswordModal({ open, onOpenChange, user }: ResetPasswordMo
               )}
             />
 
-            <DialogFooter className="dialog-foot">
+            <DialogFooter className="flex items-center justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -164,7 +164,7 @@ export function ResetPasswordModal({ open, onOpenChange, user }: ResetPasswordMo
               >
                 {resetPasswordMutation.isPending ? (
                   <>
-                    <Loader2 className="ico space-r-2 spin" />
+                    <Loader2 className="size-4 shrink-0 mr-2 animate-spin" />
                     Resetting...
                   </>
                 ) : (

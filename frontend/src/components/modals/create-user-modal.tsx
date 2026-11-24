@@ -144,15 +144,15 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="dialog-shell">
-        <DialogHeader className="dialog-head">
-          <div className="row g-3">
-            <div className="dialog-icon">
-              <UserPlus className="ico-lg" />
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="flex items-center gap-3 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="icon-tile brand-gradient-alt text-on-brand">
+              <UserPlus className="size-5 shrink-0" />
             </div>
             <div>
-              <DialogTitle className="dialog-title">Create New User</DialogTitle>
-              <DialogDescription className="t-sm t-muted">
+              <DialogTitle className="text-xl font-semibold">Create New User</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
                 Add a new team member to your organization
               </DialogDescription>
             </div>
@@ -160,15 +160,15 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="dialog-body">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
             {/* Personal Information */}
-            <div className="col g-3">
-              <div className="section-head">
-                <User className="ico" />
+            <div className="flex flex-col gap-3">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <User className="size-4 shrink-0" />
                 Personal Information
               </div>
               
-              <div className="form-grid">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -211,8 +211,8 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="ui-label">
-                      <Mail className="ico" />
+                    <FormLabel className="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50">
+                      <Mail className="size-4 shrink-0" />
                       Email Address
                     </FormLabel>
                     <FormControl>
@@ -230,13 +230,13 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
             </div>
 
             {/* Security */}
-            <div className="col g-3">
-              <div className="section-head">
-                <Lock className="ico" />
+            <div className="flex flex-col gap-3">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <Lock className="size-4 shrink-0" />
                 Security
               </div>
 
-              <div className="form-grid">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="password"
@@ -259,9 +259,9 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                             disabled={createUserMutation.isPending}
                           >
                             {showPassword ? (
-                              <EyeOff className="ico-sm" />
+                              <EyeOff className="size-3.5 shrink-0" />
                             ) : (
-                              <Eye className="ico-sm" />
+                              <Eye className="size-3.5 shrink-0" />
                             )}
                           </button>
                         </div>
@@ -293,9 +293,9 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                             disabled={createUserMutation.isPending}
                           >
                             {showConfirmPassword ? (
-                              <EyeOff className="ico-sm" />
+                              <EyeOff className="size-3.5 shrink-0" />
                             ) : (
-                              <Eye className="ico-sm" />
+                              <Eye className="size-3.5 shrink-0" />
                             )}
                           </button>
                         </div>
@@ -308,14 +308,14 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
             </div>
 
             {/* Role & Status */}
-            <div className="col g-3">
-              <div className="section-head">
-                <Shield className="ico" />
+            <div className="flex flex-col gap-3">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <Shield className="size-4 shrink-0" />
                 Role & Status
               </div>
 
-              <div className="row g-3">
-                <div className="flex-fill">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
                   <FormField
                     control={form.control}
                     name="role"
@@ -334,20 +334,20 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="VIEWER">
-                              <div className="row g-2">
-                                <Eye className="ico-sm" />
+                              <div className="flex items-center gap-2">
+                                <Eye className="size-3.5 shrink-0" />
                                 <span>Viewer</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="AGENT">
-                              <div className="row g-2">
-                                <Briefcase className="ico-sm" />
+                              <div className="flex items-center gap-2">
+                                <Briefcase className="size-3.5 shrink-0" />
                                 <span>Agent</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="ADMIN">
-                              <div className="row g-2">
-                                <Crown className="ico-sm" />
+                              <div className="flex items-center gap-2">
+                                <Crown className="size-3.5 shrink-0" />
                                 <span>Admin</span>
                               </div>
                             </SelectItem>
@@ -359,10 +359,10 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   />
                 </div>
 
-                <div className="center">
-                  <div className="center surface-muted g-2">
-                    <div className="center shape-square pad-1 icon-tile-brand">
-                      <roleConfig.icon className="ico-xs" />
+                <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center surface-muted gap-2">
+                    <div className="flex items-center justify-center rounded-lg p-1 icon-tile brand-gradient text-on-brand">
+                      <roleConfig.icon className="size-3 shrink-0" />
                     </div>
                     <Badge variant={roleConfig.badgeVariant} className="badge">
                       {roleConfig.label}
@@ -376,7 +376,7 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 name="isActive"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="row-between pad-3 surface-muted">
+                    <div className="flex items-center justify-between p-3 surface-muted">
                       <div>
                         <FormLabel className="label">Active Account</FormLabel>
                         <p className="field-hint">
@@ -397,7 +397,7 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
               />
             </div>
 
-            <DialogFooter className="dialog-foot">
+            <DialogFooter className="flex items-center justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -414,12 +414,12 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
               >
                 {createUserMutation.isPending ? (
                   <>
-                    <Loader2 className="ico space-r-2 spin" />
+                    <Loader2 className="size-4 shrink-0 mr-2 animate-spin" />
                     Creating...
                   </>
                 ) : (
                   <>
-                    <UserPlus className="ico space-r-2" />
+                    <UserPlus className="size-4 shrink-0 mr-2" />
                     Create User
                   </>
                 )}
