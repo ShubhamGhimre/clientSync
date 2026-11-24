@@ -10,10 +10,10 @@ import Sidebar from '@/components/Layout/Sidebar';
 
 function FullPageLoader({ label }: { label: string }) {
   return (
-    <div className="shell-loader">
-      <div className="shell-loader-inner" role="status">
-        <Loader2 className="ico-xl spin t-brand" />
-        <p className="shell-loader-text">{label}</p>
+    <div className="grid min-h-dvh place-items-center bg-background">
+      <div className="flex flex-col items-center gap-3" role="status">
+        <Loader2 className="size-6 shrink-0 animate-spin text-brand-strong" />
+        <p className="text-sm text-muted-foreground">{label}</p>
       </div>
     </div>
   );
@@ -66,26 +66,26 @@ export default function DashboardLayout({
 
   if (isAuthenticated && (user || userData)) {
     return (
-      <div className="shell-row">
+      <div className="flex h-dvh">
         {/* Desktop sidebar */}
-        <Sidebar className="show-lg-row" />
+        <Sidebar className="hidden lg:flex" />
 
         {/* Mobile drawer */}
         {drawerOpen && (
-          <div className="shell-mobile-overlay">
+          <div className="fixed inset-0 z-50 lg:hidden">
             <button
               type="button"
-              className="shell-mobile-scrim"
+              className="absolute inset-0 bg-foreground/40"
               onClick={() => setDrawerOpen(false)}
               aria-label="Close menu"
             />
-            <div className="shell-mobile-drawer">
+            <div className="absolute inset-y-0 left-0">
               <Sidebar />
             </div>
           </div>
         )}
 
-        <main className="shell-main">
+        <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           {/* Mobile top bar */}
           <div className="app-topbar">
             <button
@@ -97,10 +97,10 @@ export default function DashboardLayout({
             >
               {drawerOpen ? <X /> : <Menu />}
             </button>
-            <span className="shell-logo-tile">
-              <Zap className="ico-sm" />
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-strong text-on-brand">
+              <Zap className="size-3.5 shrink-0" />
             </span>
-            <span className="t-sm t-semibold">ClientSync</span>
+            <span className="text-sm font-semibold">ClientSync</span>
           </div>
 
           {children}
