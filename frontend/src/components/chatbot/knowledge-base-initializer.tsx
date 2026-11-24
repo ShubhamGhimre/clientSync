@@ -178,14 +178,14 @@ export default function KnowledgeBaseInitializer({
   if (chatbotLoading) {
     return (
       <div className="page" aria-busy="true">
-        <div className="stack-lg kb-wrap">
-          <div className="skeleton skeleton-input" />
+        <div className="flex flex-col gap-8 mx-auto max-w-4xl">
+          <div className="skeleton h-10 w-32" />
           <div className="grid-stats">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="skeleton kb-stat-skeleton" />
+              <div key={i} className="skeleton h-28 rounded-xl" />
             ))}
           </div>
-          <div className="skeleton kb-banner-skeleton" />
+          <div className="skeleton h-56 rounded-xl" />
         </div>
       </div>
     );
@@ -195,7 +195,7 @@ export default function KnowledgeBaseInitializer({
 
   return (
     <div className="page">
-      <div className="stack-lg kb-wrap">
+      <div className="flex flex-col gap-8 mx-auto max-w-4xl">
         {/* Header */}
         <header className="page-header">
           <div>
@@ -203,22 +203,22 @@ export default function KnowledgeBaseInitializer({
             <p className="page-subtitle">
               Process your uploaded files so the chatbot can answer from them.
             </p>
-            <div className="cluster space-t-3 g-4 t-xs t-muted">
-              <span className="inline-row g-1.5">
+            <div className="cluster mt-3 gap-4 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
                 <span
                   className={`status-dot ${chatbotPollingInterval ? "is-online" : ""}`}
                 />
                 Refreshes every 2 minutes
               </span>
               {isActive && (
-                <span className="inline-row g-1.5 t-ai">
-                  <Loader2 className="ico-xs spin" />
+                <span className="inline-flex items-center gap-1.5 text-ai">
+                  <Loader2 className="size-3 shrink-0 animate-spin" />
                   Processing
                 </span>
               )}
               {progressData?.timeElapsed && (
-                <span className="inline-row g-1.5">
-                  <Clock className="ico-xs" />
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="size-3 shrink-0" />
                   {progressData.timeElapsed} elapsed
                 </span>
               )}
@@ -235,7 +235,7 @@ export default function KnowledgeBaseInitializer({
             }}
             disabled={isActive}
           >
-            <RefreshCw className={isActive ? "spin" : ""} />
+            <RefreshCw className={isActive ? "animate-spin" : ""} />
             Refresh now
           </button>
         </header>
@@ -243,29 +243,29 @@ export default function KnowledgeBaseInitializer({
         {/* Stats */}
         <section className="grid-stats" aria-label="Knowledge base overview">
           <div className="stat-card">
-            <div className="row-between">
+            <div className="flex items-center justify-between">
               <span className="stat-label">Chunks</span>
-              <Database className="ico t-muted" />
+              <Database className="size-4 shrink-0 text-muted-foreground" />
             </div>
             <span className="stat-value">{totalChunks.toLocaleString()}</span>
             <span className="field-hint">Searchable text segments</span>
           </div>
 
           <div className="stat-card">
-            <div className="row-between">
+            <div className="flex items-center justify-between">
               <span className="stat-label">Files</span>
-              <FileText className="ico t-muted" />
+              <FileText className="size-4 shrink-0 text-muted-foreground" />
             </div>
             <span className="stat-value">{files.length}</span>
             <span className="field-hint">Uploaded documents</span>
           </div>
 
           <div className="stat-card">
-            <div className="row-between">
+            <div className="flex items-center justify-between">
               <span className="stat-label">Status</span>
-              <Activity className="ico t-muted" />
+              <Activity className="size-4 shrink-0 text-muted-foreground" />
             </div>
-            <span className="stat-value row g-2">
+            <span className="stat-value flex items-center gap-2">
               <span className={getStatusDotClass()} aria-hidden="true" />
               {getOverallStatus()}
             </span>
@@ -273,11 +273,11 @@ export default function KnowledgeBaseInitializer({
           </div>
 
           <div className="stat-card">
-            <div className="row-between">
+            <div className="flex items-center justify-between">
               <span className="stat-label">Last updated</span>
-              <Clock className="ico t-muted" />
+              <Clock className="size-4 shrink-0 text-muted-foreground" />
             </div>
-            <span className="stat-value kb-progress-value">
+            <span className="stat-value !text-lg !leading-9">
               {formatDate(lastUpdated)}
             </span>
             <span className="field-hint">Last knowledge refresh</span>
@@ -289,11 +289,11 @@ export default function KnowledgeBaseInitializer({
           <section className="surface">
             <div className="surface-header">
               <div>
-                <h2 className="section-title row g-2">
-                  <Loader2 className="ico-lg spin t-ai" />
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Loader2 className="size-5 shrink-0 animate-spin text-ai" />
                   Processing knowledge base
                 </h2>
-                <p className="field-hint space-t-1">{getCurrentStep()}</p>
+                <p className="field-hint mt-1">{getCurrentStep()}</p>
               </div>
               <span className="badge badge-ai tabular">
                 {Math.round(progressValue)}%
@@ -312,7 +312,7 @@ export default function KnowledgeBaseInitializer({
                 <span style={{ width: `${progressValue}%` }} />
               </div>
 
-              <div className="kb-progress-label t-muted">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>
                   Files {progressData?.processedFiles || 0} of{" "}
                   {progressData?.totalFiles || files.length}
@@ -323,30 +323,30 @@ export default function KnowledgeBaseInitializer({
               </div>
 
               {progressData && (
-                <dl className="kb-progress-grid">
+                <dl className="grid gap-3 text-sm sm:grid-cols-2">
                   {progressData.estimatedTimeRemaining && (
-                    <div className="row g-2">
-                      <Activity className="ico t-muted" />
-                      <dt className="t-medium">Remaining</dt>
-                      <dd className="t-muted">
+                    <div className="flex items-center gap-2">
+                      <Activity className="size-4 shrink-0 text-muted-foreground" />
+                      <dt className="font-medium">Remaining</dt>
+                      <dd className="text-muted-foreground">
                         {progressData.estimatedTimeRemaining}
                       </dd>
                     </div>
                   )}
                   {progressData.totalChunks > 0 && (
-                    <div className="row g-2">
-                      <Database className="ico t-muted" />
-                      <dt className="t-medium">Total chunks</dt>
-                      <dd className="t-muted tabular">
+                    <div className="flex items-center gap-2">
+                      <Database className="size-4 shrink-0 text-muted-foreground" />
+                      <dt className="font-medium">Total chunks</dt>
+                      <dd className="text-muted-foreground tabular">
                         {progressData.totalChunks.toLocaleString()}
                       </dd>
                     </div>
                   )}
                   {progressData.currentFile && (
-                    <div className="row min-zero g-2">
-                      <FileText className="ico no-shrink t-muted" />
-                      <dt className="t-medium">Current file</dt>
-                      <dd className="ellipsis t-muted">
+                    <div className="flex items-center min-w-0 gap-2">
+                      <FileText className="size-4 shrink-0 text-muted-foreground" />
+                      <dt className="font-medium">Current file</dt>
+                      <dd className="overflow-hidden text-ellipsis whitespace-nowrap text-muted-foreground">
                         {progressData.currentFile}
                       </dd>
                     </div>
@@ -360,12 +360,12 @@ export default function KnowledgeBaseInitializer({
         {/* Error */}
         {hasError && (
           <div className="callout callout-danger" role="alert">
-            <AlertCircle className="kb-error" />
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
             <div>
-              <p className="t-medium">Processing failed</p>
-              <p className="space-t-1 t-muted">{getErrorMessage()}</p>
+              <p className="font-medium">Processing failed</p>
+              <p className="mt-1 text-muted-foreground">{getErrorMessage()}</p>
               {progressData?.lastUpdated && (
-                <p className="space-t-2 t-xs t-muted">
+                <p className="mt-2 text-xs text-muted-foreground">
                   Last update{" "}
                   {new Date(progressData.lastUpdated).toLocaleTimeString()}
                 </p>
@@ -378,8 +378,8 @@ export default function KnowledgeBaseInitializer({
         <section className="surface">
           <div className="surface-header">
             <div>
-              <h2 className="section-title">Manage knowledge base</h2>
-              <p className="field-hint space-t-1">
+              <h2 className="text-lg font-semibold">Manage knowledge base</h2>
+              <p className="field-hint mt-1">
                 Build or rebuild the index your chatbot searches.
               </p>
             </div>
@@ -388,7 +388,7 @@ export default function KnowledgeBaseInitializer({
           <div className="surface-pad stack">
             {!isKnowledgeInitialized && !isActive ? (
               <div className="callout callout-warning">
-                <AlertCircle className="space-t-0.5 ico no-shrink" />
+                <AlertCircle className="space-t-0.5 size-4 shrink-0" />
                 <p>
                   {files.length === 0
                     ? "No files yet. Upload files in the Files tab first."
@@ -397,10 +397,10 @@ export default function KnowledgeBaseInitializer({
               </div>
             ) : isKnowledgeInitialized && !isActive ? (
               <div className="callout callout-success">
-                <CheckCircle className="space-t-0.5 ico no-shrink t-success" />
+                <CheckCircle className="space-t-0.5 size-4 shrink-0 text-success" />
                 <div>
-                  <p className="t-medium">Knowledge base is ready</p>
-                  <p className="space-t-1 t-muted">
+                  <p className="font-medium">Knowledge base is ready</p>
+                  <p className="mt-1 text-muted-foreground">
                     Your chatbot can answer questions from your uploaded content.
                     {totalChunks > 0 &&
                       ` ${totalChunks.toLocaleString()} chunks are available for search.`}
@@ -409,7 +409,7 @@ export default function KnowledgeBaseInitializer({
               </div>
             ) : null}
 
-            <div className="cluster g-3">
+            <div className="cluster gap-3">
               {!isKnowledgeInitialized || isFailed ? (
                 <button
                   type="button"
@@ -417,7 +417,7 @@ export default function KnowledgeBaseInitializer({
                   onClick={handleInitializeKnowledge}
                   disabled={!canInitialize || isActive}
                 >
-                  {isActive ? <Loader2 className="spin" /> : <Zap />}
+                  {isActive ? <Loader2 className="animate-spin" /> : <Zap />}
                   {isActive
                     ? "Initializing..."
                     : isFailed
@@ -431,7 +431,7 @@ export default function KnowledgeBaseInitializer({
                   onClick={handleReinitialize}
                   disabled={isActive}
                 >
-                  {isActive ? <Loader2 className="spin" /> : <RefreshCw />}
+                  {isActive ? <Loader2 className="animate-spin" /> : <RefreshCw />}
                   {isActive ? "Reinitializing..." : "Reinitialize"}
                 </button>
               )}
@@ -448,35 +448,35 @@ export default function KnowledgeBaseInitializer({
             </div>
 
             {(isActive || isCompleted) && progressData && (
-              <dl className="surface-muted kb-progress-grid pad-4">
-                <div className="row-between g-3">
-                  <dt className="t-medium">Status</dt>
-                  <dd className="t-muted">{progressData.status}</dd>
+              <dl className="surface-muted grid gap-3 text-sm sm:grid-cols-2 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-medium">Status</dt>
+                  <dd className="text-muted-foreground">{progressData.status}</dd>
                 </div>
-                <div className="row-between g-3">
-                  <dt className="t-medium">Progress</dt>
-                  <dd className="t-muted tabular">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-medium">Progress</dt>
+                  <dd className="text-muted-foreground tabular">
                     {Math.round(progressData.progress)}%
                   </dd>
                 </div>
-                <div className="row-between g-3">
-                  <dt className="t-medium">Files</dt>
-                  <dd className="t-muted tabular">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-medium">Files</dt>
+                  <dd className="text-muted-foreground tabular">
                     {progressData.processedFiles || 0} / {progressData.totalFiles || files.length}
                   </dd>
                 </div>
                 {progressData.processedChunks > 0 && (
-                  <div className="row-between g-3">
-                    <dt className="t-medium">Chunks</dt>
-                    <dd className="t-muted tabular">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="font-medium">Chunks</dt>
+                    <dd className="text-muted-foreground tabular">
                       {progressData.processedChunks.toLocaleString()}
                     </dd>
                   </div>
                 )}
                 {progressData.currentStep && (
-                  <div className="row-between g-3 border-top pad-y-3">
-                    <dt className="t-medium">Current step</dt>
-                    <dd className="t-muted">{progressData.currentStep}</dd>
+                  <div className="flex items-center justify-between gap-3 border-t py-3">
+                    <dt className="font-medium">Current step</dt>
+                    <dd className="text-muted-foreground">{progressData.currentStep}</dd>
                   </div>
                 )}
                 {progressData.startTime && (
@@ -494,27 +494,27 @@ export default function KnowledgeBaseInitializer({
           <section className="surface">
             <div className="surface-header">
               <div>
-                <h2 className="section-title">Source files</h2>
-                <p className="field-hint space-t-1">
+                <h2 className="text-lg font-semibold">Source files</h2>
+                <p className="field-hint mt-1">
                   {files.length} {files.length === 1 ? "file" : "files"} available for the knowledge base
                 </p>
               </div>
             </div>
 
-            <ul className="surface-pad stack-sm">
+            <ul className="surface-pad flex flex-col gap-2">
               {files.map((file: File, index: number) => {
                 const isCurrentFile =
                   progressData?.currentFile === (file.fileName || file.name);
                 const isProcessedFile = file.processed;
 
                 return (
-                  <li key={file.id || index} className="doc-row">
+                  <li key={file.id || index} className="doc-flex items-center">
                     <span className="doc-icon">
-                      <FileText className="ico-lg" />
+                      <FileText className="size-5 shrink-0" />
                     </span>
 
-                    <div className="flex-fill">
-                      <p className="ellipsis t-medium">
+                    <div className="min-w-0 flex-1">
+                      <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">
                         {file.fileName || file.name}
                       </p>
                       <p className="field-hint">
@@ -529,7 +529,7 @@ export default function KnowledgeBaseInitializer({
                       <span className="badge badge-success">Completed</span>
                     ) : isCurrentFile ? (
                       <span className="badge badge-ai">
-                        <Loader2 className="ico-xs spin" />
+                        <Loader2 className="size-3 shrink-0 animate-spin" />
                         Processing
                       </span>
                     ) : (
@@ -545,18 +545,18 @@ export default function KnowledgeBaseInitializer({
         {/* No files */}
         {files.length === 0 && !filesLoading && (
           <div className="empty-state">
-            <FileText className="ico-2xl t-muted" />
-            <h3 className="empty-state-title">No files yet</h3>
-            <p className="empty-state-text">
+            <FileText className="size-8 shrink-0 text-muted-foreground" />
+            <h3 className="text-base font-semibold">No files yet</h3>
+            <p className="max-w-sm text-sm text-muted-foreground">
               Upload files in the Files tab, then come back to build the knowledge base.
             </p>
 
             {process.env.NODE_ENV === "development" && (
-              <details className="kb-debug space-t-2">
-                <summary className="pointer t-sm t-muted">
+              <details className="w-full max-w-md cursor-pointer text-left text-sm mt-2">
+                <summary className="cursor-pointer text-sm text-muted-foreground">
                   Debug information
                 </summary>
-                <pre className="surface-muted space-t-2 pad-4 t-xs scroll-x">
+                <pre className="surface-muted mt-2 p-4 text-xs overflow-x-auto">
                   {JSON.stringify(
                     {
                       filesData,
