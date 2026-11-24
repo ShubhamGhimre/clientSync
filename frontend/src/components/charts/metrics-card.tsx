@@ -26,23 +26,23 @@ export function MetricsCard({
 
   return (
     <div className={cn('stat-card', className)}>
-      <div className="row-between">
+      <div className="flex items-center justify-between">
         <span className="stat-label">{title}</span>
         <span className="icon-tile">
-          <Icon className="ico-lg" />
+          <Icon className="size-5 shrink-0" />
         </span>
       </div>
       <div className="stat-value">{value}</div>
-      <div className="row g-2">
+      <div className="flex items-center gap-2">
         {change && (
           <span className={cn(
             'stat-delta badge',
             isPositive ? 'is-up badge-success' : 'is-down badge-danger'
           )}>
             {isPositive ? (
-              <TrendingUp className="ico-xs" />
+              <TrendingUp className="size-3 shrink-0" />
             ) : (
-              <TrendingDown className="ico-xs" />
+              <TrendingDown className="size-3 shrink-0" />
             )}
             <span>{change}</span>
           </span>
