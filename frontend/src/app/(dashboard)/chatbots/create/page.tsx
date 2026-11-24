@@ -56,7 +56,7 @@ export default function CreateChatbotPage() {
 
   return (
     <div className="page-narrow">
-      <Link href="/chatbots" className="btn btn-ghost btn-sm space-b-4">
+      <Link href="/chatbots" className="btn btn-ghost btn-sm mb-4">
         <ArrowLeft />
         Chatbots
       </Link>
@@ -70,17 +70,17 @@ export default function CreateChatbotPage() {
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="stack-lg">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <div className="surface">
           <div className="surface-header">
-            <h2 className="card-title">Basic information</h2>
+            <h2 className="text-base font-semibold">Basic information</h2>
           </div>
 
-          <div className="stack pad-5">
+          <div className="stack p-5">
             {submitError && (
               <div role="alert" className="callout callout-danger">
-                <X className="space-t-0.5 ico t-danger" />
-                <span className="t-danger">{submitError}</span>
+                <X className="space-t-0.5 size-4 shrink-0 text-destructive" />
+                <span className="text-destructive">{submitError}</span>
               </div>
             )}
 
@@ -101,7 +101,7 @@ export default function CreateChatbotPage() {
 
             <div className="field">
               <label htmlFor="description" className="label">
-                Description <span className="t-muted">(optional)</span>
+                Description <span className="text-muted-foreground">(optional)</span>
               </label>
               <textarea
                 id="description"
@@ -122,7 +122,7 @@ export default function CreateChatbotPage() {
             <button type="submit" className="btn btn-brand" disabled={isPending || !formData.name.trim()}>
               {isPending ? (
                 <>
-                  <Loader2 className="spin" />
+                  <Loader2 className="animate-spin" />
                   Creating…
                 </>
               ) : (
@@ -137,16 +137,16 @@ export default function CreateChatbotPage() {
 
         {/* These really are sequential, so numbering is information here */}
         <section aria-labelledby="next-steps">
-          <h2 id="next-steps" className="section-title space-b-3">What happens next</h2>
-          <ol className="surface-muted stack pad-5">
+          <h2 id="next-steps" className="text-lg font-semibold mb-3">What happens next</h2>
+          <ol className="surface-muted stack p-5">
             {NEXT_STEPS.map((step, i) => (
-              <li key={step.title} className="row-start g-3">
-                <span className="surface center ico-xl shape-round t-xs t-medium tabular">
+              <li key={step.title} className="flex items-start gap-3">
+                <span className="surface flex items-center justify-center size-6 shrink-0 rounded-full text-xs font-medium tabular">
                   {i + 1}
                 </span>
                 <div>
-                  <p className="t-sm t-medium">{step.title}</p>
-                  <p className="t-sm t-muted">{step.text}</p>
+                  <p className="text-sm font-medium">{step.title}</p>
+                  <p className="text-sm text-muted-foreground">{step.text}</p>
                 </div>
               </li>
             ))}

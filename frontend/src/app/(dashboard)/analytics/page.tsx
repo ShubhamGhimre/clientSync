@@ -9,18 +9,18 @@ import { BarChart3, MessageSquare, Users, TrendingUp, Clock, Bot } from 'lucide-
 
 export default function AnalyticsPage() {
   return (
-    <div className="page stack g-6">
-      <div className="row-between">
+    <div className="page stack gap-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">Analytics</h1>
-          <p className="t-muted">
+          <p className="text-muted-foreground">
             Monitor your chatbot performance and engagement metrics
           </p>
         </div>
       </div>
 
       {/* Metrics Overview */}
-      <div className="grid-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricsCard
           title="Total Conversations"
           value="12,543"
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="stack">
-          <div className="grid-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Conversation Volume</CardTitle>
@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="performance" className="stack">
-          <div className="grid-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Response Times</CardTitle>

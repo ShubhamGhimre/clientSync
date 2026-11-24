@@ -16,12 +16,12 @@ export default function ChatbotChatsPage() {
   if (isLoading) {
     return (
       <div className="page" aria-busy="true">
-        <div className="skeleton space-b-6" />
-        <div className="stack-sm space-b-6">
+        <div className="skeleton mb-6" />
+        <div className="flex flex-col gap-2 mb-6">
           <div className="skeleton" />
           <div className="skeleton" />
         </div>
-        <div className="skeleton full-w" />
+        <div className="skeleton w-full" />
       </div>
     );
   }
@@ -32,10 +32,10 @@ export default function ChatbotChatsPage() {
       <div className="page-narrow">
         <div className="empty-state">
           <span className="doc-icon">
-            <Bot className="ico-xl" />
+            <Bot className="size-6 shrink-0" />
           </span>
-          <h1 className="empty-state-title">Couldn&apos;t load this chatbot</h1>
-          <p className="empty-state-text">
+          <h1 className="text-base font-semibold">Couldn&apos;t load this chatbot</h1>
+          <p className="max-w-sm text-sm text-muted-foreground">
             Refresh the page, or go back to your chatbots. Contact support if it keeps happening.
           </p>
           <Link href="/chatbots" className="btn btn-secondary">
@@ -50,19 +50,19 @@ export default function ChatbotChatsPage() {
 
   return (
     <div className="page">
-      <Link href={`/chatbots/${chatbotId}`} className="btn btn-ghost btn-sm space-b-4">
+      <Link href={`/chatbots/${chatbotId}`} className="btn btn-ghost btn-sm mb-4">
         <ArrowLeft />
         {chatbot.name}
       </Link>
 
       <header className="page-header">
-        <div className="row-start min-zero g-4">
+        <div className="flex items-start min-w-0 gap-4">
           <span className="doc-icon">
-            <Bot className="ico-xl" />
+            <Bot className="size-6 shrink-0" />
           </span>
-          <div className="min-zero">
-            <div className="cluster g-3">
-              <h1 className="page-title ellipsis">{chatbot.name}</h1>
+          <div className="min-w-0">
+            <div className="cluster gap-3">
+              <h1 className="page-title overflow-hidden text-ellipsis whitespace-nowrap">{chatbot.name}</h1>
               <span className={`badge ${ready ? 'badge-success' : 'badge-warning'}`}>
                 <span className={`status-dot ${ready ? 'is-online' : 'is-busy'}`} />
                 {ready ? 'Ready' : 'Setup pending'}
@@ -74,12 +74,12 @@ export default function ChatbotChatsPage() {
       </header>
 
       {!ready && (
-        <div className="callout callout-warning space-b-4">
+        <div className="callout callout-warning mb-4">
           <span>
             This chatbot has no knowledge base yet, so answers won&apos;t come from your documents.{' '}
             <Link
               href={`/chatbots/${chatbotId}?tab=knowledge`}
-              className="t-medium t-underline"
+              className="font-medium underline underline-offset-2"
             >
               Finish setup
             </Link>
@@ -87,7 +87,7 @@ export default function ChatbotChatsPage() {
         </div>
       )}
 
-      <div className="surface clip">
+      <div className="surface overflow-hidden">
         <ChatInterface chatbotId={chatbotId} />
       </div>
     </div>

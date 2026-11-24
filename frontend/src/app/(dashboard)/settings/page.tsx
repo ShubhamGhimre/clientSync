@@ -35,7 +35,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="stack">
-        <TabsList className="grid-4 full-w">
+        <TabsList className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
@@ -51,12 +51,12 @@ export default function SettingsPage() {
               <CardDescription>Basic information about your organization</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="form-grid">
-                <div className="stack-sm">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="orgName">Organization Name</Label>
                   <Input id="orgName" defaultValue="Acme Corporation" />
                 </div>
-                <div className="stack-sm">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="subdomain">Subdomain</Label>
                   <div className="input-group">
                     <Input id="subdomain" className="input" defaultValue="acme" />
@@ -64,7 +64,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
@@ -83,17 +83,17 @@ export default function SettingsPage() {
               <CardDescription>How customers can reach you</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="form-grid">
-                <div className="stack-sm">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Contact Email</Label>
                   <Input id="email" type="email" defaultValue="support@acme.com" />
                 </div>
-                <div className="stack-sm">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input id="phone" defaultValue="+1 (555) 123-4567" />
                 </div>
               </div>
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="website">Website</Label>
                 <Input id="website" defaultValue="https://acme.com" />
               </div>
@@ -109,10 +109,10 @@ export default function SettingsPage() {
               <CardDescription>Configure security and access controls</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="row-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <Label>Two-Factor Authentication</Label>
-                  <p className="t-sm t-muted space-t-0.5">
+                  <p className="text-sm text-muted-foreground space-t-0.5">
                     Require 2FA for all organization members
                   </p>
                 </div>
@@ -121,10 +121,10 @@ export default function SettingsPage() {
 
               <Separator />
 
-              <div className="row-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <Label>Single Sign-On (SSO)</Label>
-                  <p className="t-sm t-muted space-t-0.5">
+                  <p className="text-sm text-muted-foreground space-t-0.5">
                     Enable SSO with your identity provider
                   </p>
                 </div>
@@ -133,7 +133,7 @@ export default function SettingsPage() {
 
               <Separator />
 
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>Session Timeout</Label>
                 <Select defaultValue="24h">
                   <SelectTrigger>
@@ -156,18 +156,18 @@ export default function SettingsPage() {
               <CardDescription>Manage API keys and webhooks</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>API Key</Label>
-                <div className="row g-2">
+                <div className="flex items-center gap-2">
                   <Input
                     value="sk-1234567890abcdef..."
                     readOnly
-                    className="t-sm"
+                    className="text-sm"
                   />
                   <Button variant="outline">Regenerate</Button>
                 </div>
               </div>
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="webhook">Webhook URL</Label>
                 <Input
                   id="webhook"
@@ -186,10 +186,10 @@ export default function SettingsPage() {
               <CardDescription>Control user access and permissions</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="row-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <Label>Allow User Registration</Label>
-                  <p className="t-sm t-muted space-t-0.5">
+                  <p className="text-sm text-muted-foreground space-t-0.5">
                     Let users sign up for your organization
                   </p>
                 </div>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
 
               <Separator />
 
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>Default User Role</Label>
                 <Select defaultValue="user">
                   <SelectTrigger>
@@ -217,7 +217,7 @@ export default function SettingsPage() {
                 </Select>
               </div>
 
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>Invitation Link Expiry</Label>
                 <Select defaultValue="7d">
                   <SelectTrigger>
@@ -242,10 +242,10 @@ export default function SettingsPage() {
               <CardDescription>Customize the appearance of your chatbots</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="row-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <Label>Enable Custom Branding</Label>
-                  <p className="t-sm t-muted space-t-0.5">
+                  <p className="text-sm text-muted-foreground space-t-0.5">
                     Use your own colors and logo
                   </p>
                 </div>
@@ -261,30 +261,30 @@ export default function SettingsPage() {
                 <>
                   <Separator />
 
-                  <div className="form-grid">
-                    <div className="stack-sm">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="flex flex-col gap-2">
                       <Label>Primary Color</Label>
-                      <div className="row g-2">
+                      <div className="flex items-center gap-2">
                         <Input defaultValue="#2563eb" />
-                        <div className="doc-icon brand-swatch"></div>
+                        <div className="doc-icon bg-brand"></div>
                       </div>
                     </div>
-                    <div className="stack-sm">
+                    <div className="flex flex-col gap-2">
                       <Label>Secondary Color</Label>
-                      <div className="row g-2">
+                      <div className="flex items-center gap-2">
                         <Input defaultValue="#64748b" />
-                        <div className="doc-icon muted-swatch"></div>
+                        <div className="doc-icon bg-muted-foreground"></div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="stack-sm">
+                  <div className="flex flex-col gap-2">
                     <Label>Logo Upload</Label>
                     <div className="dropzone">
-                      <p className="t-sm t-muted">
+                      <p className="text-sm text-muted-foreground">
                         Drag and drop your logo here, or click to browse
                       </p>
-                      <Button variant="outline" className="space-t-2">Choose File</Button>
+                      <Button variant="outline" className="mt-2">Choose File</Button>
                     </div>
                   </div>
                 </>
@@ -300,8 +300,8 @@ export default function SettingsPage() {
               <CardDescription>Configure resource limits and quotas</CardDescription>
             </CardHeader>
             <CardContent className="stack">
-              <div className="form-grid">
-                <div className="stack-sm">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
                   <Label>Max Chatbots per User</Label>
                   <Input
                     type="number"
@@ -311,7 +311,7 @@ export default function SettingsPage() {
                     }
                   />
                 </div>
-                <div className="stack-sm">
+                <div className="flex flex-col gap-2">
                   <Label>Max Files per Chatbot</Label>
                   <Input
                     type="number"
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>Max File Size (MB)</Label>
                 <Input
                   type="number"
@@ -334,7 +334,7 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>Allowed File Types</Label>
                 <div className="cluster">
                   {['PDF', 'TXT', 'CSV', 'DOCX', 'XLSX'].map((type) => (
@@ -356,40 +356,40 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="stack">
               <div className="stack">
-                <div className="row-between">
+                <div className="flex items-center justify-between">
                   <div>
                     <Label>Email Notifications</Label>
-                    <p className="t-sm t-muted space-t-0.5">
+                    <p className="text-sm text-muted-foreground space-t-0.5">
                       Receive updates about your chatbots via email
                     </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
 
-                <div className="row-between">
+                <div className="flex items-center justify-between">
                   <div>
                     <Label>New User Registrations</Label>
-                    <p className="t-sm t-muted space-t-0.5">
+                    <p className="text-sm text-muted-foreground space-t-0.5">
                       Get notified when new users join your organization
                     </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
 
-                <div className="row-between">
+                <div className="flex items-center justify-between">
                   <div>
                     <Label>Failed Conversations</Label>
-                    <p className="t-sm t-muted space-t-0.5">
+                    <p className="text-sm text-muted-foreground space-t-0.5">
                       Alert when chatbot can't answer questions
                     </p>
                   </div>
                   <Switch />
                 </div>
 
-                <div className="row-between">
+                <div className="flex items-center justify-between">
                   <div>
                     <Label>Weekly Reports</Label>
-                    <p className="t-sm t-muted space-t-0.5">
+                    <p className="text-sm text-muted-foreground space-t-0.5">
                       Receive weekly performance summaries
                     </p>
                   </div>
@@ -399,7 +399,7 @@ export default function SettingsPage() {
 
               <Separator />
 
-              <div className="stack-sm">
+              <div className="flex flex-col gap-2">
                 <Label>Notification Email</Label>
                 <Input defaultValue="admin@acme.com" />
               </div>

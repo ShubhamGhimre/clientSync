@@ -42,22 +42,22 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const PRIORITY_TEXT: Record<string, string> = {
-  urgent: 't-danger',
-  high: 't-danger',
-  medium: 't-warning',
-  low: 't-muted',
+  urgent: 'text-destructive',
+  high: 'text-destructive',
+  medium: 'text-warning',
+  low: 'text-muted-foreground',
 };
 
 function StatusIcon({ status }: { status: string }) {
   switch (status) {
     case 'OPEN':
-      return <AlertCircle className="ico t-warning" />;
+      return <AlertCircle className="size-4 shrink-0 text-warning" />;
     case 'IN_PROGRESS':
-      return <Clock className="ico t-ai" />;
+      return <Clock className="size-4 shrink-0 text-ai" />;
     case 'RESOLVED':
-      return <CheckCircle className="ico t-success" />;
+      return <CheckCircle className="size-4 shrink-0 text-success" />;
     default:
-      return <HelpCircle className="ico t-muted" />;
+      return <HelpCircle className="size-4 shrink-0 text-muted-foreground" />;
   }
 }
 
@@ -76,12 +76,12 @@ function Stat({
 }) {
   return (
     <div className="stat-card">
-      <div className="row-between">
+      <div className="flex items-center justify-between">
         <span className="stat-label">{label}</span>
-        <Icon className="ico t-muted" />
+        <Icon className="size-4 shrink-0 text-muted-foreground" />
       </div>
       {loading ? (
-        <div className="skeleton space-t-1" />
+        <div className="skeleton mt-1" />
       ) : (
         <span className="stat-value">{value}</span>
       )}
@@ -92,9 +92,9 @@ function Stat({
 
 function EmptyRow({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
   return (
-    <div className="empty-state border-none">
-      <Icon className="ico-lg t-muted" />
-      <p className="empty-state-text">{text}</p>
+    <div className="empty-state border-0">
+      <Icon className="size-5 shrink-0 text-muted-foreground" />
+      <p className="max-w-sm text-sm text-muted-foreground">{text}</p>
     </div>
   );
 }
@@ -111,15 +111,15 @@ function ShortcutRow({
   text: string;
 }) {
   return (
-    <Link href={href} className="doc-row group">
+    <Link href={href} className="doc-flex items-center group">
       <span className="doc-icon">
-        <Icon className="ico" />
+        <Icon className="size-4 shrink-0" />
       </span>
-      <span className="flex-fill">
-        <span className="list-title">{title}</span>
-        <span className="list-meta">{text}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium leading-tight">{title}</span>
+        <span className="block truncate text-xs text-muted-foreground">{text}</span>
       </span>
-      <ChevronRight className="ico t-muted" />
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>
   );
 }
@@ -174,7 +174,7 @@ export default function DashboardPage() {
         )}
       </header>
 
-      <div className="stack-lg">
+      <div className="flex flex-col gap-8">
         {/* Metrics */}
         <section className="grid-stats">
           <Stat
@@ -204,12 +204,12 @@ export default function DashboardPage() {
         </section>
 
         {/* Analytics + recent conversations */}
-        <section className="grid-box g-4">
+        <section className="grid gap-4">
           <div className="surface">
             <div className="surface-header">
               <div>
-                <h2 className="card-title">Conversations</h2>
-                <p className="t-sm t-muted">Chat volume and response metrics over time</p>
+                <h2 className="text-base font-semibold">Conversations</h2>
+                <p className="text-sm text-muted-foreground">Chat volume and response metrics over time</p>
               </div>
             </div>
             <div className="surface-pad">
@@ -219,29 +219,29 @@ export default function DashboardPage() {
 
           <div className="surface">
             <div className="surface-header">
-              <h2 className="card-title">Recent conversations</h2>
+              <h2 className="text-base font-semibold">Recent conversations</h2>
             </div>
             {chatRoomsLoading ? (
-              <div className="stack-sm pad-5">
-                <div className="skeleton full-w" />
-                <div className="skeleton full-w" />
-                <div className="skeleton full-w" />
+              <div className="flex flex-col gap-2 p-5">
+                <div className="skeleton w-full" />
+                <div className="skeleton w-full" />
+                <div className="skeleton w-full" />
               </div>
             ) : recentChatRooms.length > 0 ? (
               <ul>
                 {recentChatRooms.map((room) => (
                   <li
                     key={room.id}
-                    className="row g-3 border-bottom pad-x-5 pad-y-3"
+                    className="flex items-center gap-3 border-b px-5 py-3"
                   >
                     <span className="doc-icon">
-                      <MessageSquare className="ico" />
+                      <MessageSquare className="size-4 shrink-0" />
                     </span>
-                    <div className="flex-fill">
-                      <p className="ellipsis t-sm t-medium">
+                    <div className="min-w-0 flex-1">
+                      <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium">
                         {room.id ? `Chat ${room.id.slice(-6)}` : 'Chat'}
                       </p>
-                      <p className="t-xs t-muted">
+                      <p className="text-xs text-muted-foreground">
                         {room.createdAt ? new Date(room.createdAt).toLocaleDateString() : ''}
                       </p>
                     </div>
@@ -255,35 +255,35 @@ export default function DashboardPage() {
         </section>
 
         {/* Tickets + shortcuts */}
-        <section className="grid-box g-4">
+        <section className="grid gap-4">
           <div className="surface">
             <div className="surface-header">
-              <h2 className="card-title">Recent tickets</h2>
+              <h2 className="text-base font-semibold">Recent tickets</h2>
               <Link href="/tickets" className="btn btn-ghost btn-sm">
                 View all
                 <ArrowUpRight />
               </Link>
             </div>
             {ticketsLoading ? (
-              <div className="stack-sm pad-5">
-                <div className="skeleton full-w" />
-                <div className="skeleton full-w" />
-                <div className="skeleton full-w" />
+              <div className="flex flex-col gap-2 p-5">
+                <div className="skeleton w-full" />
+                <div className="skeleton w-full" />
+                <div className="skeleton w-full" />
               </div>
             ) : recentTickets.length > 0 ? (
               <ul>
                 {recentTickets.map((ticket) => (
                   <li
                     key={ticket.id}
-                    className="row g-3 border-bottom pad-x-5 pad-y-3"
+                    className="flex items-center gap-3 border-b px-5 py-3"
                   >
                     <span className="doc-icon">
                       <StatusIcon status={ticket.status} />
                     </span>
-                    <div className="flex-fill">
-                      <p className="ellipsis t-sm t-medium">{ticket.subject}</p>
-                      <p className="t-xs t-muted">
-                        <span className={PRIORITY_TEXT[ticket.priority.toLowerCase()] ?? 't-muted'}>
+                    <div className="min-w-0 flex-1">
+                      <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium">{ticket.subject}</p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className={PRIORITY_TEXT[ticket.priority.toLowerCase()] ?? 'text-muted-foreground'}>
                           {ticket.priority}
                         </span>
                         {ticket.createdAt && <> · {new Date(ticket.createdAt).toLocaleDateString()}</>}
@@ -302,9 +302,9 @@ export default function DashboardPage() {
 
           <div className="surface">
             <div className="surface-header">
-              <h2 className="card-title">Shortcuts</h2>
+              <h2 className="text-base font-semibold">Shortcuts</h2>
             </div>
-            <div className="stack-sm pad-4">
+            <div className="flex flex-col gap-2 p-4">
               {canManageBots && (
                 <ShortcutRow href="/chatbots/create" icon={Plus} title="Create a chatbot" text="Set up a new AI assistant" />
               )}
