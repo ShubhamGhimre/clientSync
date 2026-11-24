@@ -28,8 +28,8 @@ function Field({
       <label htmlFor={id} className="label">{label}</label>
       {children}
       {error ? (
-        <p id={`${id}-error`} role="alert" className="field-error row g-1">
-          <X className="ico-xs" />
+        <p id={`${id}-error`} role="alert" className="field-error flex items-center gap-1">
+          <X className="size-3 shrink-0" />
           {error}
         </p>
       ) : hint ? (
@@ -171,33 +171,33 @@ export default function RegisterPage() {
     Object.keys(formErrors).length === 0;
 
   return (
-    <div className="auth-shell">
+    <div className="flex min-h-dvh">
       {/* ---------- Brand panel (desktop) ---------- */}
-      <aside className="auth-brand">
-        <div className="inset-fill brand-gradient-alt" />
+      <aside className="relative hidden w-[46%] overflow-hidden text-on-brand lg:flex">
+        <div className="absolute inset-0 brand-gradient-alt" />
         <div className="hero-glow" />
 
-        <div className="auth-brand-inner">
-          <div className="auth-logo">
-            <span className="auth-logo-mark auth-logo-ghost">
-              <Building2 className="ico-lg" />
+        <div className="relative z-10 flex w-full flex-col justify-between px-12 py-12">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-on-brand/20 backdrop-blur-sm">
+              <Building2 className="size-5 shrink-0" />
             </span>
-            <span className="t-lg t-semibold">ClientSync</span>
+            <span className="text-lg font-semibold">ClientSync</span>
           </div>
 
-          <div className="auth-form-wrap">
-            <h2 className="auth-title">
+          <div className="w-full max-w-md">
+            <h2 className="max-w-md text-4xl font-semibold leading-tight">
               Answer customers instantly, from your own knowledge base
             </h2>
-            <p className="auth-lead">
+            <p className="mt-4 text-lg text-on-brand/80">
               Train an AI assistant on your docs, put it on your site, and hand off to your team when it matters.
             </p>
 
             {/* Product preview: uses the real chat classes */}
-            <div className="col g-3 space-t-8" aria-hidden="true">
+            <div className="flex flex-col gap-3 mt-8" aria-hidden="true">
               <div className="msg msg-user">
                   <div className="msg-body">
-                   <div className="msg-bubble t-onbrand">
+                   <div className="msg-bubble text-on-brand">
                      How do I change my billing email?
                   </div>
                 </div>
@@ -216,17 +216,17 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <ul className="auth-feature-list">
+          <ul className="flex flex-col gap-3 text-sm text-on-brand/90">
             <li>
-              <MessageSquareText className="ico" />
+              <MessageSquareText className="size-4 shrink-0" />
               Embeddable chat widget with human handoff
             </li>
             <li>
-              <BookOpen className="ico" />
+              <BookOpen className="size-4 shrink-0" />
               Upload PDFs, DOCX, TXT and CSV files
             </li>
             <li>
-              <BarChart3 className="ico" />
+              <BarChart3 className="size-4 shrink-0" />
               Track resolution rate and satisfaction
             </li>
           </ul>
@@ -234,32 +234,32 @@ export default function RegisterPage() {
       </aside>
 
       {/* ---------- Form panel ---------- */}
-      <main className="auth-form-panel">
-        <div className="auth-form-wrap-wide">
-          <div className="auth-mobile-logo">
-            <span className="auth-logo-mark auth-logo-solid">
-              <Building2 className="ico-lg" />
+      <main className="flex flex-1 items-center justify-center bg-muted/30 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="w-full max-w-lg">
+          <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-strong text-on-brand">
+              <Building2 className="size-5 shrink-0" />
             </span>
-            <span className="t-xl t-semibold">ClientSync</span>
+            <span className="text-xl font-semibold">ClientSync</span>
           </div>
 
-          <div className="surface-raised">
-            <div className="auth-card-head">
-              <h1 className="auth-card-title">
-                <Sparkles className="ico-lg t-brand" />
+          <div className="surface shadow-soft">
+            <div className="px-6 pb-2 pt-6 text-center sm:px-8 sm:pt-8">
+              <h1 className="flex items-center justify-center gap-2 text-2xl font-semibold">
+                <Sparkles className="size-5 shrink-0 text-brand-strong" />
                 Create your account
               </h1>
-              <p className="auth-card-sub">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Set up your AI support assistant in a few minutes
               </p>
             </div>
 
             <form onSubmit={handleSubmit} noValidate>
-              <div className="auth-card-body">
+              <div className="flex flex-col gap-4 px-6 py-6 sm:px-8">
                 {error && (
                   <div role="alert" className="callout callout-danger">
-                    <X className="space-t-0.5 ico t-danger" />
-                    <span className="t-danger">
+                    <X className="space-t-0.5 size-4 shrink-0 text-destructive" />
+                    <span className="text-destructive">
                       {(error as { message?: string })?.message}
                     </span>
                   </div>
@@ -267,12 +267,12 @@ export default function RegisterPage() {
 
                 {/* Personal */}
                 <fieldset className="stack">
-                  <legend className="auth-legend">
-                    <User className="ico t-brand" />
+                  <legend className="mb-1 flex items-center gap-2 text-sm font-medium">
+                    <User className="size-4 shrink-0 text-brand-strong" />
                     Personal information
                   </legend>
 
-                  <div className="auth-field-grid">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Field id="name" label="Full name" error={formErrors.name}>
                       <div className="input-wrap">
                         <User className="input-icon" />
@@ -310,8 +310,8 @@ export default function RegisterPage() {
 
                 {/* Organization */}
                 <fieldset className="stack">
-                  <legend className="auth-legend">
-                    <Building className="ico t-brand" />
+                  <legend className="mb-1 flex items-center gap-2 text-sm font-medium">
+                    <Building className="size-4 shrink-0 text-brand-strong" />
                     Organization
                   </legend>
 
@@ -353,22 +353,22 @@ export default function RegisterPage() {
                     </div>
 
                     {formData.subdomain && (
-                      <div className="auth-subdomain-status" aria-live="polite">
+                      <div className="mt-1 flex items-center gap-2" aria-live="polite">
                         {subdomainStatus === 'checking' && (
                           <>
-                            <Loader2 className="ico spin t-muted" />
-                            <span className="t-sm t-muted">Checking availability…</span>
+                            <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Checking availability…</span>
                           </>
                         )}
                         {subdomainStatus === 'available' && (
                           <span className="badge badge-success">
-                            <Check className="ico-xs" />
+                            <Check className="size-3 shrink-0" />
                             Available
                           </span>
                         )}
                         {subdomainStatus === 'unavailable' && (
                           <span className="badge badge-danger">
-                            <X className="ico-xs" />
+                            <X className="size-3 shrink-0" />
                             Not available
                           </span>
                         )}
@@ -379,12 +379,12 @@ export default function RegisterPage() {
 
                 {/* Security */}
                 <fieldset className="stack">
-                  <legend className="auth-legend">
-                    <Lock className="ico t-brand" />
+                  <legend className="mb-1 flex items-center gap-2 text-sm font-medium">
+                    <Lock className="size-4 shrink-0 text-brand-strong" />
                     Security
                   </legend>
 
-                  <div className="auth-field-grid">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Field id="password" label="Password" error={formErrors.password}>
                       <div className="input-wrap has-action">
                         <Lock className="input-icon" />
@@ -406,7 +406,7 @@ export default function RegisterPage() {
                           aria-label={showPassword ? 'Hide password' : 'Show password'}
                           disabled={isPending}
                         >
-                          {showPassword ? <EyeOff className="ico" /> : <Eye className="ico" />}
+                          {showPassword ? <EyeOff className="size-4 shrink-0" /> : <Eye className="size-4 shrink-0" />}
                         </button>
                       </div>
                     </Field>
@@ -432,7 +432,7 @@ export default function RegisterPage() {
                           aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                           disabled={isPending}
                         >
-                          {showConfirmPassword ? <EyeOff className="ico" /> : <Eye className="ico" />}
+                          {showConfirmPassword ? <EyeOff className="size-4 shrink-0" /> : <Eye className="size-4 shrink-0" />}
                         </button>
                       </div>
                     </Field>
@@ -440,15 +440,15 @@ export default function RegisterPage() {
                 </fieldset>
               </div>
 
-              <div className="auth-card-foot">
+              <div className="flex flex-col gap-4 border-t border-border px-6 py-6 sm:px-8">
                 <button
                   type="submit"
-                  className="btn btn-brand btn-lg full-w"
+                  className="btn btn-brand btn-lg w-full"
                   disabled={isPending || !isFormValid}
                 >
                   {isPending ? (
                     <>
-                      <Loader2 className="spin" />
+                      <Loader2 className="animate-spin" />
                       Creating account…
                     </>
                   ) : (
@@ -459,9 +459,9 @@ export default function RegisterPage() {
                   )}
                 </button>
 
-                <p className="align-center t-sm t-muted">
+                <p className="text-center text-sm text-muted-foreground">
                   Already have an account?{' '}
-                  <Link href="/auth/login" className="t-medium t-brand t-hover-underline">
+                  <Link href="/auth/login" className="font-medium text-brand-strong hover:underline">
                     Sign in
                   </Link>
                 </p>
@@ -469,13 +469,13 @@ export default function RegisterPage() {
             </form>
           </div>
 
-          <p className="auth-legal">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
             By creating an account, you agree to our{' '}
-            <Link href="/terms" className="t-underline t-hover-underline">
+            <Link href="/terms" className="underline underline-offset-2 hover:underline">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/privacy" className="t-underline t-hover-underline">
+            <Link href="/privacy" className="underline underline-offset-2 hover:underline">
               Privacy Policy
             </Link>
             .

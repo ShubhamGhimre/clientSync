@@ -26,7 +26,7 @@ export default function AuthLayout({
   }, [isAuthenticated, router]);
 
   return (
-    <div className="screen-h">
+    <div className="min-h-dvh">
       <ThemeToggle />
       {children}
     </div>

@@ -41,35 +41,35 @@ export default function LoginPage() {
   const errorMessage = (error as { message?: string } | null)?.message;
 
   return (
-    <div className="auth-shell">
+    <div className="flex min-h-dvh">
       {/* ---------- Brand panel (desktop) ---------- */}
-      <aside className="auth-brand">
-        <div className="inset-fill brand-gradient-alt" />
+      <aside className="relative hidden w-[46%] overflow-hidden text-on-brand lg:flex">
+        <div className="absolute inset-0 brand-gradient-alt" />
         <div className="hero-glow" />
 
-        <div className="auth-brand-inner">
-          <div className="auth-logo">
-            <span className="auth-logo-mark auth-logo-ghost">
-              <Building2 className="ico-lg" />
+        <div className="relative z-10 flex w-full flex-col justify-between px-12 py-12">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-on-brand/20 backdrop-blur-sm">
+              <Building2 className="size-5 shrink-0" />
             </span>
-            <span className="t-lg t-semibold">ClientSync</span>
+            <span className="text-lg font-semibold">ClientSync</span>
           </div>
 
-          <div className="auth-form-wrap">
-            <h2 className="auth-title">
+          <div className="w-full max-w-md">
+            <h2 className="max-w-md text-4xl font-semibold leading-tight">
               Welcome back
               {subdomain ? (
                 <>
-                  {' '}to <span className="capitalize-label">{subdomain}</span>
+                  {' '}to <span className="capitalize">{subdomain}</span>
                 </>
               ) : null}
             </h2>
-            <p className="auth-lead">
+            <p className="mt-4 text-lg text-on-brand/80">
               Pick up where you left off: open conversations, knowledge base updates, and your latest support metrics.
             </p>
 
             {/* Product preview built from the real chat classes */}
-            <div className="col g-3 space-t-8" aria-hidden="true">
+            <div className="flex flex-col gap-3 mt-8" aria-hidden="true">
               <div className="msg msg-bot">
                 <span className="avatar avatar-sm avatar-ai">AI</span>
                 <div className="msg-body">
@@ -86,13 +86,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <ul className="auth-feature-list">
+          <ul className="flex flex-col gap-3 text-sm text-on-brand/90">
             <li>
-              <MessageSquareText className="ico" />
+              <MessageSquareText className="size-4 shrink-0" />
               AI answers with sources from your own documents
             </li>
             <li>
-              <Shield className="ico" />
+              <Shield className="size-4 shrink-0" />
               Each workspace is isolated to its own subdomain
             </li>
           </ul>
@@ -100,34 +100,34 @@ export default function LoginPage() {
       </aside>
 
       {/* ---------- Form panel ---------- */}
-      <main className="auth-form-panel">
-        <div className="auth-form-wrap">
-          <div className="auth-mobile-logo">
-            <span className="auth-logo-mark auth-logo-solid">
-              <Building2 className="ico-lg" />
+      <main className="flex flex-1 items-center justify-center bg-muted/30 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-strong text-on-brand">
+              <Building2 className="size-5 shrink-0" />
             </span>
-            <div className="col">
-              <span className="t-xl t-semibold">ClientSync</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold">ClientSync</span>
               {subdomain && (
-                <span className="t-sm capitalize-label t-muted">{subdomain}</span>
+                <span className="text-sm capitalize text-muted-foreground">{subdomain}</span>
               )}
             </div>
           </div>
 
-          <div className="surface-raised">
-            <div className="auth-card-head">
-              <h1 className="t-2xl t-semibold">Sign in</h1>
-              <p className="auth-card-sub">
+          <div className="surface shadow-soft">
+            <div className="px-6 pb-2 pt-6 text-center sm:px-8 sm:pt-8">
+              <h1 className="text-2xl font-semibold">Sign in</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Enter your credentials to open your dashboard
               </p>
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div className="auth-card-body">
+              <div className="flex flex-col gap-4 px-6 py-6 sm:px-8">
                 {errorMessage && (
                   <div role="alert" className="callout callout-danger">
-                    <X className="space-t-0.5 ico t-danger" />
-                    <span className="t-danger">{errorMessage}</span>
+                    <X className="space-t-0.5 size-4 shrink-0 text-destructive" />
+                    <span className="text-destructive">{errorMessage}</span>
                   </div>
                 )}
 
@@ -171,13 +171,13 @@ export default function LoginPage() {
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       disabled={isPending}
                     >
-                      {showPassword ? <EyeOff className="ico" /> : <Eye className="ico" />}
+                      {showPassword ? <EyeOff className="size-4 shrink-0" /> : <Eye className="size-4 shrink-0" />}
                     </button>
                   </div>
                 </div>
 
-                <div className="row-between">
-                  <label htmlFor="remember" className="row pointer g-2 t-sm t-muted">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="remember" className="flex items-center cursor-pointer gap-2 text-sm text-muted-foreground">
                     <Checkbox
                       id="remember"
                       checked={formData.remember}
@@ -190,18 +190,18 @@ export default function LoginPage() {
                   </label>
                   <Link
                     href="/forgot-password"
-                    className="t-sm t-medium t-brand t-hover-underline"
+                    className="text-sm font-medium text-brand-strong hover:underline"
                   >
                     Forgot password?
                   </Link>
                 </div>
               </div>
 
-              <div className="auth-card-foot">
-                <button type="submit" className="btn btn-brand btn-lg full-w" disabled={isPending}>
+              <div className="flex flex-col gap-4 border-t border-border px-6 py-6 sm:px-8">
+                <button type="submit" className="btn btn-brand btn-lg w-full" disabled={isPending}>
                   {isPending ? (
                     <>
-                      <Loader2 className="spin" />
+                      <Loader2 className="animate-spin" />
                       Signing in…
                     </>
                   ) : (
@@ -212,9 +212,9 @@ export default function LoginPage() {
                   )}
                 </button>
 
-                <p className="align-center t-sm t-muted">
+                <p className="text-center text-sm text-muted-foreground">
                   Don&apos;t have an account?{' '}
-                  <Link href="/auth/register" className="t-medium t-brand t-hover-underline">
+                  <Link href="/auth/register" className="font-medium text-brand-strong hover:underline">
                     Create one
                   </Link>
                 </p>
@@ -222,8 +222,8 @@ export default function LoginPage() {
             </form>
           </div>
 
-          <p className="auth-legal">
-            <Link href="/privacy" className="t-underline t-hover-underline">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            <Link href="/privacy" className="underline underline-offset-2 hover:underline">
               Privacy Policy
             </Link>
           </p>
