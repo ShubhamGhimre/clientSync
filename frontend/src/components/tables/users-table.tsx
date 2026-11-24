@@ -104,11 +104,11 @@ export function UsersTable({
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return <Shield className="ico-xs space-r-1" />;
+        return <Shield className="size-3 shrink-0 mr-1" />;
       case 'AGENT':
-        return <UserCheck className="ico-xs space-r-1" />;
+        return <UserCheck className="size-3 shrink-0 mr-1" />;
       case 'VIEWER':
-        return <Eye className="ico-xs space-r-1" />;
+        return <Eye className="size-3 shrink-0 mr-1" />;
       default:
         return null;
     }
@@ -124,15 +124,15 @@ export function UsersTable({
 
   const SortHeader = ({ field, children }: { field: keyof User; children: React.ReactNode }) => (
     <th 
-      className="pointer"
+      className="cursor-pointer"
       onClick={() => handleSort(field)}
     >
-      <div className="row g-1">
+      <div className="flex items-center gap-1">
         {children}
         {sortField === field && (
           sortDirection === 'asc' ? 
-            <ChevronUp className="ico-xs" /> : 
-            <ChevronDown className="ico-xs" />
+            <ChevronUp className="size-3 shrink-0" /> : 
+            <ChevronDown className="size-3 shrink-0" />
         )}
       </div>
     </th>
@@ -150,23 +150,23 @@ export function UsersTable({
               <th scope="col">Status</th>
               <th scope="col">Joined</th>
               <th scope="col">Activity</th>
-              <th scope="col" className="align-right">Actions</th>
+              <th scope="col" className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {[...Array(5)].map((_, i) => (
               <tr key={i}>
                 <td>
-                  <div className="row g-2">
+                  <div className="flex items-center gap-2">
                     <div className="skeleton avatar" />
-                    <div className="vstack-1">
-                      <div className="skeleton full-w pad-1" />
-                      <div className="skeleton full-w pad-1" />
+                    <div className="flex flex-col gap-1">
+                      <div className="skeleton w-full p-1" />
+                      <div className="skeleton w-full p-1" />
                     </div>
                   </div>
                 </td>
                 <td>
-                  <div className="skeleton full-w pad-1" />
+                  <div className="skeleton w-full p-1" />
                 </td>
                 <td>
                   <div className="skeleton badge" />
@@ -175,13 +175,13 @@ export function UsersTable({
                   <div className="skeleton badge" />
                 </td>
                 <td>
-                  <div className="skeleton full-w pad-1" />
+                  <div className="skeleton w-full p-1" />
                 </td>
                 <td>
-                  <div className="skeleton full-w pad-1" />
+                  <div className="skeleton w-full p-1" />
                 </td>
                 <td>
-                  <div className="skeleton btn btn-icon btn-sm push" />
+                  <div className="skeleton btn btn-icon btn-sm ml-auto" />
                 </td>
               </tr>
             ))}
@@ -203,7 +203,7 @@ export function UsersTable({
               <th scope="col">Status</th>
               <SortHeader field="createdAt">Joined</SortHeader>
               <th scope="col">Activity</th>
-              <th scope="col" className="align-right">Actions</th>
+              <th scope="col" className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -211,24 +211,24 @@ export function UsersTable({
               const joinedDate = formatDate(user.createdAt);
               
               return (
-                <tr key={user.id} className="ui-table-row">
+                <tr key={user.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                   <td>
-                    <div className="row g-2">
-                      <span className="list-avatar no-shrink t-sm t-semibold">
+                    <div className="flex items-center gap-2">
+                      <span className="avatar-sm avatar-ai shrink-0 text-sm font-semibold">
                         {user.firstName[0]}{user.lastName[0]}
                       </span>
-                      <div className="min-zero">
-                        <div className="t-medium ellipsis">
+                      <div className="min-w-0">
+                        <div className="font-medium overflow-hidden text-ellipsis whitespace-nowrap">
                           {user.firstName} {user.lastName}
                         </div>
-                        <div className="t-xs t-muted ellipsis">
+                        <div className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
                           ID: {user.id.slice(-8)}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <div className="ellipsis" title={user.email}>
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap" title={user.email}>
                       {user.email}
                     </div>
                   </td>
@@ -242,63 +242,63 @@ export function UsersTable({
                     <span className={user.isActive ? 'badge badge-success' : 'badge badge-neutral'}>
                       {user.isActive ? (
                         <>
-                          <UserCheck className="ico-xs space-r-1" />
+                          <UserCheck className="size-3 shrink-0 mr-1" />
                           Active
                         </>
                       ) : (
                         <>
-                          <UserX className="ico-xs space-r-1" />
+                          <UserX className="size-3 shrink-0 mr-1" />
                           Inactive
                         </>
                       )}
                     </span>
                   </td>
                   <td>
-                    <div className="t-sm">
+                    <div className="text-sm">
                       {joinedDate.date}
                     </div>
-                    <div className="t-xs t-muted">
+                    <div className="text-xs text-muted-foreground">
                       {joinedDate.time}
                     </div>
                   </td>
                   <td>
                     {user._count && (
-                      <div className="t-sm vstack-1">
-                        <div className="row g-1">
-                          <span className="t-xs t-muted">Tickets:</span>
-                          <span className="t-medium tabular">{user._count.assignedTickets}</span>
+                      <div className="text-sm flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground">Tickets:</span>
+                          <span className="font-medium tabular">{user._count.assignedTickets}</span>
                         </div>
-                        <div className="row g-1">
-                          <span className="t-xs t-muted">Comments:</span>
-                          <span className="t-medium tabular">{user._count.ticketComments}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground">Comments:</span>
+                          <span className="font-medium tabular">{user._count.ticketComments}</span>
                         </div>
                       </div>
                     )}
                   </td>
-                  <td className="align-right">
+                  <td className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button type="button" className="btn btn-ghost btn-sm" disabled={isMutating}>
                           {isMutating ? (
-                            <Loader2 className="ico spin" />
+                            <Loader2 className="size-4 shrink-0 animate-spin" />
                           ) : (
-                            <MoreHorizontal className="ico" />
+                            <MoreHorizontal className="size-4 shrink-0" />
                           )}
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => onUserSelect(user)}>
-                          <Eye className="ico space-r-2" />
+                          <Eye className="size-4 shrink-0 mr-2" />
                           View Details
                         </DropdownMenuItem>
                         
                         <DropdownMenuItem onClick={() => onUserEdit(user)}>
-                          <Edit className="ico space-r-2" />
+                          <Edit className="size-4 shrink-0 mr-2" />
                           Edit User
                         </DropdownMenuItem>
 
                         <DropdownMenuItem>
-                          <Mail className="ico space-r-2" />
+                          <Mail className="size-4 shrink-0 mr-2" />
                           Send Email
                         </DropdownMenuItem>
 
@@ -309,19 +309,19 @@ export function UsersTable({
                             <DropdownMenuItem onClick={() => onStatusToggle(user.id, user.isActive)}>
                               {user.isActive ? (
                                 <>
-                                  <UserX className="ico space-r-2" />
+                                  <UserX className="size-4 shrink-0 mr-2" />
                                   Deactivate
                                 </>
                               ) : (
                                 <>
-                                  <UserCheck className="ico space-r-2" />
+                                  <UserCheck className="size-4 shrink-0 mr-2" />
                                   Activate
                                 </>
                               )}
                             </DropdownMenuItem>
 
                             <DropdownMenuItem onClick={() => onResetPassword(user.id)}>
-                              <Key className="ico space-r-2" />
+                              <Key className="size-4 shrink-0 mr-2" />
                               Reset Password
                             </DropdownMenuItem>
 
@@ -329,7 +329,7 @@ export function UsersTable({
                               <DropdownMenuItem 
                                 onClick={() => onRoleChange(user.id, 'ADMIN')}
                               >
-                                <Shield className="ico space-r-2" />
+                                <Shield className="size-4 shrink-0 mr-2" />
                                 Make Admin
                               </DropdownMenuItem>
                             )}
@@ -338,7 +338,7 @@ export function UsersTable({
                               <DropdownMenuItem 
                                 onClick={() => onRoleChange(user.id, 'AGENT')}
                               >
-                                <UserCheck className="ico space-r-2" />
+                                <UserCheck className="size-4 shrink-0 mr-2" />
                                 Make Agent
                               </DropdownMenuItem>
                             )}
@@ -347,7 +347,7 @@ export function UsersTable({
                               <DropdownMenuItem 
                                 onClick={() => onRoleChange(user.id, 'VIEWER')}
                               >
-                                <Eye className="ico space-r-2" />
+                                <Eye className="size-4 shrink-0 mr-2" />
                                 Make Viewer
                               </DropdownMenuItem>
                             )}
@@ -356,9 +356,9 @@ export function UsersTable({
                             
                             <DropdownMenuItem
                               onClick={() => onUserDelete(user.id)}
-                              className="t-danger"
+                              className="text-destructive"
                             >
-                              <Trash2 className="ico space-r-2" />
+                              <Trash2 className="size-4 shrink-0 mr-2" />
                               Delete User
                             </DropdownMenuItem>
                           </>
@@ -374,24 +374,24 @@ export function UsersTable({
         
         {sortedData.length === 0 && (
           <div className="empty-state">
-            <div className="center">
-              <Users className="ico-2xl" />
+            <div className="flex items-center justify-center">
+              <Users className="size-8 shrink-0" />
             </div>
-            <p className="t-lg t-medium">No users found</p>
-            <p className="t-sm">Try adjusting your search or filter criteria.</p>
+            <p className="text-lg font-medium">No users found</p>
+            <p className="text-sm">Try adjusting your search or filter criteria.</p>
           </div>
         )}
       </div>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="table-tools">
-          <div className="t-sm t-muted">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm text-muted-foreground">
             Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
             {pagination.total} results
           </div>
           
-          <div className="row g-2">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               className="btn btn-secondary btn-sm"
@@ -401,7 +401,7 @@ export function UsersTable({
               Previous
             </button>
             
-            <div className="row g-1">
+            <div className="flex items-center gap-1">
               {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
                 .filter(page => 
                   page === 1 || 
@@ -409,9 +409,9 @@ export function UsersTable({
                   Math.abs(page - pagination.page) <= 1
                 )
                 .map((page, index, array) => (
-                  <div key={page} className="row">
+                  <div key={page} className="flex items-center">
                     {index > 0 && array[index - 1] !== page - 1 && (
-                      <span className="pad-x-2 t-muted">...</span>
+                      <span className="px-2 text-muted-foreground">...</span>
                     )}
                     <button
                       type="button"

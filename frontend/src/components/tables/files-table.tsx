@@ -99,11 +99,11 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
   if (isLoading) {
     return (
       <div className="table-wrap" aria-busy="true" aria-label="Loading files">
-        <div className="stack-sm pad-4">
+        <div className="flex flex-col gap-2 p-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="row g-3">
+            <div key={i} className="flex items-center gap-3">
               <div className="skeleton doc-icon" />
-              <div className="skeleton flex-fill pad-1" />
+              <div className="skeleton min-w-0 flex-1 p-1" />
               <div className="skeleton badge" />
             </div>
           ))}
@@ -116,9 +116,9 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
   if (error) {
     return (
       <div className="empty-state" role="alert">
-        <AlertCircle className="ico-2xl t-danger" />
-        <h3 className="empty-state-title">Couldn&apos;t load files</h3>
-        <p className="empty-state-text">Refresh the page to try again.</p>
+        <AlertCircle className="size-8 shrink-0 text-destructive" />
+        <h3 className="text-base font-semibold">Couldn&apos;t load files</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">Refresh the page to try again.</p>
       </div>
     );
   }
@@ -127,9 +127,9 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
   if (files.length === 0) {
     return (
       <div className="empty-state">
-        <FileText className="ico-2xl t-muted" />
-        <h3 className="empty-state-title">No files yet</h3>
-        <p className="empty-state-text">
+        <FileText className="size-8 shrink-0 text-muted-foreground" />
+        <h3 className="text-base font-semibold">No files yet</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">
           Upload your first document to start building this chatbot&apos;s knowledge base.
         </p>
       </div>
@@ -139,8 +139,8 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
   return (
     <div className="stack">
       <div>
-        <h3 className="section-title">Uploaded files</h3>
-        <p className="field-hint space-t-1">
+        <h3 className="text-lg font-semibold">Uploaded files</h3>
+        <p className="field-hint mt-1">
           {files.length} {files.length === 1 ? 'file' : 'files'} in your knowledge base
         </p>
       </div>
@@ -154,8 +154,8 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
               <th scope="col">Size</th>
               <th scope="col">Status</th>
               <th scope="col">Uploaded</th>
-              <th scope="col" className="align-right">
-                <span className="sr">Actions</span>
+              <th scope="col" className="text-right">
+                <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
@@ -165,11 +165,11 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
               return (
                 <tr key={file.id}>
                   <td>
-                    <div className="row g-3 min-zero">
+                    <div className="flex items-center gap-3 min-w-0">
                       <span className="doc-icon">
-                        <Icon className="ico-lg" />
+                        <Icon className="size-5 shrink-0" />
                       </span>
-                      <p className="t-medium ellipsis flex-fill">{file.fileName}</p>
+                      <p className="font-medium overflow-hidden text-ellipsis whitespace-nowrap min-w-0 flex-1">{file.fileName}</p>
                     </div>
                   </td>
 
@@ -179,7 +179,7 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
                     </span>
                   </td>
 
-                  <td className="t-muted ellipsis">
+                  <td className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
                     {formatFileSize(file.fileSize)}
                   </td>
 
@@ -188,19 +188,19 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
                       <span className="badge badge-success">Processed</span>
                     ) : (
                       <span className="badge badge-warning">
-                        <span className="status-dot is-busy pulse" />
+                        <span className="status-dot is-busy animate-pulse" />
                         Processing
                       </span>
                     )}
                   </td>
 
-                  <td className="t-muted ellipsis">
+                  <td className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
                     {file.uploadedAt
                       ? formatDistanceToNow(new Date(file.uploadedAt), { addSuffix: true })
                       : '-'}
                   </td>
 
-                  <td className="align-right">
+                  <td className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
@@ -213,23 +213,23 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem disabled>
-                          <Eye className="ico space-r-2" />
+                          <Eye className="size-4 shrink-0 mr-2" />
                           View
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDownload(file)}>
-                          <Download className="ico space-r-2" />
+                          <Download className="size-4 shrink-0 mr-2" />
                           Download
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="t-danger"
+                          className="text-destructive"
                           onClick={() => handleDeleteFile(file.id)}
                           disabled={deleteFileMutation.isPending}
                         >
                           {deleteFileMutation.isPending ? (
-                            <Loader2 className="ico space-r-2 spin" />
+                            <Loader2 className="size-4 shrink-0 mr-2 animate-spin" />
                           ) : (
-                            <Trash2 className="ico space-r-2" />
+                            <Trash2 className="size-4 shrink-0 mr-2" />
                           )}
                           {deleteFileMutation.isPending ? 'Deleting...' : 'Delete'}
                         </DropdownMenuItem>
