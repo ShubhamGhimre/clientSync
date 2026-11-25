@@ -223,7 +223,7 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
 
       default:
         return (
-          <div className="chart-empty">
+          <div className="flex h-[300px] items-center justify-center text-muted-foreground">
             <p>Chart type not implemented</p>
           </div>
         );
@@ -231,7 +231,7 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
   };
 
   return (
-    <div className="full-w">
+    <div className="w-full">
       {renderChart()}
     </div>
   );

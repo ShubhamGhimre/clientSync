@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send,
-  Bot,
   RefreshCw,
   MessageSquare,
   Copy,
@@ -25,6 +24,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { BrandMark } from '@/components/logo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -162,9 +162,7 @@ const MessageComponent = ({
   return (
     <div className={`msg group ${isUser ? 'msg-user' : 'msg-bot'}`}>
       {!isUser && (
-        <span className="avatar avatar-sm avatar-ai" aria-hidden="true">
-          <Bot className="ico-sm" />
-        </span>
+        <span className="avatar avatar-sm" aria-hidden="true"><BrandMark size={18} /></span>
       )}
 
       <div className="msg-body">
@@ -186,9 +184,9 @@ const MessageComponent = ({
             {visibleSources.map((source, index) => {
               const label = (
                 <>
-                  <FileText className="ico-xs" />
-                  <span className="ellipsis">{source.title}</span>
-                  <span className="tabular no-shrink">
+                  <FileText className="size-3 shrink-0" />
+                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">{source.title}</span>
+                  <span className="tabular shrink-0">
                     {Math.round(source.score * 100)}%
                   </span>
                 </>
@@ -235,30 +233,30 @@ const MessageComponent = ({
 
         {/* Time, status, metadata, actions */}
         <div
-          className={`msg-meta chat-actions ${
-            alwaysShowMeta ? 'chat-actions-visible' : ''
+          className={`msg-meta flex flex-wrap items-center gap-2 opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100 ${
+            alwaysShowMeta ? 'opacity-100' : ''
           }`}
         >
           <span>{formatTime(message.timestamp)}</span>
 
-          {isPending && <Loader2 className="ico-xs spin" aria-label="Sending" />}
+          {isPending && <Loader2 className="size-3 shrink-0 animate-spin" aria-label="Sending" />}
 
           {message.isError && (
-            <span className="inline-row g-1 t-danger">
-              <AlertCircle className="ico-xs" /> Not sent
+            <span className="inline-flex items-center gap-1 text-destructive">
+              <AlertCircle className="size-3 shrink-0" /> Not sent
             </span>
           )}
 
           {meta?.processingTime && (
-            <span className="inline-row g-1 tabular">
-              <Zap className="ico-xs" /> {meta.processingTime}ms
+            <span className="inline-flex items-center gap-1 tabular">
+              <Zap className="size-3 shrink-0" /> {meta.processingTime}ms
             </span>
           )}
           {meta?.tokens && <span className="tabular">{meta.tokens} tokens</span>}
           {meta?.model && <span>{meta.model}</span>}
 
           {!isPending && !message.isError && (
-            <span className="inline-row">
+            <span className="inline-flex items-center">
               <button
                 type="button"
                 className="btn btn-ghost btn-icon btn-sm"
@@ -266,7 +264,7 @@ const MessageComponent = ({
                 aria-label="Copy message"
                 title="Copy message"
               >
-                <Copy className="ico-xs" />
+                <Copy className="size-3 shrink-0" />
               </button>
 
               {!isUser && (
@@ -274,26 +272,26 @@ const MessageComponent = ({
                   <button
                     type="button"
                     className={`btn btn-ghost btn-icon btn-sm ${
-                      reaction === 'like' ? 't-success' : ''
+                      reaction === 'like' ? 'text-success' : ''
                     }`}
                     onClick={() => handleReact('like')}
                     aria-label="Good response"
                     aria-pressed={reaction === 'like'}
                     title="Good response"
                   >
-                    <ThumbsUp className="ico-xs" />
+                    <ThumbsUp className="size-3 shrink-0" />
                   </button>
                   <button
                     type="button"
                     className={`btn btn-ghost btn-icon btn-sm ${
-                      reaction === 'dislike' ? 't-danger' : ''
+                      reaction === 'dislike' ? 'text-destructive' : ''
                     }`}
                     onClick={() => handleReact('dislike')}
                     aria-label="Poor response"
                     aria-pressed={reaction === 'dislike'}
                     title="Poor response"
                   >
-                    <ThumbsDown className="ico-xs" />
+                    <ThumbsDown className="size-3 shrink-0" />
                   </button>
                 </>
               )}
@@ -380,18 +378,16 @@ const ChatRoomInitializer = ({
 
   if (chatRoomsLoading || isInitializing || createChatRoomMutation.isPending) {
     return (
-      <div className="chat-h700">
-        <span className="avatar avatar-ai avatar-lg" aria-hidden="true">
-          <Bot className="ico-xl" />
-        </span>
-        <div className="stack-sm center">
-          <h3 className="section-title">
+      <div className="flex h-[700px] flex-col items-center justify-center gap-6 text-center">
+        <span className="avatar avatar-lg" aria-hidden="true"><BrandMark size={30} /></span>
+        <div className="flex flex-col gap-2 items-center justify-center">
+          <h3 className="text-lg font-semibold">
             {chatRoomsLoading ? 'Loading chat' : 'Setting up chat'}
           </h3>
           <p className="field-hint">Preparing your conversation with the assistant.</p>
         </div>
         <div
-          className="progress chat-max-width"
+          className="progress max-w-xs"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -405,10 +401,10 @@ const ChatRoomInitializer = ({
 
   if (chatRoomsError) {
     return (
-      <div className="empty-state chat-h700">
-        <WifiOff className="ico-2xl t-danger" />
-        <h3 className="empty-state-title">Can't connect to chat</h3>
-        <p className="empty-state-text">
+      <div className="empty-state flex h-[700px] flex-col items-center justify-center gap-6 text-center">
+        <WifiOff className="size-8 shrink-0 text-destructive" />
+        <h3 className="text-base font-semibold">Can't connect to chat</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">
           Check your internet connection, then try again.
         </p>
         <button type="button" className="btn btn-primary" onClick={() => refetchChatRooms()}>
@@ -628,23 +624,23 @@ const ChatInterfaceMain = ({
         {showHeader && (
           <div className="chat-header">
             <div className="skeleton avatar" />
-            <div className="stack-sm">
-              <div className="skeleton skeleton-line-short" />
-              <div className="skeleton skeleton-line" />
+            <div className="flex flex-col gap-2">
+              <div className="skeleton h-4 w-32" />
+              <div className="skeleton h-4 w-full" />
             </div>
           </div>
         )}
         <div className="chat-messages">
           <div className="msg msg-bot">
             <div className="skeleton avatar-sm" />
-            <div className="skeleton skeleton-bubble chat-round-2xl" />
+            <div className="skeleton h-14 w-64 !rounded-2xl" />
           </div>
           <div className="msg msg-user">
-            <div className="skeleton skeleton-line chat-round-2xl" />
+            <div className="skeleton h-4 w-full !rounded-2xl" />
           </div>
           <div className="msg msg-bot">
             <div className="skeleton avatar-sm" />
-            <div className="skeleton skeleton-card chat-round-2xl" />
+            <div className="skeleton h-28 w-full !rounded-2xl" />
           </div>
         </div>
       </div>
@@ -654,10 +650,10 @@ const ChatInterfaceMain = ({
   /* ---------- Error ---------- */
   if (conversationsError && !conversationsLoading) {
     return (
-      <div className="empty-state chat-h700" style={{ height: maxHeight }}>
-        <AlertCircle className="ico-2xl t-danger" />
-        <h3 className="empty-state-title">Couldn't load this conversation</h3>
-        <p className="empty-state-text">
+      <div className="empty-state flex h-[700px] flex-col items-center justify-center gap-6 text-center" style={{ height: maxHeight }}>
+        <AlertCircle className="size-8 shrink-0 text-destructive" />
+        <h3 className="text-base font-semibold">Couldn't load this conversation</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">
           Your chat history didn't load. Try again, or refresh the page if it keeps failing.
         </p>
         <button type="button" className="btn btn-primary" onClick={() => refetchConversations()}>
@@ -669,27 +665,25 @@ const ChatInterfaceMain = ({
 
   return (
     <div
-      className={isFullscreen ? 'chat-fs-shell' : ''}
+      className={isFullscreen ? 'fixed inset-0 z-50 bg-background sm:p-4' : ''}
       style={{ height: isFullscreen ? '100dvh' : maxHeight }}
     >
       <section
-        className={`chat-window ${isFullscreen ? 'chat-fs-inner' : ''}`}
+        className={`chat-window ${isFullscreen ? 'mx-auto h-full max-w-4xl' : ''}`}
         aria-label="Chat"
       >
         {showHeader && (
           <header className="chat-header">
-            <span className="avatar avatar-ai" aria-hidden="true">
-              <Bot className="ico" />
-            </span>
+            <span className="avatar" aria-hidden="true"><BrandMark size={22} /></span>
 
-            <div className="flex-fill">
-              <h2 className="chat-header-title">
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-sm font-semibold">
                 {chatRoomData?.title || 'AI Assistant'}
               </h2>
-              <p className="chat-header-meta" aria-live="polite">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-live="polite">
                 {isBusy ? (
                   <>
-                    <Loader2 className="ico-xs spin" /> Thinking…
+                    <Loader2 className="size-3 shrink-0 animate-spin" /> Thinking…
                   </>
                 ) : (
                   <>
@@ -699,7 +693,7 @@ const ChatInterfaceMain = ({
               </p>
             </div>
 
-            <div className="cluster g-1">
+            <div className="cluster gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -745,20 +739,20 @@ const ChatInterfaceMain = ({
                     disabled={clearConversationsMutation.isPending || displayMessages.length <= 1}
                   >
                     {clearConversationsMutation.isPending ? (
-                      <Loader2 className="space-r-2 ico spin" />
+                      <Loader2 className="mr-2 size-4 shrink-0 animate-spin" />
                     ) : (
-                      <RefreshCw className="space-r-2 ico" />
+                      <RefreshCw className="mr-2 size-4 shrink-0" />
                     )}
                     Clear chat
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {/* Not wired up yet, so shown disabled */}
                   <DropdownMenuItem disabled>
-                    <Share2 className="space-r-2 ico" />
+                    <Share2 className="mr-2 size-4 shrink-0" />
                     Share conversation
                   </DropdownMenuItem>
                   <DropdownMenuItem disabled>
-                    <Download className="space-r-2 ico" />
+                    <Download className="mr-2 size-4 shrink-0" />
                     Export chat
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -789,9 +783,7 @@ const ChatInterfaceMain = ({
 
           {isBusy && (
             <div className="msg msg-bot">
-              <span className="avatar avatar-sm avatar-ai" aria-hidden="true">
-                <Bot className="ico-sm" />
-              </span>
+              <span className="avatar avatar-sm" aria-hidden="true"><BrandMark size={18} /></span>
               <div className="typing" role="status" aria-label="Assistant is typing">
                 <span />
                 <span />
@@ -808,10 +800,10 @@ const ChatInterfaceMain = ({
               <button
                 key={text}
                 type="button"
-                className="quick-reply inline-row g-2"
+                className="quick-reply inline-flex items-center gap-2"
                 onClick={() => handleSendMessage(text)}
               >
-                <Icon className="ico-sm t-ai" />
+                <Icon className="size-3.5 shrink-0 text-ai" />
                 {text}
               </button>
             ))}
@@ -845,9 +837,9 @@ const ChatInterfaceMain = ({
             aria-label="Send message"
           >
             {sendMessageMutation.isPending ? (
-              <Loader2 className="ico spin" />
+              <Loader2 className="size-4 shrink-0 animate-spin" />
             ) : (
-              <Send className="ico" />
+              <Send className="size-4 shrink-0" />
             )}
           </button>
         </div>
@@ -892,10 +884,10 @@ export function ChatInterface({
 
   if (hasError) {
     return (
-      <div className="empty-state chat-h700">
-        <AlertCircle className="ico-2xl t-danger" />
-        <h3 className="empty-state-title">Something went wrong</h3>
-        <p className="empty-state-text">
+      <div className="empty-state flex h-[700px] flex-col items-center justify-center gap-6 text-center">
+        <AlertCircle className="size-8 shrink-0 text-destructive" />
+        <h3 className="text-base font-semibold">Something went wrong</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">
           The chat hit an unexpected error. Refresh the page to start again.
         </p>
         <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>

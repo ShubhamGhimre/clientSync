@@ -72,18 +72,18 @@ export function ChatbotsTable({
         return (
           <button
             type="button"
-            className="ui-button ui-button-ghost ui-button-size-sm t-medium"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Name
-            <ArrowUpDown className="ico space-l-2" />
+            <ArrowUpDown className="size-4 shrink-0 ml-2" />
           </button>
         )
       },
       cell: ({ row }) => (
         <div>
-          <div className="t-medium">{row.getValue('name')}</div>
-          <p className="t-sm t-muted ellipsis">
+          <div className="font-medium">{row.getValue('name')}</div>
+          <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
             {row.original.description || 'No description'}
           </p>
         </div>
@@ -111,16 +111,16 @@ export function ChatbotsTable({
         return (
           <button
             type="button"
-            className="ui-button ui-button-ghost ui-button-size-sm t-medium"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Chunks
-            <ArrowUpDown className="ico space-l-2" />
+            <ArrowUpDown className="size-4 shrink-0 ml-2" />
           </button>
         )
       },
       cell: ({ getValue }) => (
-        <span className="tabular t-sm">
+        <span className="tabular text-sm">
           {getValue()?.toLocaleString() || '0'}
         </span>
       ),
@@ -128,8 +128,8 @@ export function ChatbotsTable({
     columnHelper.accessor('_count.chatRooms', {
       header: 'Chats',
       cell: ({ getValue }) => (
-        <div className="row g-1">
-          <MessageSquare className="ico t-muted" />
+        <div className="flex items-center gap-1">
+          <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
           <span>{getValue() || 0}</span>
         </div>
       ),
@@ -137,8 +137,8 @@ export function ChatbotsTable({
     columnHelper.accessor('_count.files', {
       header: 'Files',
       cell: ({ getValue }) => (
-        <div className="row g-1">
-          <FileText className="ico t-muted" />
+        <div className="flex items-center gap-1">
+          <FileText className="size-4 shrink-0 text-muted-foreground" />
           <span>{getValue() || 0}</span>
         </div>
       ),
@@ -148,17 +148,17 @@ export function ChatbotsTable({
         return (
           <button
             type="button"
-            className="ui-button ui-button-ghost ui-button-size-sm t-medium"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Created
-            <ArrowUpDown className="ico space-l-2" />
+            <ArrowUpDown className="size-4 shrink-0 ml-2" />
           </button>
         )
       },
       cell: ({ getValue }) => (
-        <div className="row g-1 t-sm t-muted">
-          <Calendar className="ico" />
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <Calendar className="size-4 shrink-0" />
           <span>{new Date(getValue()).toLocaleDateString()}</span>
         </div>
       ),
@@ -175,37 +175,37 @@ export function ChatbotsTable({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onChatbotSelect?.(row.original)}>
-              <Eye className="ico space-r-2" />
+              <Eye className="size-4 shrink-0 mr-2" />
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onChatbotEdit?.(row.original)}>
-              <Edit className="ico space-r-2" />
+              <Edit className="size-4 shrink-0 mr-2" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href={`/chatbots/${row.original.id}?tab=chat`}>
-                <MessageSquare className="ico space-r-2" />
+                <MessageSquare className="size-4 shrink-0 mr-2" />
                 Test Chat
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {row.original.isActive !== false ? (
               <DropdownMenuItem onClick={() => onChatbotToggle?.(row.original.id, false)}>
-                <Pause className="ico space-r-2" />
+                <Pause className="size-4 shrink-0 mr-2" />
                 Pause
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={() => onChatbotToggle?.(row.original.id, true)}>
-                <Play className="ico space-r-2" />
+                <Play className="size-4 shrink-0 mr-2" />
                 Activate
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem 
-              className="t-danger"
+              className="text-destructive"
               onClick={() => onChatbotDelete?.(row.original.id)}
             >
-              <Trash2 className="ico space-r-2" />
+              <Trash2 className="size-4 shrink-0 mr-2" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -229,11 +229,11 @@ export function ChatbotsTable({
     return (
       <div className="surface">
         <div className="surface-header">
-          <h3 className="section-title">Chatbots</h3>
+          <h3 className="text-lg font-semibold">Chatbots</h3>
         </div>
-        <div className="surface-pad vstack-3">
+        <div className="surface-pad flex flex-col gap-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="skeleton pad-6" />
+            <div key={i} className="skeleton p-6" />
           ))}
         </div>
       </div>
@@ -243,7 +243,7 @@ export function ChatbotsTable({
   return (
     <div className="surface">
       <div className="surface-header">
-        <h3 className="section-title">Chatbots</h3>
+        <h3 className="text-lg font-semibold">Chatbots</h3>
       </div>
       <div className="surface-pad">
         <div className="table-wrap">
@@ -269,7 +269,7 @@ export function ChatbotsTable({
                 table.getRowModel().rows.map((row) => (
                   <tr 
                     key={row.id} 
-                    className="ui-table-row pointer"
+                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer"
                     onClick={() => onChatbotSelect?.(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -286,7 +286,7 @@ export function ChatbotsTable({
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className="align-center pad-6"
+                    className="text-center p-6"
                   >
                     No chatbots found.
                   </td>

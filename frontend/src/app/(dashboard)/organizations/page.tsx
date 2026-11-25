@@ -72,55 +72,55 @@ export default function OrganizationsPage() {
         </div>
         <Button asChild>
           <Link href="/organizations/create">
-            <Plus className="ico space-r-2" />
+            <Plus className="size-4 shrink-0 mr-2" />
             Add Organization
           </Link>
         </Button>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-medium">Total Organizations</CardTitle>
-            <Building className="ico t-muted" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
+            <Building className="size-4 shrink-0 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="t-2xl t-bold">{mockOrganizations.length}</div>
+            <div className="text-2xl font-bold">{mockOrganizations.length}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-medium">Total Users</CardTitle>
-            <Users className="ico t-muted" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="size-4 shrink-0 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="t-2xl t-bold">
+            <div className="text-2xl font-bold">
               {mockOrganizations.reduce((sum, org) => sum + org._count.users, 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-medium">Total Chatbots</CardTitle>
-            <Bot className="ico t-muted" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-medium">Total Chatbots</CardTitle>
+            <Bot className="size-4 shrink-0 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="t-2xl t-bold">
+            <div className="text-2xl font-bold">
               {mockOrganizations.reduce((sum, org) => sum + org._count.chatBots, 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-medium">Avg Users/Org</CardTitle>
-            <Users className="ico t-muted" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-medium">Avg Users/Org</CardTitle>
+            <Users className="size-4 shrink-0 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="t-2xl t-bold">
+            <div className="text-2xl font-bold">
               {Math.round(mockOrganizations.reduce((sum, org) => sum + org._count.users, 0) / mockOrganizations.length)}
             </div>
           </CardContent>
@@ -128,42 +128,42 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="row g-4">
-        <div className="pos-rel toolbar-search">
-          <Search className="search-icon" />
+      <div className="flex items-center gap-4">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="input-icon" />
           <Input
             placeholder="Search organizations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            className="pl-10"
           />
         </div>
       </div>
 
       {/* Organizations Grid */}
-      <div className="grid-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredOrganizations.map((org) => (
-          <Card key={org.id} className="card-hover">
+          <Card key={org.id} className="transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
             <CardHeader>
-              <div className="row-between">
-                <div className="row g-2">
-                  <Building className="ico-lg" />
-                  <CardTitle className="t-lg">{org.name}</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building className="size-5 shrink-0" />
+                  <CardTitle className="text-lg">{org.name}</CardTitle>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <MoreVertical className="ico" />
+                      <MoreVertical className="size-4 shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
-                      <Edit className="ico space-r-2" />
+                      <Edit className="size-4 shrink-0 mr-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="t-danger">
-                      <Trash2 className="ico space-r-2" />
+                    <DropdownMenuItem className="text-destructive">
+                      <Trash2 className="size-4 shrink-0 mr-2" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -175,18 +175,18 @@ export default function OrganizationsPage() {
             </CardHeader>
             <CardContent>
               <div className="stack">
-                <div className="grid-2 t-sm">
-                  <div className="row g-2">
-                    <Users className="ico t-muted" />
+                <div className="grid gap-4 md:grid-cols-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="size-4 shrink-0 text-muted-foreground" />
                     <span>{org._count.users} users</span>
                   </div>
-                  <div className="row g-2">
-                    <Bot className="ico t-muted" />
+                  <div className="flex items-center gap-2">
+                    <Bot className="size-4 shrink-0 text-muted-foreground" />
                     <span>{org._count.chatBots} chatbots</span>
                   </div>
                 </div>
-                <div className="row g-2 t-sm t-muted">
-                  <Calendar className="ico" />
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="size-4 shrink-0" />
                   <span>Created {new Date(org.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>

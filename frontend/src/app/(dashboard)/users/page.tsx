@@ -256,20 +256,20 @@ export default function UsersPage() {
   // Error handling
   if (usersError || statsError) {
     return (
-      <div className="stack g-6 pad-6">
-        <div className="row-between">
+      <div className="stack gap-6 p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="t-3xl t-bold t-tight">Users</h1>
-            <p className="t-muted">Manage user accounts and permissions</p>
+            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+            <p className="text-muted-foreground">Manage user accounts and permissions</p>
           </div>
           <Button onClick={handleRefresh} variant="outline">
-            <RefreshCw className="space-r-2 ico" />
+            <RefreshCw className="mr-2 size-4 shrink-0" />
             Retry
           </Button>
         </div>
         
         <Alert variant="destructive">
-          <AlertCircle className="ico" />
+          <AlertCircle className="size-4 shrink-0" />
           <AlertDescription>
             Failed to load users data. {usersError?.message || statsError?.message}
           </AlertDescription>
@@ -279,23 +279,23 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="page stack g-8 screen-h">
+    <div className="page stack gap-8 min-h-dvh">
       {/* Page Header */}
-      <div className="page-toolbar">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="page-title">Users</h1>
           <p className="page-subtitle">
             Manage user accounts and permissions
           </p>
         </div>
-        <div className="page-actions">
+        <div className="cluster">
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoadingAny}>
-            <RefreshCw className={cn("space-r-2 ico", isLoadingAny && "spin")} />
+            <RefreshCw className={cn("mr-2 size-4 shrink-0", isLoadingAny && "animate-spin")} />
             Refresh
           </Button>
           {isAdmin && (
             <Button onClick={handleUserInvite} disabled={isMutating} className="btn btn-brand">
-              <UserPlus className="space-r-2 ico" />
+              <UserPlus className="mr-2 size-4 shrink-0" />
               Invite User
             </Button>
           )}
@@ -305,73 +305,73 @@ export default function UsersPage() {
       {/* Stats Overview */}
       <div className="grid-stats">
         <Card className="surface">
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-semibold">Total Users</CardTitle>
-            <Users className="ico-lg t-brand" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-semibold">Total Users</CardTitle>
+            <Users className="size-5 shrink-0 text-brand-strong" />
           </CardHeader>
           <CardContent>
             <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="ico-xl spin" />
+                <Loader2 className="size-6 shrink-0 animate-spin" />
               ) : (
                 stats?.total || 0
               )}
             </div>
-            <p className="t-xs t-muted space-t-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {statsLoading ? '...' : `${stats?.active || 0} active users`}
             </p>
           </CardContent>
         </Card>
         <Card className="surface">
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-semibold">Active Users</CardTitle>
-            <UserCheck className="ico-lg t-success" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-semibold">Active Users</CardTitle>
+            <UserCheck className="size-5 shrink-0 text-success" />
           </CardHeader>
           <CardContent>
             <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="ico-xl spin" />
+                <Loader2 className="size-6 shrink-0 animate-spin" />
               ) : (
                 stats?.active || 0
               )}
             </div>
-            <p className="t-xs t-muted space-t-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {statsLoading || !stats ? '...' : `${Math.round((stats.active / stats.total) * 100)}% of total`}
             </p>
           </CardContent>
         </Card>
         <Card className="surface">
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-semibold">Admins</CardTitle>
-            <Shield className="ico-lg t-brand" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-semibold">Admins</CardTitle>
+            <Shield className="size-5 shrink-0 text-brand-strong" />
           </CardHeader>
           <CardContent>
             <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="ico-xl spin" />
+                <Loader2 className="size-6 shrink-0 animate-spin" />
               ) : (
                 stats?.byRole?.ADMIN || 0
               )}
             </div>
-            <p className="t-xs t-muted space-t-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Administrative access
             </p>
           </CardContent>
         </Card>
         <Card className="surface">
-          <CardHeader className="row-between pad-y-2">
-            <CardTitle className="t-sm t-semibold">Agents</CardTitle>
-            <UserCheck className="ico-lg t-ai" />
+          <CardHeader className="flex items-center justify-between py-2">
+            <CardTitle className="text-sm font-semibold">Agents</CardTitle>
+            <UserCheck className="size-5 shrink-0 text-ai" />
           </CardHeader>
           <CardContent>
             <div className="stat-value">
               {statsLoading ? (
-                <Loader2 className="ico-xl spin" />
+                <Loader2 className="size-6 shrink-0 animate-spin" />
               ) : (
                 stats?.byRole?.AGENT || 0
               )}
             </div>
-            <p className="t-xs t-muted space-t-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Support agents
             </p>
           </CardContent>
@@ -379,22 +379,22 @@ export default function UsersPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="page-toolbar">
-        <div className="search-wrap toolbar-search flex-fill">
-          <Search className="search-icon" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm min-w-0 flex-1">
+          <Search className="input-icon" />
           <Input
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="search-input"
+            className="pl-10"
             disabled={usersLoading}
           />
         </div>
-        <div className="filter-bar">
+        <div className="cluster gap-3">
           <Button
             variant={roleFilter === undefined ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setRoleFilter(undefined); setCurrentPage(1); }}
             disabled={usersLoading}
           >
@@ -403,31 +403,31 @@ export default function UsersPage() {
           <Button
             variant={roleFilter === 'ADMIN' ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setRoleFilter('ADMIN'); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <Shield className="ico-xs space-r-1" />
+            <Shield className="size-3 shrink-0 mr-1" />
             Admin
           </Button>
           <Button
             variant={roleFilter === 'AGENT' ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setRoleFilter('AGENT'); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <UserCheck className="ico-xs space-r-1" />
+            <UserCheck className="size-3 shrink-0 mr-1" />
             Agent
           </Button>
           <Button
             variant={roleFilter === 'VIEWER' ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setRoleFilter('VIEWER'); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <Eye className="ico-xs space-r-1" />
+            <Eye className="size-3 shrink-0 mr-1" />
             Viewer
           </Button>
         </div>
@@ -435,7 +435,7 @@ export default function UsersPage() {
           <Button
             variant={statusFilter === undefined ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setStatusFilter(undefined); setCurrentPage(1); }}
             disabled={usersLoading}
           >
@@ -444,34 +444,34 @@ export default function UsersPage() {
           <Button
             variant={statusFilter === true ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setStatusFilter(true); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <UserCheck className="ico-xs space-r-1" />
+            <UserCheck className="size-3 shrink-0 mr-1" />
             Active
           </Button>
           <Button
             variant={statusFilter === false ? "default" : "outline"}
             size="sm"
-            className="shape-round"
+            className="rounded-full"
             onClick={() => { setStatusFilter(false); setCurrentPage(1); }}
             disabled={usersLoading}
           >
-            <UserX className="ico-xs space-r-1" />
+            <UserX className="size-3 shrink-0 mr-1" />
             Inactive
           </Button>
         </div>
       </div>
 
       {/* Users Table */}
-      <Card className="surface-raised">
+      <Card className="surface shadow-soft">
         <CardHeader>
-          <CardTitle className="section-title">User Management</CardTitle>
+          <CardTitle className="text-lg font-semibold">User Management</CardTitle>
           <CardDescription>
             View and manage all users in your organization
             {pagination && (
-              <span className="space-l-2">
+              <span className="ml-2">
                 ({pagination.total} total users)
               </span>
             )}
@@ -500,30 +500,30 @@ export default function UsersPage() {
       {stats?.recentlyJoined && stats.recentlyJoined.length > 0 && (
         <Card className="surface">
           <CardHeader>
-            <CardTitle className="card-title">Recent Additions</CardTitle>
+            <CardTitle className="text-base font-semibold">Recent Additions</CardTitle>
             <CardDescription>
               Users who recently joined your organization
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="stack g-3">
+            <div className="stack gap-3">
               {stats.recentlyJoined.map((user) => (
-                <div key={user.id} className="list-row">
-                  <div className="list-avatar t-sm t-semibold">
+                <div key={user.id} className="flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50">
+                  <div className="avatar-sm avatar-ai text-sm font-semibold">
                     {user.firstName[0]}{user.lastName[0]}
                   </div>
-                  <div className="flex-fill">
-                    <p className="list-title">
+                  <div className="min-w-0 flex-1">
+                    <p className="block truncate text-sm font-medium leading-tight">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="list-meta">
+                    <p className="block truncate text-xs text-muted-foreground">
                       {user.email}
                     </p>
                   </div>
-                  <Badge variant="outline" className="t-xs no-shrink">
+                  <Badge variant="outline" className="text-xs shrink-0">
                     {user.role}
                   </Badge>
-                  <p className="t-xs t-muted no-shrink">
+                  <p className="text-xs text-muted-foreground shrink-0">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </p>
                 </div>

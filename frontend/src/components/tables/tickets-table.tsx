@@ -130,7 +130,7 @@ export function TicketsTable({
 
     return (
       <span className={config.badgeClass}>
-        <Icon className="ico-xs space-r-1" />
+        <Icon className="size-3 shrink-0 mr-1" />
         {config.label}
       </span>
     );
@@ -164,7 +164,7 @@ export function TicketsTable({
 
     return (
       <span className={config.badgeClass}>
-        <AlertCircle className="ico-xs space-r-1" />
+        <AlertCircle className="size-3 shrink-0 mr-1" />
         {config.label}
       </span>
     );
@@ -205,7 +205,7 @@ export function TicketsTable({
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          className="ui-checkbox"
+          className="size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -213,7 +213,7 @@ export function TicketsTable({
       ),
       cell: ({ row }) => (
         <Checkbox
-          className="ui-checkbox"
+          className="size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
@@ -228,9 +228,9 @@ export function TicketsTable({
       cell: ({ row }) => {
         const ticket = row.original;
         return (
-          <div className="row g-2">
-            <HelpCircle className="ico t-muted" />
-            <span className="tabular t-sm">{ticket.ticketNumber || ticket.id}</span>
+          <div className="flex items-center gap-2">
+            <HelpCircle className="size-4 shrink-0 text-muted-foreground" />
+            <span className="tabular text-sm">{ticket.ticketNumber || ticket.id}</span>
           </div>
         );
       },
@@ -240,31 +240,31 @@ export function TicketsTable({
       header: ({ column }) => (
         <button
           type="button"
-          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Title
-          <ArrowUpDown className="ico space-l-2" />
+          <ArrowUpDown className="size-4 shrink-0 ml-2" />
         </button>
       ),
       cell: ({ row }) => {
         const ticket = row.original;
         return (
-          <div className="min-zero flex-fill">
-            <p className="t-medium ellipsis">{ticket.title}</p>
-            <p className="t-sm t-muted ellipsis space-t-1">
+          <div className="min-w-0 flex-1">
+            <p className="font-medium overflow-hidden text-ellipsis whitespace-nowrap">{ticket.title}</p>
+            <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap mt-1">
               {ticket.description}
             </p>
-            <div className="row g-2 space-t-2">
+            <div className="flex items-center gap-2 mt-2">
               {ticket._count?.attachments && ticket._count.attachments > 0 && (
-                <div className="row g-1 t-xs t-muted">
-                  <Paperclip className="ico-xs" />
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Paperclip className="size-3 shrink-0" />
                   {ticket._count.attachments}
                 </div>
               )}
               {ticket._count?.comments && ticket._count.comments > 0 && (
-                <div className="row g-1 t-xs t-muted">
-                  <MessageSquare className="ico-xs" />
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MessageSquare className="size-3 shrink-0" />
                   {ticket._count.comments}
                 </div>
               )}
@@ -295,9 +295,9 @@ export function TicketsTable({
       cell: ({ row }) => {
         const ticket = row.original;
         return (
-          <div className="min-zero">
-            <p className="t-sm t-medium ellipsis">{ticket.customerName}</p>
-            <p className="t-xs t-muted ellipsis">{ticket.customerEmail}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap">{ticket.customerName}</p>
+            <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">{ticket.customerEmail}</p>
           </div>
         );
       },
@@ -308,20 +308,20 @@ export function TicketsTable({
       cell: ({ row }) => {
         const createdBy = row.original.createdBy;
         return createdBy ? (
-          <div className="row g-2">
+          <div className="flex items-center gap-2">
             <Avatar className="avatar avatar-sm">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getFullName(createdBy)}`} />
               <AvatarFallback>
                 {getUserInitials(createdBy)}
               </AvatarFallback>
             </Avatar>
-            <div className="min-zero">
-              <p className="t-sm t-medium ellipsis">{getFullName(createdBy)}</p>
-              <p className="t-xs t-muted ellipsis">{createdBy.email}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap">{getFullName(createdBy)}</p>
+              <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">{createdBy.email}</p>
             </div>
           </div>
         ) : (
-          <span className="t-muted">Unknown</span>
+          <span className="text-muted-foreground">Unknown</span>
         );
       },
     },
@@ -331,16 +331,16 @@ export function TicketsTable({
       cell: ({ row }) => {
         const assignedAgent = row.original.assignedAgent;
         return assignedAgent ? (
-          <div className="row g-2">
+          <div className="flex items-center gap-2">
             <Avatar className="avatar avatar-sm">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getFullName(assignedAgent)}`} />
               <AvatarFallback>
                 {getUserInitials(assignedAgent)}
               </AvatarFallback>
             </Avatar>
-            <div className="min-zero">
-              <p className="t-sm t-medium ellipsis">{getFullName(assignedAgent)}</p>
-              <p className="t-xs t-muted ellipsis">{assignedAgent.email}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap">{getFullName(assignedAgent)}</p>
+              <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">{assignedAgent.email}</p>
             </div>
           </div>
         ) : (
@@ -354,15 +354,15 @@ export function TicketsTable({
       cell: ({ row }) => {
         const category = row.original.category;
         return category ? (
-          <div className="row g-2">
+          <div className="flex items-center gap-2">
             <span 
-              className="color-dot" 
+              className="inline-block size-3 shrink-0 rounded-full" 
               style={{ backgroundColor: category.color || '#3B82F6' }}
             />
-            <span className="t-sm">{category.name}</span>
+            <span className="text-sm">{category.name}</span>
           </div>
         ) : (
-          <span className="t-muted">No category</span>
+          <span className="text-muted-foreground">No category</span>
         );
       },
     },
@@ -371,19 +371,19 @@ export function TicketsTable({
       header: ({ column }) => (
         <button
           type="button"
-          className="ui-button ui-button-ghost ui-button-size-sm t-medium"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Last Updated
-          <ArrowUpDown className="ico space-l-2" />
+          <ArrowUpDown className="size-4 shrink-0 ml-2" />
         </button>
       ),
       cell: ({ row }) => {
         const updatedAt = row.original.updatedAt;
         return (
-          <div className="row g-2">
-            <Clock className="ico-xs t-muted" />
-            <span className="t-sm">{getTimeAgo(updatedAt)}</span>
+          <div className="flex items-center gap-2">
+            <Clock className="size-3 shrink-0 text-muted-foreground" />
+            <span className="text-sm">{getTimeAgo(updatedAt)}</span>
           </div>
         );
       },
@@ -403,7 +403,7 @@ export function TicketsTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button type="button" className="btn btn-ghost btn-icon btn-sm">
-                <span className="sr">Open menu</span>
+                <span className="sr-only">Open menu</span>
                 <MoreHorizontal />
               </button>
             </DropdownMenuTrigger>
@@ -417,23 +417,23 @@ export function TicketsTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/tickets/${ticket.id}`}>
-                  <Eye className="ico space-r-2" />
+                  <Eye className="size-4 shrink-0 mr-2" />
                   View details
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onTicketSelect?.(ticket)}>
-                <ExternalLink className="ico space-r-2" />
+                <ExternalLink className="size-4 shrink-0 mr-2" />
                 Open in new tab
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onTicketEdit?.(ticket)}>
-                <Edit className="ico space-r-2" />
+                <Edit className="size-4 shrink-0 mr-2" />
                 Edit ticket
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
-                  <CheckCircle className="ico space-r-2" />
+                  <CheckCircle className="size-4 shrink-0 mr-2" />
                   Change status
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
@@ -451,7 +451,7 @@ export function TicketsTable({
 
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
-                  <AlertCircle className="ico space-r-2" />
+                  <AlertCircle className="size-4 shrink-0 mr-2" />
                   Change priority
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
@@ -468,7 +468,7 @@ export function TicketsTable({
               </DropdownMenuSub>
 
               <DropdownMenuItem onClick={() => onTicketAssign?.(ticket.id, 'current-user')}>
-                <UserCheck className="ico space-r-2" />
+                <UserCheck className="size-4 shrink-0 mr-2" />
                 Assign to me
               </DropdownMenuItem>
 
@@ -476,10 +476,10 @@ export function TicketsTable({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
-                    className="t-danger"
+                    className="text-destructive"
                     onSelect={(e) => e.preventDefault()}
                   >
-                    <Trash2 className="ico space-r-2" />
+                    <Trash2 className="size-4 shrink-0 mr-2" />
                     Delete ticket
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
@@ -593,22 +593,22 @@ export function TicketsTable({
   };
 
   return (
-    <div className="stack pad-4">
-      <div className="table-tools">
-        <div className="row g-2">
+    <div className="stack p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button type="button" className="btn btn-secondary">
-                <Filter className="ico space-r-2" />
+                <Filter className="size-4 shrink-0 mr-2" />
                 Status
-                <ChevronDown className="ico space-l-2" />
+                <ChevronDown className="size-4 shrink-0 ml-2" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {['OPEN', 'IN_PROGRESS', 'PENDING_CUSTOMER', 'RESOLVED', 'CLOSED', 'CANCELLED'].map((status) => (
                 <DropdownMenuCheckboxItem
                   key={status}
-                  className="capitalize-label"
+                  className="capitalize"
                   checked={(table.getColumn('status')?.getFilterValue() as string[])?.includes(status)}
                   onCheckedChange={(value) => {
                     const currentFilter = (table.getColumn('status')?.getFilterValue() as string[]) || [];
@@ -628,14 +628,14 @@ export function TicketsTable({
             <DropdownMenuTrigger asChild>
               <button type="button" className="btn btn-secondary">
                 Priority
-                <ChevronDown className="ico space-l-2" />
+                <ChevronDown className="size-4 shrink-0 ml-2" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {['LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL'].map((priority) => (
                 <DropdownMenuCheckboxItem
                   key={priority}
-                  className="capitalize-label"
+                  className="capitalize"
                   checked={(table.getColumn('priority')?.getFilterValue() as string[])?.includes(priority)}
                   onCheckedChange={(value) => {
                     const currentFilter = (table.getColumn('priority')?.getFilterValue() as string[]) || [];
@@ -652,17 +652,17 @@ export function TicketsTable({
           </DropdownMenu>
         </div>
 
-        <div className="row g-2">
+        <div className="flex items-center gap-2">
           {Object.keys(rowSelection).length > 0 && (
-            <div className="row g-2">
-              <span className="t-sm t-muted">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
                 {Object.keys(rowSelection).length} selected
               </span>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button type="button" className="btn btn-secondary btn-sm">
-                    <CheckCircle className="ico space-r-2" />
+                    <CheckCircle className="size-4 shrink-0 mr-2" />
                     Update Status
                   </button>
                 </DropdownMenuTrigger>
@@ -679,21 +679,21 @@ export function TicketsTable({
               </DropdownMenu>
 
               <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleBulkAssign('current-user')}>
-                <Users className="ico space-r-2" />
+                <Users className="size-4 shrink-0 mr-2" />
                 Assign to Me
               </button>
             </div>
           )}
 
           <button type="button" className="btn btn-secondary btn-sm" onClick={exportTickets}>
-            <Download className="ico space-r-2" />
+            <Download className="size-4 shrink-0 mr-2" />
             Export
           </button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button type="button" className="btn btn-secondary">
-                Columns <ChevronDown className="ico space-l-2" />
+                Columns <ChevronDown className="size-4 shrink-0 ml-2" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -704,7 +704,7 @@ export function TicketsTable({
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
-                      className="capitalize-label"
+                      className="capitalize"
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
@@ -745,7 +745,7 @@ export function TicketsTable({
                 <tr key={index}>
                   {columns.map((_, cellIndex) => (
                     <td key={cellIndex}>
-                      <div className="skeleton pad-2" />
+                      <div className="skeleton p-2" />
                     </td>
                   ))}
                 </tr>
@@ -754,7 +754,7 @@ export function TicketsTable({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="ui-table-row pointer"
+                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={() => onTicketSelect?.(row.original)}
                 >
@@ -772,7 +772,7 @@ export function TicketsTable({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="align-center pad-6"
+                  className="text-center p-6"
                 >
                   No support tickets found.
                 </td>
@@ -782,16 +782,16 @@ export function TicketsTable({
         </table>
       </div>
 
-      <div className="table-pager">
-        <div className="flex-fill t-sm t-muted">
+      <div className="flex flex-wrap items-center justify-between gap-4 py-4">
+        <div className="min-w-0 flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length} ticket(s) selected.
         </div>
-        <div className="pager-controls">
-          <div className="row g-2">
-            <p className="t-sm t-medium">Rows per page</p>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium">Rows per page</p>
             <select
-              className="pager-select"
+              className="h-8 w-[70px] rounded-md border border-input bg-background px-2 text-sm"
               value={table.getState().pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
             >
@@ -802,18 +802,18 @@ export function TicketsTable({
               ))}
             </select>
           </div>
-          <div className="center t-sm t-medium">
+          <div className="flex items-center justify-center text-sm font-medium">
             Page {table.getState().pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </div>
-          <div className="pager-controls">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              className="btn btn-secondary btn-icon btn-sm show-lg-row"
+              className="btn btn-secondary btn-icon btn-sm hidden lg:flex"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr">Go to first page</span>
+              <span className="sr-only">Go to first page</span>
               «
             </button>
             <button
@@ -822,7 +822,7 @@ export function TicketsTable({
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr">Go to previous page</span>
+              <span className="sr-only">Go to previous page</span>
               ‹
             </button>
             <button
@@ -831,16 +831,16 @@ export function TicketsTable({
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr">Go to next page</span>
+              <span className="sr-only">Go to next page</span>
               ›
             </button>
             <button
               type="button"
-              className="btn btn-secondary btn-icon btn-sm show-lg-row"
+              className="btn btn-secondary btn-icon btn-sm hidden lg:flex"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr">Go to last page</span>
+              <span className="sr-only">Go to last page</span>
               »
             </button>
           </div>

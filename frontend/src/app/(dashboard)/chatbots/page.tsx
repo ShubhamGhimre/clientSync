@@ -34,9 +34,9 @@ import { useChatBots } from '@/hooks/api/useChatBots';
 function Stat({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
   return (
     <div className="stat-card">
-      <div className="row-between">
+      <div className="flex items-center justify-between">
         <span className="stat-label">{label}</span>
-        <Icon className="ico t-muted" />
+        <Icon className="size-4 shrink-0 text-muted-foreground" />
       </div>
       <span className="stat-value">{value}</span>
     </div>
@@ -93,13 +93,13 @@ export default function ChatBotsPage() {
     return (
       <div className="page" aria-busy="true">
         <div className="page-header">
-          <div className="stack-sm">
+          <div className="flex flex-col gap-2">
             <div className="skeleton" />
             <div className="skeleton" />
           </div>
           <div className="skeleton" />
         </div>
-        <div className="stack-lg">
+        <div className="flex flex-col gap-8">
           <div className="grid-stats">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="skeleton" />
@@ -131,7 +131,7 @@ export default function ChatBotsPage() {
         </Link>
       </header>
 
-      <div className="stack-lg">
+      <div className="flex flex-col gap-8">
         {/* Stats */}
         {chatbots.length > 0 && (
           <section className="grid-stats">
@@ -143,8 +143,8 @@ export default function ChatBotsPage() {
         )}
 
         {/* Toolbar */}
-        <section className="page-toolbar">
-          <div className="input-wrap toolbar-search">
+        <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="input-wrap w-full sm:max-w-sm">
             <Search className="input-icon" />
             <input
               type="search"
@@ -161,20 +161,20 @@ export default function ChatBotsPage() {
               type="button"
               role="tab"
               aria-selected={viewMode === 'grid'}
-              className="tab inline-row g-2"
+              className="tab inline-flex items-center gap-2"
               onClick={() => setViewMode('grid')}
             >
-              <LayoutGrid className="ico" />
+              <LayoutGrid className="size-4 shrink-0" />
               Grid
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={viewMode === 'table'}
-              className="tab inline-row g-2"
+              className="tab inline-flex items-center gap-2"
               onClick={() => setViewMode('table')}
             >
-              <List className="ico" />
+              <List className="size-4 shrink-0" />
               Table
             </button>
           </div>
@@ -182,7 +182,7 @@ export default function ChatBotsPage() {
 
         {/* Content */}
         {viewMode === 'table' ? (
-          <div className="surface clip">
+          <div className="surface overflow-hidden">
             <ChatbotsTable
               data={filteredChatbots}
               loading={isLoading}
@@ -195,22 +195,22 @@ export default function ChatBotsPage() {
         ) : filteredChatbots.length > 0 ? (
           <section className="grid-auto">
             {filteredChatbots.map((chatbot) => (
-              <article key={chatbot.id} className="surface surface-interactive group pos-rel col">
-                <div className="row-start g-3 pad-5">
+              <article key={chatbot.id} className="surface surface-interactive group relative flex flex-col">
+                <div className="flex items-start gap-3 p-5">
                   <span className="doc-icon">
-                    <Bot className="ico-lg" />
+                    <Bot className="size-5 shrink-0" />
                   </span>
 
-                  <div className="flex-fill">
+                  <div className="min-w-0 flex-1">
                     {/* Stretched link: the whole card is clickable and keyboard-focusable */}
                     <Link
                       href={`/chatbots/${chatbot.id}`}
-                      className="list-title"
+                      className="block truncate text-sm font-medium leading-tight"
                     >
                       {chatbot.name}
                     </Link>
                     <span
-                      className={`badge space-t-1 ${
+                      className={`badge mt-1 ${
                         chatbot.isKnowledgeInitialized ? 'badge-success' : 'badge-warning'
                       }`}
                     >
@@ -225,7 +225,7 @@ export default function ChatBotsPage() {
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="btn btn-ghost btn-icon btn-sm pos-rel z-mid"
+                        className="btn btn-ghost btn-icon btn-sm relative z-10"
                         aria-label={`Actions for ${chatbot.name}`}
                       >
                         <MoreVertical />
@@ -252,21 +252,21 @@ export default function ChatBotsPage() {
                   </DropdownMenu>
                 </div>
 
-                <p className="pad-x-5 t-sm t-muted">
+                <p className="px-5 text-sm text-muted-foreground">
                   {chatbot.description || 'No description'}
                 </p>
 
-                <div className="card-actions row t-muted">
-                  <span className="inline-row g-1.5">
-                    <FileText className="ico-sm" />
+                <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-5 py-3 text-xs items-center text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <FileText className="size-3.5 shrink-0" />
                     {chatbot.totalChunks || 0} chunks
                   </span>
-                  <span className="inline-row g-1.5">
-                    <MessageSquare className="ico-sm" />
+                  <span className="inline-flex items-center gap-1.5">
+                    <MessageSquare className="size-3.5 shrink-0" />
                     {chatbot._count?.chatRooms || 0} chats
                   </span>
-                  <span className="push inline-row g-1.5">
-                    <Calendar className="ico-sm" />
+                  <span className="ml-auto inline-flex items-center gap-1.5">
+                    <Calendar className="size-3.5 shrink-0" />
                     {chatbot.lastKnowledgeUpdate
                       ? `Updated ${new Date(chatbot.lastKnowledgeUpdate).toLocaleDateString()}`
                       : `Created ${new Date(chatbot.createdAt).toLocaleDateString()}`}
@@ -278,12 +278,12 @@ export default function ChatBotsPage() {
         ) : (
           <div className="empty-state">
             <span className="doc-icon">
-              <Bot className="ico-xl" />
+              <Bot className="size-6 shrink-0" />
             </span>
-            <h2 className="empty-state-title">
+            <h2 className="text-base font-semibold">
               {query ? 'No chatbots match your search' : 'No chatbots yet'}
             </h2>
-            <p className="empty-state-text">
+            <p className="max-w-sm text-sm text-muted-foreground">
               {query
                 ? 'Try a different name or clear the search to see everything.'
                 : 'Create your first assistant, add documents, and put it on your website.'}

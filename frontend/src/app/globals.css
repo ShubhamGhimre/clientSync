@@ -24,6 +24,7 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-cursive: var(--font-script), "Brush Script MT", cursive;
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -358,22 +359,13 @@
     @apply mb-6 flex flex-wrap items-start justify-between gap-4;
   }
   .page-title {
-    @apply text-2xl font-semibold sm:text-3xl;
+    @apply text-2xl font-semibold tracking-tight sm:text-3xl;
   }
   .page-subtitle {
     @apply mt-1 max-w-prose text-sm text-muted-foreground sm:text-base;
   }
-  .section-title {
-    @apply text-lg font-semibold;
-  }
   .stack {
     @apply flex flex-col gap-4;
-  }
-  .stack-sm {
-    @apply flex flex-col gap-2;
-  }
-  .stack-lg {
-    @apply flex flex-col gap-8;
   }
   .cluster {
     @apply flex flex-wrap items-center gap-2;
@@ -397,9 +389,6 @@
   .app-sidebar {
     @apply sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-1 overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground lg:flex;
   }
-  .app-sidebar-collapsed {
-    @apply w-16;
-  }
   .app-main {
     @apply flex min-w-0 flex-1 flex-col;
   }
@@ -408,7 +397,7 @@
     background: color-mix(in oklab, var(--background) 82%, transparent);
   }
 
-  .nav-group-label {
+  .nav-label {
     @apply px-3 pb-1 pt-4 text-xs font-medium text-muted-foreground;
   }
   .nav-item {
@@ -432,16 +421,13 @@
   /* ---------- Surfaces ---------- */
 
   .surface {
-    @apply rounded-xl border border-border bg-card text-card-foreground shadow-xs;
+    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-soft;
   }
   .surface-pad {
     @apply p-5;
   }
   .surface-muted {
     @apply rounded-xl border border-border bg-muted/60;
-  }
-  .surface-raised {
-    @apply rounded-xl border border-border bg-card shadow-soft;
   }
   /* Only for cards that are actually clickable */
   .surface-interactive {
@@ -457,14 +443,11 @@
   .surface-footer {
     @apply flex items-center justify-end gap-2 border-t border-border px-5 py-3;
   }
-  .divider {
-    @apply my-4 h-px w-full bg-border;
-  }
 
   /* ---------- Buttons ---------- */
 
   .btn {
-    @apply inline-flex h-10 shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-medium transition-[background-color,box-shadow,transform,border-color] duration-150 active:translate-y-px;
+    @apply inline-flex h-10 shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-medium transition-[background-color,box-shadow,transform,border-color] duration-150 active:translate-y-px;
   }
   .btn svg {
     @apply size-4 shrink-0;
@@ -524,7 +507,6 @@
   .field-hint {
     @apply text-xs text-muted-foreground;
   }
-  .form-error,
   .field-error {
     @apply text-sm text-destructive;
   }
@@ -532,7 +514,7 @@
   .input,
   .textarea,
   .select {
-    @apply w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] duration-150;
+    @apply w-full rounded-xl border border-input bg-card px-3 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] duration-150;
   }
   .input,
   .select {
@@ -665,7 +647,7 @@
   /* ---------- Tables ---------- */
 
   .table-wrap {
-    @apply overflow-x-auto rounded-xl border border-border bg-card;
+    @apply overflow-x-auto rounded-2xl border border-border bg-card;
   }
   .data-table {
     @apply w-full border-collapse text-sm;
@@ -682,15 +664,14 @@
   .data-table tbody tr {
     @apply transition-colors;
   }
-  .data-table tbody tr:hover,
-  .table-row-hover:hover {
+  .data-table tbody tr:hover {
     @apply bg-muted/50;
   }
 
   /* ---------- Stat cards (analytics) ---------- */
 
   .stat-card {
-    @apply flex flex-col gap-1 rounded-xl border border-border bg-card p-5 text-card-foreground shadow-xs;
+    @apply flex flex-col gap-1 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs;
   }
   .stat-label {
     @apply text-sm text-muted-foreground;
@@ -725,13 +706,7 @@
   /* ---------- Feedback: empty, skeleton, progress, toast ---------- */
 
   .empty-state {
-    @apply flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border px-6 py-14 text-center;
-  }
-  .empty-state-title {
-    @apply text-base font-semibold;
-  }
-  .empty-state-text {
-    @apply max-w-sm text-sm text-muted-foreground;
+    @apply flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border px-6 py-14 text-center;
   }
 
   .skeleton {
@@ -772,9 +747,6 @@
     background: color-mix(in oklab, var(--destructive) 8%, transparent);
   }
 
-  .kbd {
-    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 font-mono text-[0.6875rem] text-muted-foreground;
-  }
 
   /* ---------- Knowledge base ---------- */
 
@@ -804,6 +776,19 @@
 
   /* ---------- Marketing / landing ---------- */
 
+  .dot-grid {
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--foreground) 12%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  .glass {
+    @apply rounded-2xl border border-border/60 bg-card/75 shadow-soft backdrop-blur-xl;
+  }
+
   .hero-glow {
     position: absolute;
     inset: 0;
@@ -826,13 +811,6 @@
     background-clip: text;
     color: transparent;
   }
-  .feature-card {
-    @apply flex flex-col gap-3 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-xs;
-  }
-  .feature-icon {
-    @apply flex size-10 items-center justify-center rounded-lg text-brand-strong;
-    background: color-mix(in oklab, var(--brand) 14%, transparent);
-  }
 
   /* Brand gradients (existing names kept) */
   .brand-gradient {
@@ -844,13 +822,6 @@
       var(--brand-alt),
       var(--brand-alt-accent)
     );
-  }
-  /* Kept for backwards compatibility with existing markup */
-  .card-hover {
-    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift;
-  }
-  .sidebar-transition {
-    @apply transition-all duration-300 ease-in-out;
   }
 }
 
@@ -1123,1225 +1094,145 @@
   }
 }
 
+
 /* ==========================================================================
-    7. COMPOSITION HELPERS
-    Named building blocks so application JSX never needs raw utilities.
-    Prefer a semantic class (e.g. .page-actions) over combining several of
-    these; these exist for the small amount of layout glue left over.
+    7. COMPOSITION HELPERS (retained design-system additions)
     ========================================================================== */
 
 @layer components {
-  /* ---------- Layout glue ---------- */
-  .row {
-    @apply flex items-center;
-  }
-  .row-start {
-    @apply flex items-start;
-  }
-  .row-end {
-    @apply flex items-center justify-end;
-  }
-  .row-between {
-    @apply flex items-center justify-between;
-  }
-  .row-wrap {
-    @apply flex flex-wrap items-center;
-  }
-  .col {
-    @apply flex flex-col;
-  }
-  .center {
-    @apply flex items-center justify-center;
-  }
-  .inline-row {
-    @apply inline-flex items-center;
-  }
-  .grid-box {
-    @apply grid;
-  }
-  .grid-2 {
-    @apply grid gap-4 md:grid-cols-2;
-  }
-  .grid-3 {
-    @apply grid gap-4 md:grid-cols-2 lg:grid-cols-3;
-  }
-  .grid-4 {
-    @apply grid gap-4 md:grid-cols-2 lg:grid-cols-4;
-  }
-  .flex-fill {
-    @apply min-w-0 flex-1;
-  }
-  .min-zero {
-    @apply min-w-0;
-  }
-  .no-shrink {
-    @apply shrink-0;
-  }
-  .push {
-    @apply ml-auto;
-  }
-  .push-bottom {
-    @apply mt-auto;
-  }
-  .ellipsis {
-    @apply overflow-hidden text-ellipsis whitespace-nowrap;
-  }
-  .clip {
-    @apply overflow-hidden;
-  }
-  .scroll-y {
-    @apply overflow-y-auto;
-  }
-  .scroll-x {
-    @apply overflow-x-auto;
-  }
-  .pos-rel {
-    @apply relative;
-  }
-  .pos-abs {
-    @apply absolute;
-  }
-  .inset-fill {
-    @apply absolute inset-0;
-  }
-  .float-layer {
-    @apply fixed inset-0 z-50;
-  }
-  .z-mid {
-    @apply z-10;
-  }
-  .hide {
-    @apply hidden;
-  }
-  .hide-lg {
-    @apply hidden lg:block;
-  }
-  .show-lg-row {
-    @apply hidden lg:flex;
-  }
-  .show-lg-col {
-    @apply hidden lg:flex lg:flex-col;
-  }
-  .full-w {
-    @apply w-full;
-  }
-  .full-h {
-    @apply h-full;
-  }
-  .screen-h {
-    @apply min-h-dvh;
-  }
-  .align-center {
-    @apply text-center;
-  }
-  .align-right {
-    @apply text-right;
-  }
-  .capitalize-label {
-    @apply capitalize;
-  }
-  .sr {
-    @apply sr-only;
-  }
-  .pointer {
-    @apply cursor-pointer;
-  }
-  .soft-transition {
-    @apply transition-colors;
-  }
-  .spin {
-    @apply animate-spin;
-  }
-  .pulse {
-    @apply animate-pulse;
-  }
-  .group,
-  .peer,
-  .group\/navigation-menu {
-  }
-
-  /* ---------- Spacing glue ---------- */
-  .g-1 {
-    @apply gap-1;
-  }
-  .g-1\.5 {
-    @apply gap-1.5;
-  }
-  .g-2 {
-    @apply gap-2;
-  }
-  .g-3 {
-    @apply gap-3;
-  }
-  .g-4 {
-    @apply gap-4;
-  }
-  .g-6 {
-    @apply gap-6;
-  }
-  .g-8 {
-    @apply gap-8;
-  }
-  .pad-1 {
-    @apply p-1;
-  }
-  .pad-2 {
-    @apply p-2;
-  }
-  .pad-3 {
-    @apply p-3;
-  }
-  .pad-4 {
-    @apply p-4;
-  }
-  .pad-5 {
-    @apply p-5;
-  }
-  .pad-6 {
-    @apply p-6;
-  }
-  .pad-x-2 {
-    @apply px-2;
-  }
-  .pad-x-3 {
-    @apply px-3;
-  }
-  .pad-x-4 {
-    @apply px-4;
-  }
-  .pad-x-5 {
-    @apply px-5;
-  }
-  .pad-x-6 {
-    @apply px-6;
-  }
-  .pad-y-1 {
-    @apply py-1;
-  }
-  .pad-y-2 {
-    @apply py-2;
-  }
-  .pad-y-3 {
-    @apply py-3;
-  }
-  .pad-y-4 {
-    @apply py-4;
-  }
-  .pad-y-5 {
-    @apply py-5;
-  }
-  .pad-y-6 {
-    @apply py-6;
-  }
-  .space-t-0\.5 {
-    @apply mt-0.5;
-  }
-  .space-t-1 {
-    @apply mt-1;
-  }
-  .space-t-2 {
-    @apply mt-2;
-  }
-  .space-t-3 {
-    @apply mt-3;
-  }
-  .space-t-4 {
-    @apply mt-4;
-  }
-  .space-t-6 {
-    @apply mt-6;
-  }
-  .space-t-8 {
-    @apply mt-8;
-  }
-  .space-b-1 {
-    @apply mb-1;
-  }
-  .space-b-2 {
-    @apply mb-2;
-  }
-  .space-b-3 {
-    @apply mb-3;
-  }
-  .space-b-4 {
-    @apply mb-4;
-  }
-  .space-b-6 {
-    @apply mb-6;
-  }
-  .space-r-1 {
-    @apply mr-1;
-  }
-  .space-r-2 {
-    @apply mr-2;
-  }
-  .space-l-2 {
-    @apply ml-2;
-  }
-  .vstack-1 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-1;
-  }
-  .vstack-2 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-2;
-  }
-  .vstack-3 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-3;
-  }
-  .vstack-4 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-4;
-  }
-  .vstack-6 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-6;
-  }
-  .vstack-8 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-8;
-  }
-  .hstack-2 > :not([hidden]) ~ :not([hidden]) {
-    @apply ml-2;
-  }
-  .border-top {
-    @apply border-t border-border;
-  }
-  .border-bottom {
-    @apply border-b border-border;
-  }
-  .border-none {
-    @apply border-0;
-  }
-
-  /* ---------- Typography glue ---------- */
-  .t-2xs {
-    @apply text-[0.6875rem];
-  }
-  .t-xs {
-    @apply text-xs;
-  }
-  .t-sm {
-    @apply text-sm;
-  }
-  .t-base {
-    @apply text-base;
-  }
-  .t-lg {
-    @apply text-lg;
-  }
-  .t-xl {
-    @apply text-xl;
-  }
-  .t-2xl {
-    @apply text-2xl;
-  }
-  .t-3xl {
-    @apply text-3xl;
-  }
-  .t-medium {
-    @apply font-medium;
-  }
-  .t-semibold {
-    @apply font-semibold;
-  }
-  .t-bold {
-    @apply font-bold;
-  }
-  .t-muted {
-    @apply text-muted-foreground;
-  }
-  .t-brand {
-    @apply text-brand-strong;
-  }
-  .t-danger {
-    @apply text-destructive;
-  }
-  .t-success {
-    @apply text-success;
-  }
-  .t-warning {
-    @apply text-warning;
-  }
-  .t-ai {
-    @apply text-ai;
-  }
-  .t-onbrand {
-    @apply text-on-brand;
-  }
-  .t-tight {
-    @apply tracking-tight;
-  }
-  .t-underline {
-    @apply underline underline-offset-2;
-  }
-  .t-hover-underline {
-    @apply hover:underline;
-  }
-
-  /* ---------- Icons and small shapes ---------- */
-  .ico {
-    @apply size-4 shrink-0;
-  }
-  .ico-xs {
-    @apply size-3 shrink-0;
-  }
-  .ico-sm {
-    @apply size-3.5 shrink-0;
-  }
-  .ico-lg {
-    @apply size-5 shrink-0;
-  }
-  .ico-xl {
-    @apply size-6 shrink-0;
-  }
-  .ico-2xl {
-    @apply size-8 shrink-0;
-  }
-  .shape-square {
-    @apply rounded-lg;
-  }
-  .shape-round {
-    @apply rounded-full;
-  }
-  .color-dot {
-    @apply inline-block size-3 shrink-0 rounded-full;
-  }
-
-  /* ---------- Missing design-system variant ---------- */
   .callout-success {
     border-color: color-mix(in oklab, var(--success) 35%, var(--border));
     background: color-mix(in oklab, var(--success) 9%, transparent);
   }
 
-  /* ---------- Auth shell ---------- */
-  .auth-shell {
-    @apply flex min-h-dvh;
-  }
-  .auth-brand {
-    @apply relative hidden w-[46%] overflow-hidden text-on-brand lg:flex;
-  }
-  .auth-brand-inner {
-    @apply relative z-10 flex w-full flex-col justify-between px-12 py-12;
-  }
-  .auth-logo {
-    @apply flex items-center gap-3;
-  }
-  .auth-logo-mark {
-    @apply flex size-10 items-center justify-center rounded-xl;
-  }
-  .auth-logo-ghost {
-    @apply bg-on-brand/20 backdrop-blur-sm;
-  }
-  .auth-logo-solid {
-    @apply bg-brand-strong text-on-brand;
-  }
-  .auth-title {
-    @apply max-w-md text-4xl font-semibold leading-tight;
-  }
-  .auth-lead {
-    @apply mt-4 text-lg text-on-brand/80;
-  }
-  .auth-feature-list {
-    @apply flex flex-col gap-3 text-sm text-on-brand/90;
-  }
-  .auth-feature-list li {
-    @apply flex items-center gap-3;
-  }
-  .auth-form-panel {
-    @apply flex flex-1 items-center justify-center bg-muted/30 px-4 py-10 sm:px-6 lg:px-8;
-  }
-  .auth-form-wrap {
-    @apply w-full max-w-md;
-  }
-  .auth-form-wrap-wide {
-    @apply w-full max-w-lg;
-  }
-  .auth-mobile-logo {
-    @apply mb-6 flex items-center justify-center gap-3 lg:hidden;
-  }
-  .auth-card-head {
-    @apply px-6 pb-2 pt-6 text-center sm:px-8 sm:pt-8;
-  }
-  .auth-card-title {
-    @apply flex items-center justify-center gap-2 text-2xl font-semibold;
-  }
-  .auth-card-sub {
-    @apply mt-1 text-sm text-muted-foreground;
-  }
-  .auth-card-body {
-    @apply flex flex-col gap-4 px-6 py-6 sm:px-8;
-  }
-  .auth-card-foot {
-    @apply flex flex-col gap-4 border-t border-border px-6 py-6 sm:px-8;
-  }
-  .auth-legal {
-    @apply mt-6 text-center text-xs text-muted-foreground;
-  }
-  .auth-field-grid {
-    @apply grid grid-cols-1 gap-4 sm:grid-cols-2;
-  }
-  .auth-subdomain-status {
-    @apply mt-1 flex items-center gap-2;
-  }
-  .auth-fieldset {
-    @apply flex flex-col gap-4;
-  }
-  .auth-legend {
-    @apply mb-1 flex items-center gap-2 text-sm font-medium;
-  }
-
-  /* ---------- Page composition ---------- */
-  .page-actions {
-    @apply flex flex-wrap items-center gap-2;
-  }
-  .page-toolbar {
-    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
-  }
-  .toolbar-search {
-    @apply w-full sm:max-w-sm;
-  }
-  .filter-bar {
-    @apply flex flex-wrap items-center gap-3;
-  }
-  .stat-grid-3 {
-    @apply grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,13rem),1fr))];
-  }
-  .card-grid {
-    @apply grid gap-4 grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))];
-  }
-  .card-title {
-    @apply text-base font-semibold;
-  }
-  .card-meta {
-    @apply mt-1 text-sm text-muted-foreground;
-  }
-  .card-actions {
-    @apply mt-5 flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-5 py-3 text-xs;
-  }
-  .section-head {
-    @apply mb-3 flex items-center gap-2 text-sm font-medium;
-  }
-  .form-grid {
-    @apply grid grid-cols-1 gap-4 md:grid-cols-2;
-  }
-  .form-actions {
-    @apply flex items-center justify-end gap-2 pt-4;
-  }
-  .dialog-shell {
-    @apply max-h-[85vh] overflow-y-auto;
-  }
-  .dialog-head {
-    @apply flex items-center gap-3 pb-4;
-  }
-  .dialog-icon {
-    @apply flex size-10 shrink-0 items-center justify-center rounded-lg text-on-brand;
-    background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-alt));
-  }
-  .dialog-title {
-    @apply text-xl font-semibold;
-  }
-  .dialog-body {
-    @apply flex flex-col gap-5;
-  }
-  .dialog-foot {
-    @apply flex items-center justify-end gap-2 pt-4;
-  }
-  .stack-5 > :not([hidden]) ~ :not([hidden]) {
-    @apply mt-5;
-  }
-  .search-wrap {
-    @apply relative;
-  }
-  .search-icon {
-    @apply pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground;
-  }
-  .search-input {
-    @apply pl-10;
-  }
-  .table-tools {
-    @apply flex items-center justify-between gap-3;
-  }
-  .table-pager {
-    @apply flex flex-wrap items-center justify-between gap-4 py-4;
-  }
-  .pager-controls {
-    @apply flex items-center gap-2;
-  }
-  .pager-select {
-    @apply h-8 w-[70px] rounded-md border border-input bg-background px-2 text-sm;
-  }
-  .list-row {
-    @apply flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50;
-  }
-  .list-avatar {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-full;
-    background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-alt));
-    color: var(--on-brand);
-  }
-  .list-title {
-    @apply block truncate text-sm font-medium leading-tight;
-  }
-  .list-meta {
-    @apply block truncate text-xs text-muted-foreground;
-  }
   .icon-tile {
     @apply flex size-10 shrink-0 items-center justify-center rounded-lg text-brand-strong;
     background: color-mix(in oklab, var(--brand) 14%, transparent);
   }
-  .icon-tile-brand {
-    @apply text-on-brand;
-    background-image: linear-gradient(135deg, var(--brand), var(--brand-accent));
-  }
-  .chart-box {
-    @apply h-64 w-full;
-  }
-  .chart-empty {
-    @apply flex h-[300px] items-center justify-center text-muted-foreground;
-  }
-  .avatar-stack {
-    @apply flex items-center gap-3;
-  }
-  .stats-icon-success {
-    @apply size-5 text-success;
-  }
-  .stats-icon-brand {
-    @apply size-5 text-brand;
-  }
-  .stats-icon-ai {
-    @apply size-5 text-ai;
-  }
-
-  /* ---------- App shell glue ---------- */
-  .shell-loader {
-    @apply grid min-h-dvh place-items-center bg-background;
-  }
-  .shell-loader-inner {
-    @apply flex flex-col items-center gap-3;
-  }
-  .shell-loader-text {
-    @apply text-sm text-muted-foreground;
-  }
-  .shell-row {
-    @apply flex h-dvh;
-  }
-  .shell-main {
-    @apply flex min-w-0 flex-1 flex-col overflow-y-auto;
-  }
-  .shell-mobile-overlay {
-    @apply fixed inset-0 z-50 lg:hidden;
-  }
-  .shell-mobile-scrim {
-    @apply absolute inset-0 bg-foreground/40;
-  }
-  .shell-mobile-drawer {
-    @apply absolute inset-y-0 left-0;
-  }
-  .shell-logo-tile {
-    @apply flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-strong text-on-brand;
-  }
-  .sidebar-shell {
-    @apply flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200;
-  }
-  .sidebar-collapsed {
-    @apply w-16;
-  }
-  .sidebar-expanded {
-    @apply w-64;
-  }
-  .sidebar-head {
-    @apply flex h-14 shrink-0 items-center gap-2 px-3;
-  }
-  .sidebar-logo {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-strong text-on-brand;
-  }
-  .sidebar-org {
-    @apply min-w-0 flex-1 truncate text-sm font-semibold;
-  }
-  .sidebar-nav {
-    @apply flex flex-1 flex-col gap-0.5 overflow-y-auto p-3;
-  }
-  .sidebar-spacer {
-    @apply mt-auto pt-3;
-  }
-  .sidebar-account {
-    @apply shrink-0 border-t border-sidebar-border p-3;
-  }
-  .sidebar-account-btn {
-    @apply flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-sidebar-accent;
-  }
-  .sidebar-account-name {
-    @apply block truncate text-sm font-medium leading-tight;
-  }
-  .sidebar-account-role {
-    @apply block truncate text-xs text-muted-foreground;
-  }
-  .sidebar-chevron {
-    @apply size-4 shrink-0 text-muted-foreground;
-  }
-  .sidebar-menu {
-    @apply w-60;
-  }
-  .sidebar-loading {
-    @apply flex flex-col gap-2 p-4;
-  }
-
-  /* ---------- Floating theme control ---------- */
-  .theme-toggle {
-    @apply inline-flex size-10 shrink-0 select-none items-center justify-center whitespace-nowrap rounded-full border border-border bg-card/90 text-foreground shadow-float backdrop-blur-sm transition-colors hover:bg-card fixed right-4 top-4 z-50;
-  }
-  .theme-toggle-placeholder {
-    @apply fixed right-4 top-4 z-50 size-10;
-  }
-
-  /* ---------- Chat helpers ---------- */
-  .chat-fs-shell {
-    @apply fixed inset-0 z-50 bg-background sm:p-4;
-  }
-  .chat-fs-inner {
-    @apply mx-auto h-full max-w-4xl;
-  }
-  .chat-h700 {
-    @apply flex h-[700px] flex-col items-center justify-center gap-6 text-center;
-  }
-  .chat-round-2xl {
-    @apply !rounded-2xl;
-  }
-  .chat-actions {
-    @apply flex flex-wrap items-center gap-2 opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100;
-  }
-  .chat-actions-visible {
-    @apply opacity-100;
-  }
-  .chat-header-title {
-    @apply truncate text-sm font-semibold;
-  }
-  .chat-header-meta {
-    @apply flex items-center gap-1.5 text-xs text-muted-foreground;
-  }
-  .chat-avatar-big {
-    @apply relative inline-flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-base font-semibold text-secondary-foreground;
-  }
-
-  /* ---------- Knowledge base helpers ---------- */
-  .kb-wrap {
-    @apply mx-auto max-w-4xl;
-  }
-  .kb-stat-skeleton {
-    @apply h-28 !rounded-xl;
-  }
-  .kb-banner-skeleton {
-    @apply h-56 !rounded-xl;
-  }
-  .kb-progress-value {
-    @apply !text-lg !leading-9;
-  }
-  .kb-progress-label {
-    @apply flex justify-between text-sm;
-  }
-  .kb-progress-grid {
-    @apply grid gap-3 text-sm sm:grid-cols-2;
-  }
-  .kb-debug {
-    @apply w-full max-w-md cursor-pointer text-left text-sm;
-  }
-  .kb-error {
-    @apply mt-0.5 size-4 shrink-0 text-destructive;
-  }
-
-  /* ---------- Upload helpers ---------- */
-  .upload-icon {
-    @apply !size-12 !rounded-xl;
-  }
-  .upload-title {
-    @apply text-lg font-semibold;
-  }
-  .upload-file-name {
-    @apply min-w-0 flex-1 truncate font-medium;
-  }
-
-  /* ---------- 404 ---------- */
-  .notfound-shell {
-    @apply flex min-h-dvh items-center justify-center bg-background px-4;
-  }
-  .notfound-card {
-    @apply w-full max-w-md text-center;
-  }
-  .notfound-code {
-    @apply select-none text-9xl font-extrabold text-muted;
-  }
-  .notfound-code-inner {
-    @apply relative -mt-12 text-6xl font-extrabold text-foreground;
-  }
-  .notfound-actions {
-    @apply flex flex-col gap-3 sm:flex-row sm:justify-center;
-  }
-  .notfound-links {
-    @apply mt-6 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground;
-  }
-  .notfound-progress {
-    @apply mt-6 h-2 w-full overflow-hidden rounded-full bg-muted;
-  }
-  .notfound-progress-fill {
-    @apply h-full bg-brand transition-[width] duration-1000 ease-linear;
-  }
 }
 
-/* ---------- Primitive classes (shadcn/Radix contract) ---------- */
+
+
+/* ==========================================================================
+   8. AUTH PAGES (login + register)
+   Paste this at the END of globals.css. It only adds new classes, so
+   nothing existing is changed.
+   ========================================================================== */
 
 @layer components {
-  .ui-button {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive;
-  }
-  .ui-button-default {
-    @apply bg-primary text-primary-foreground shadow-xs hover:bg-primary/90;
-  }
-  .ui-button-destructive {
-    @apply bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60;
-  }
-  .ui-button-outline {
-    @apply border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50;
-  }
-  .ui-button-secondary {
-    @apply bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80;
-  }
-  .ui-button-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50;
-  }
-  .ui-button-link {
-    @apply text-primary underline-offset-4 hover:underline;
-  }
-  .ui-button-size-default {
-    @apply h-9 px-4 py-2 has-[>svg]:px-3;
-  }
-  .ui-button-size-sm {
-    @apply h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5;
-  }
-  .ui-button-size-lg {
-    @apply h-10 rounded-md px-6 has-[>svg]:px-4;
-  }
-  .ui-button-size-icon {
-    @apply size-9;
+  /* ---------- Brand panel ---------- */
+  .auth-aurora {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(70% 55% at 15% 10%, color-mix(in oklab, var(--brand-alt-accent) 85%, transparent), transparent 65%),
+      radial-gradient(60% 50% at 90% 30%, color-mix(in oklab, var(--brand-accent) 70%, transparent), transparent 65%),
+      radial-gradient(70% 60% at 30% 100%, color-mix(in oklab, var(--brand) 60%, transparent), transparent 65%),
+      linear-gradient(160deg, var(--brand-alt), color-mix(in oklab, var(--brand-alt) 55%, black));
   }
 
-  .ui-card {
-    @apply flex flex-col gap-6 rounded-xl border py-6 shadow-sm bg-card text-card-foreground;
+  .auth-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    pointer-events: none;
+    animation: auth-drift 18s ease-in-out infinite alternate;
   }
-  .ui-card-header {
-    @apply grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6;
+  .auth-orb-a {
+    width: 22rem;
+    height: 22rem;
+    top: -6rem;
+    right: -4rem;
+    background: color-mix(in oklab, var(--brand-highlight) 30%, transparent);
   }
-  .ui-card-title {
-    @apply leading-none font-semibold;
-  }
-  .ui-card-description {
-    @apply text-sm text-muted-foreground;
-  }
-  .ui-card-action {
-    @apply col-start-2 row-span-2 row-start-1 self-start justify-self-end;
-  }
-  .ui-card-content {
-    @apply px-6;
-  }
-  .ui-card-footer {
-    @apply flex items-center [.border-t]:pt-6;
-  }
-
-  .ui-badge {
-    @apply inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden;
-  }
-  .ui-badge-default {
-    @apply bg-primary text-primary-foreground [a&]:hover:bg-primary/90;
-  }
-  .ui-badge-secondary {
-    @apply bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90;
-  }
-  .ui-badge-destructive {
-    @apply bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60;
-  }
-  .ui-badge-outline {
-    @apply border-ring text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground;
+  .auth-orb-b {
+    width: 20rem;
+    height: 20rem;
+    bottom: 10%;
+    left: -6rem;
+    background: color-mix(in oklab, var(--brand) 45%, transparent);
+    animation-delay: -9s;
   }
 
-  .ui-input {
-    @apply flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive;
-  }
-  .ui-label {
-    @apply flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50;
-  }
-  .ui-textarea {
-    @apply flex field-sizing-content min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive;
+  .auth-pill {
+    @apply inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium backdrop-blur-md;
+    border-color: color-mix(in oklab, var(--on-brand) 25%, transparent);
+    background: color-mix(in oklab, var(--on-brand) 12%, transparent);
+    color: var(--on-brand);
   }
 
-  .ui-checkbox {
-    @apply size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary;
+  .auth-float {
+    animation: auth-float 7s ease-in-out infinite;
   }
-  .ui-checkbox-indicator {
-    @apply flex items-center justify-center text-current transition-none;
-  }
-  .ui-switch {
-    @apply inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-all outline-none data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .ui-switch-thumb {
-    @apply pointer-events-none block size-4 rounded-full bg-background ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0 dark:bg-primary-foreground;
-  }
-  .ui-toggle {
-    @apply inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[state=on]:bg-accent data-[state=on]:text-accent-foreground;
-  }
-  .ui-toggle-default {
-    @apply bg-transparent;
-  }
-  .ui-toggle-outline {
-    @apply border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground;
-  }
-  .ui-toggle-size-default {
-    @apply h-9 px-2 min-w-9;
-  }
-  .ui-toggle-size-sm {
-    @apply h-8 px-1.5 min-w-8;
-  }
-  .ui-toggle-size-lg {
-    @apply h-10 px-2.5 min-w-10;
+  .auth-float-b {
+    animation-duration: 8.5s;
+    animation-delay: -3s;
   }
 
-  .ui-tabs {
-    @apply flex flex-col gap-2;
-  }
-  .ui-tabs-list {
-    @apply inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-[3px];
-  }
-  .ui-tabs-trigger {
-    @apply inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap text-muted-foreground transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0;
-  }
-  .ui-tabs-content {
-    @apply flex-1 outline-none;
+  /* ---------- Form panel ---------- */
+  .auth-form-bg {
+    background:
+      radial-gradient(50% 40% at 80% 0%, color-mix(in oklab, var(--brand) 9%, transparent), transparent 70%),
+      radial-gradient(45% 40% at 0% 100%, color-mix(in oklab, var(--brand-alt) 8%, transparent), transparent 70%),
+      var(--background);
   }
 
-  .ui-table-wrap {
-    @apply relative w-full overflow-x-auto;
+  .auth-panel {
+    @apply relative rounded-3xl border border-border bg-card p-6 sm:p-9;
+    box-shadow: var(--elev-lift);
   }
-  .ui-table {
-    @apply w-full caption-bottom text-sm;
-  }
-  .ui-table-header {
-    @apply [&_tr]:border-b;
-  }
-  .ui-table-body {
-    @apply [&_tr:last-child]:border-0;
-  }
-  .ui-table-footer {
-    @apply border-t bg-muted/50 font-medium [&>tr]:last:border-b-0;
-  }
-  .ui-table-row {
-    @apply border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted;
-  }
-  .ui-table-head {
-    @apply h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
-  }
-  .ui-table-cell {
-    @apply p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
-  }
-  .ui-table-caption {
-    @apply mt-4 text-sm text-muted-foreground;
+  /* Hairline brand gradient along the top edge */
+  .auth-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 2rem auto 2rem;
+    height: 2px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, transparent, var(--brand), var(--brand-alt), transparent);
+    opacity: 0.8;
   }
 
-  .ui-dialog-overlay {
-    @apply fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0;
-  }
-  .ui-dialog-content {
-    @apply grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-lg;
-  }
-  .ui-dialog-close {
-    @apply absolute right-4 top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground;
-  }
-  .ui-dialog-header {
-    @apply flex flex-col gap-2 text-center sm:text-left;
-  }
-  .ui-dialog-footer {
-    @apply flex flex-col-reverse gap-2 sm:flex-row sm:justify-end;
-  }
-  .ui-dialog-title {
-    @apply text-lg leading-none font-semibold;
-  }
-  .ui-dialog-description {
-    @apply text-sm text-muted-foreground;
-  }
-  .ui-alert-dialog-content {
-    @apply fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-lg;
+  .auth-icon {
+    background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-alt));
+    color: var(--on-brand);
+    box-shadow: 0 8px 20px color-mix(in oklab, var(--brand-alt) 35%, transparent);
   }
 
-  .ui-dropdown-content {
-    @apply z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
-  }
-  .ui-dropdown-item {
-    @apply relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[inset]:pl-8;
-  }
-  .ui-dropdown-label {
-    @apply px-2 py-1.5 text-sm font-medium;
-  }
-  .ui-dropdown-separator {
-    @apply -mx-1 my-1 h-px bg-border;
-  }
-  .ui-dropdown-shortcut {
-    @apply ml-auto text-xs tracking-widest text-muted-foreground;
-  }
-  .ui-dropdown-sub-trigger {
-    @apply flex cursor-default items-center items-center justify-center rounded-sm py-1.5 pr-2 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
-  }
-  .ui-dropdown-sub-content {
-    @apply z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
+  .auth-input {
+    @apply h-11;
   }
 
-  .ui-popover-content {
-    @apply z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
+  .auth-divider {
+    @apply flex items-center gap-3 text-xs text-muted-foreground;
   }
-  .ui-tooltip-content {
-    @apply z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md bg-primary px-3 py-1.5 text-xs text-balance text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95;
-  }
-  .ui-tooltip-arrow {
-    @apply z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-primary fill-primary;
-  }
-
-  .ui-select-trigger {
-    @apply flex w-fit items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
-  }
-  .ui-select-content {
-    @apply max-h-(--radix-select-content-available-height) origin-(--radix-select-content-transform-origin) z-50 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
-  }
-  .ui-select-item {
-    @apply relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-1.5 pl-2 pr-8 text-sm outline-hidden focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
-  }
-  .ui-select-label {
-    @apply text-muted-foreground px-2 py-1.5 text-xs;
-  }
-  .ui-select-separator {
-    @apply -mx-1 my-1 h-px bg-border;
-  }
-  .ui-select-scroll {
-    @apply flex cursor-default items-center justify-center py-1;
+  .auth-divider::before,
+  .auth-divider::after {
+    content: "";
+    @apply h-px flex-1 bg-border;
   }
 
-  .ui-alert {
-    @apply relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current;
-  }
-  .ui-alert-default {
-    @apply bg-card text-card-foreground [&>svg]:text-current *:data-[slot=alert-description]:text-muted-foreground;
-  }
-  .ui-alert-destructive {
-    @apply text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90;
-  }
-  .ui-alert-title {
-    @apply col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight;
-  }
-  .ui-alert-description {
-    @apply col-start-2 grid justify-items-start gap-1 text-sm text-muted-foreground [&_p]:leading-relaxed;
+  .auth-rule {
+    @apply h-px w-full bg-border/70;
   }
 
-  .ui-progress {
-    @apply relative h-2 w-full overflow-hidden rounded-full bg-primary/20;
+  /* Password strength meter: <div class="strength" data-score="0..4"><span/>x4</div> */
+  .strength {
+    @apply flex flex-1 gap-1;
   }
-  .ui-progress-indicator {
-    @apply h-full w-full flex-1 bg-primary transition-all;
+  .strength > span {
+    @apply h-1 flex-1 rounded-full bg-secondary transition-colors duration-300;
   }
-  .ui-skeleton {
-    @apply animate-pulse rounded-md bg-primary/10;
-  }
-  .ui-separator {
-    @apply shrink-0 bg-border data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px;
-  }
-  .ui-scroll-area {
-    @apply relative overflow-hidden;
-  }
-  .ui-scroll-bar {
-    @apply flex touch-none p-px transition-colors select-none data-[orientation=vertical]:h-full data-[orientation=vertical]:w-2.5 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-transparent data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:border-t data-[orientation=horizontal]:border-t-transparent;
-  }
-  .ui-scroll-thumb {
-    @apply relative flex-1 rounded-full bg-border;
-  }
-
-  .ui-sheet-overlay {
-    @apply fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0;
-  }
-  .ui-sheet-content {
-    @apply fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out;
-  }
-  .ui-sheet-side-right {
-    @apply inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm;
-  }
-  .ui-sheet-side-left {
-    @apply inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm;
-  }
-  .ui-sheet-side-top {
-    @apply inset-x-0 top-0 h-auto border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top;
-  }
-  .ui-sheet-side-bottom {
-    @apply inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom;
-  }
-  .ui-sheet-close {
-    @apply absolute right-4 top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary;
-  }
-  .ui-sheet-header {
-    @apply flex flex-col gap-1.5 p-4;
-  }
-  .ui-sheet-footer {
-    @apply mt-auto flex flex-col gap-2 p-4;
-  }
-  .ui-sheet-title {
-    @apply font-semibold leading-none tracking-tight text-foreground;
-  }
-  .ui-sheet-description {
-    @apply text-sm text-muted-foreground;
-  }
-
-  .ui-accordion-item {
-    @apply border-b;
-  }
-  .ui-accordion-trigger {
-    @apply flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180;
-  }
-  .ui-accordion-icon {
-    @apply pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200;
-  }
-  .ui-accordion-content {
-    @apply overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down;
-  }
-  .ui-accordion-content-inner {
-    @apply pt-0 pb-4;
-  }
-
-  .ui-command {
-    @apply flex h-full w-full flex-col overflow-hidden rounded-md;
-  }
-  .ui-command-input-wrap {
-    @apply flex h-9 items-center gap-2 border-b px-3;
-  }
-  .ui-command-input {
-    @apply flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  .ui-command-input-icon {
-    @apply size-4 shrink-0 opacity-50;
-  }
-  .ui-command-list {
-    @apply max-h-[300px] overflow-x-hidden overflow-y-auto;
-  }
-  .ui-command-empty {
-    @apply py-6 text-center text-sm;
-  }
-  .ui-command-group {
-    @apply overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground;
-  }
-  .ui-command-separator {
-    @apply -mx-1 h-px bg-border;
-  }
-  .ui-command-item {
-    @apply relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
-  }
-  .ui-command-shortcut {
-    @apply ml-auto text-xs tracking-widest text-muted-foreground;
-  }
-  .ui-command-dialog {
-    @apply overflow-hidden p-0;
-  }
-
-  .ui-form-item {
-    @apply grid gap-2;
-  }
-  .ui-form-label {
-    @apply text-sm;
-  }
-  .ui-form-description {
-    @apply text-sm text-muted-foreground;
-  }
-  .ui-form-message {
-    @apply text-sm text-destructive;
-  }
-
-  .ui-navigation {
-    @apply relative flex max-w-max flex-1 items-center justify-center;
-  }
-  .ui-navigation-list {
-    @apply flex flex-1 list-none items-center justify-center gap-1;
-  }
-  .ui-navigation-trigger {
-    @apply relative inline-flex h-9 w-max items-center justify-center gap-1 rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-accent/50 data-[active]:bg-accent/50;
-  }
-  .ui-navigation-viewport {
-    @apply absolute top-full left-0 isolate z-50 flex justify-center;
-  }
-  .ui-navigation-content {
-    @apply w-full max-w-max origin-top bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative h-[var(--radix-navigation-menu-viewport-height)] overflow-hidden rounded-md border shadow-sm md:w-[var(--radix-navigation-menu-viewport-width)];
-  }
-  .ui-navigation-link {
-    @apply inline-flex w-full items-center rounded-md p-2 text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none;
-  }
-  .ui-navigation-indicator {
-    @apply top-[60%] ml-1 size-2 rotate-45 rounded-tl-sm bg-primary shadow-md;
-  }
-  .ui-navigation-content-primitive {
-    @apply absolute top-full left-0 w-full data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto;
-  }
-  .ui-navigation-indicator-wrap {
-    @apply relative h-[10px] w-full;
-  }
-  .ui-navigation-indicator-wrap[data-state="visible"] {
-    @apply animate-in fade-in slide-in-from-bottom;
-  }
-  .ui-navigation-indicator-wrap[data-state="hidden"] {
-    @apply animate-out fade-out slide-out-to-bottom;
-  }
-  .ui-navigation-trigger-chevron {
-    @apply size-3 transition duration-300 group-data-[state=open]:rotate-180;
-  }
-  .ui-avatar {
-    @apply relative flex size-8 shrink-0 overflow-hidden rounded-full bg-muted;
-  }
-  .ui-avatar-image {
-    @apply aspect-square size-full;
-  }
-  .ui-avatar-fallback {
-    @apply flex size-full items-center justify-center;
-  }
-  .ui-dropdown-item-indicator {
-    @apply pointer-events-none absolute left-2 flex size-3.5 items-center justify-center;
-  }
-  .ui-form-label-error {
-    @apply data-[error=true]:text-destructive;
-  }
-  .toaster {
-  }
+  .strength[data-score="1"] > span:nth-child(-n + 1) { background: var(--destructive); }
+  .strength[data-score="2"] > span:nth-child(-n + 2) { background: var(--warning); }
+  .strength[data-score="3"] > span:nth-child(-n + 3) { background: var(--brand); }
+  .strength[data-score="4"] > span:nth-child(-n + 4) { background: var(--success); }
 }
 
-/* ---------- Loading and sizing helpers ---------- */
-
-@layer components {
-  .skeleton-line {
-    @apply h-4 w-full;
-  }
-  .skeleton-line-short {
-    @apply h-4 w-32;
-  }
-  .skeleton-heading {
-    @apply h-8 w-56;
-  }
-  .skeleton-overline {
-    @apply h-4 w-80;
-  }
-  .skeleton-input {
-    @apply h-10 w-32;
-  }
-  .skeleton-card {
-    @apply h-28 w-full;
-  }
-  .skeleton-banner {
-    @apply h-56 w-full;
-  }
-  .skeleton-bubble {
-    @apply h-14 w-64;
-  }
-  .chat-max-width {
-    @apply max-w-xs;
-  }
-  .view-h {
-    @apply h-dvh;
-  }
-  .brand-swatch {
-    background-color: var(--brand);
-  }
-  .muted-swatch {
-    background-color: var(--muted-foreground);
-  }
+@keyframes auth-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes auth-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(30px, 20px) scale(1.12); }
 }

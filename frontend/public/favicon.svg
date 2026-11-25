@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    
+    <linearGradient id="cs-ribbon-top" x1="86" y1="88" x2="212" y2="66" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#312E81" />
+      <stop offset="48%" stop-color="#3B82F6" stop-opacity="0.15" />
+      <stop offset="50%" stop-color="#0D9488" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+
+    
+    <linearGradient id="cs-ribbon-mid" x1="68" y1="62" x2="188" y2="146" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4338CA" />
+      <stop offset="55%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#6EE7B7" />
+    </linearGradient>
+
+    
+    <linearGradient id="cs-crescent-left" x1="46" y1="68" x2="148" y2="206" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="55%" stop-color="#1E1B4B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    
+    <linearGradient id="cs-arrow-bottom" x1="112" y1="220" x2="204" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#312E81" />
+      <stop offset="55%" stop-color="#1D4ED8" stop-opacity="0" />
+      <stop offset="56%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+
+    
+    <linearGradient id="cs-bubble" x1="128" y1="92" x2="128" y2="164" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6EE7B7" />
+      <stop offset="45%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+
+  
+  <path d="M 108 38
+       C 72 48, 56 84, 72 118
+       C 80 134, 92 142, 102 146
+       L 106 130
+       C 94 122, 86 106, 92 88
+       C 98 70, 118 62, 138 72
+       C 156 82, 168 104, 174 134
+       L 196 124
+       C 188 86, 160 48, 122 38
+       Z" fill="url(#cs-ribbon-mid)" />
+
+  
+  <path d="M 96 96
+       C 92 72, 110 46, 144 42
+       C 164 40, 182 46, 194 54
+       L 202 36
+       L 220 96
+       L 164 96
+       L 174 78
+       C 162 70, 144 68, 128 74
+       C 112 80, 102 90, 96 96 Z" fill="url(#cs-ribbon-top)" />
+
+  
+  <path d="M 56 68
+       C 32 104, 34 156, 62 188
+       L 54 198
+       L 72 196
+       C 98 216, 138 216, 164 192
+       C 172 184, 178 174, 180 164
+       C 164 182, 136 188, 110 180
+       C 76 170, 56 134, 60 96
+       C 62 84, 64 74, 56 68 Z" fill="url(#cs-crescent-left)" />
+
+  
+  <path d="M 110 218
+       C 146 226, 186 208, 204 176
+       L 222 184
+       L 210 112
+       L 158 152
+       L 176 160
+       C 164 186, 138 206, 110 218 Z" fill="url(#cs-arrow-bottom)" />
+
+  
+  <path d="M 128 92
+       C 103.5 92, 84 107.8, 84 127.5
+       C 84 136.8, 88.4 145.2, 95.6 151.5
+       L 90.5 166
+       L 108.5 159.5
+       C 114.6 161.7, 121.2 163, 128 163
+       C 152.5 163, 172 147.2, 172 127.5
+       C 172 107.8, 152.5 92, 128 92 Z" fill="url(#cs-bubble)" />
+
+  
+  <circle cx="114.5" cy="127.5" r="6" fill="#FFFFFF" />
+  <circle cx="141.5" cy="127.5" r="6" fill="#FFFFFF" />
+</svg>

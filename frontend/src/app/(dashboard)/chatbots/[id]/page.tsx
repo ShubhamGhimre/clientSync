@@ -43,9 +43,9 @@ function Stat({
 }) {
   return (
     <div className="stat-card">
-      <div className="row-between">
+      <div className="flex items-center justify-between">
         <span className="stat-label">{label}</span>
-        <Icon className="ico t-muted" />
+        <Icon className="size-4 shrink-0 text-muted-foreground" />
       </div>
       <span className="stat-value">{value}</span>
       <span className="field-hint">{note}</span>
@@ -73,15 +73,15 @@ export default function ChatbotDetailPage() {
   if (isLoading) {
     return (
       <div className="page" aria-busy="true">
-        <div className="skeleton space-b-6" />
+        <div className="skeleton mb-6" />
         <div className="page-header">
-          <div className="stack-sm">
+          <div className="flex flex-col gap-2">
             <div className="skeleton" />
             <div className="skeleton" />
           </div>
           <div className="skeleton" />
         </div>
-        <div className="skeleton space-b-6" />
+        <div className="skeleton mb-6" />
         <div className="grid-stats">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="skeleton" />
@@ -97,10 +97,10 @@ export default function ChatbotDetailPage() {
       <div className="page-narrow">
         <div className="empty-state">
           <span className="doc-icon">
-            <Bot className="ico-xl" />
+            <Bot className="size-6 shrink-0" />
           </span>
-          <h1 className="empty-state-title">Couldn&apos;t load this chatbot</h1>
-          <p className="empty-state-text">
+          <h1 className="text-base font-semibold">Couldn&apos;t load this chatbot</h1>
+          <p className="max-w-sm text-sm text-muted-foreground">
             It may have been deleted, or something went wrong. Try again, or go back to your chatbots.
           </p>
           <div className="cluster">
@@ -120,20 +120,20 @@ export default function ChatbotDetailPage() {
 
   return (
     <div className="page">
-      <Link href="/chatbots" className="btn btn-ghost btn-sm space-b-4">
+      <Link href="/chatbots" className="btn btn-ghost btn-sm mb-4">
         <ArrowLeft />
         Chatbots
       </Link>
 
       {/* Header */}
       <header className="page-header">
-        <div className="row-start min-zero g-4">
+        <div className="flex items-start min-w-0 gap-4">
           <span className="doc-icon">
-            <Bot className="ico-xl" />
+            <Bot className="size-6 shrink-0" />
           </span>
-          <div className="min-zero">
-            <div className="cluster g-3">
-              <h1 className="page-title ellipsis">{chatbot.name}</h1>
+          <div className="min-w-0">
+            <div className="cluster gap-3">
+              <h1 className="page-title overflow-hidden text-ellipsis whitespace-nowrap">{chatbot.name}</h1>
               <span className={`badge ${ready ? 'badge-success' : 'badge-warning'}`}>
                 <span className={`status-dot ${ready ? 'is-online' : 'is-busy'}`} />
                 {ready ? 'Ready' : 'Setup pending'}
@@ -156,7 +156,7 @@ export default function ChatbotDetailPage() {
       </header>
 
       {/* Tabs */}
-      <div className="space-b-6 scroll-x">
+      <div className="mb-6 overflow-x-auto">
         <div className="tabs" role="tablist" aria-label="Chatbot sections">
           {TABS.map((tab) => (
             <button
@@ -166,7 +166,7 @@ export default function ChatbotDetailPage() {
               id={`tab-${tab.id}`}
               aria-selected={activeTab === tab.id}
               aria-controls={`panel-${tab.id}`}
-              className="tab ellipsis"
+              className="tab overflow-hidden text-ellipsis whitespace-nowrap"
               onClick={() => setTab(tab.id)}
             >
               {tab.label}
@@ -177,7 +177,7 @@ export default function ChatbotDetailPage() {
 
       <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
         {activeTab === 'overview' && (
-          <div className="stack-lg">
+          <div className="flex flex-col gap-8">
             <section className="grid-stats">
               <Stat
                 label="Knowledge chunks"
@@ -207,13 +207,13 @@ export default function ChatbotDetailPage() {
 
             {!ready && (
               <div className="callout callout-warning">
-                <FileText className="space-t-0.5 ico t-warning" />
-                <div className="stack-sm">
-                  <p className="t-medium">Finish setting up this chatbot</p>
-                  <p className="t-muted">
+                <FileText className="space-t-0.5 size-4 shrink-0 text-warning" />
+                <div className="flex flex-col gap-2">
+                  <p className="font-medium">Finish setting up this chatbot</p>
+                  <p className="text-muted-foreground">
                     Upload your documents, then build the knowledge base so it can answer questions.
                   </p>
-                  <div className="cluster space-t-1">
+                  <div className="cluster mt-1">
                     <button type="button" className="btn btn-secondary btn-sm" onClick={() => setTab('files')}>
                       Upload files
                     </button>
@@ -228,7 +228,7 @@ export default function ChatbotDetailPage() {
         )}
 
         {activeTab === 'files' && (
-          <div className="stack-lg">
+          <div className="flex flex-col gap-8">
             <FileUpload chatbotId={chatbotId} />
             <div className="surface surface-pad">
               <FilesTable chatbotId={chatbotId} />
@@ -243,7 +243,7 @@ export default function ChatbotDetailPage() {
         )}
 
         {activeTab === 'chat' && (
-          <div className="surface clip">
+          <div className="surface overflow-hidden">
             <ChatInterface chatbotId={chatbotId} />
           </div>
         )}
@@ -251,10 +251,10 @@ export default function ChatbotDetailPage() {
         {activeTab === 'analytics' && (
           <div className="empty-state">
             <span className="doc-icon">
-              <Sparkles className="ico-xl" />
+              <Sparkles className="size-6 shrink-0" />
             </span>
-            <h2 className="empty-state-title">Analytics are coming soon</h2>
-            <p className="empty-state-text">
+            <h2 className="text-base font-semibold">Analytics are coming soon</h2>
+            <p className="max-w-sm text-sm text-muted-foreground">
               You&apos;ll see how often this chatbot resolves questions, what customers ask, and where your documents have gaps.
             </p>
           </div>

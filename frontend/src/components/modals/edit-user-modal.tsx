@@ -151,15 +151,15 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="dialog-shell">
-        <DialogHeader className="dialog-head">
-          <div className="row g-3">
-            <div className="dialog-icon">
-              <Edit className="ico-lg" />
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="flex items-center gap-3 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="icon-tile brand-gradient-alt text-on-brand">
+              <Edit className="size-5 shrink-0" />
             </div>
             <div>
-              <DialogTitle className="dialog-title">Edit User</DialogTitle>
-              <DialogDescription className="t-sm t-muted">
+              <DialogTitle className="text-xl font-semibold">Edit User</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
                 Update user information and permissions
               </DialogDescription>
             </div>
@@ -168,23 +168,23 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
 
         {isOwnAccount && (
           <div role="alert" className="callout callout-warning">
-            <AlertTriangle className="ico t-warning" />
-            <p className="t-warning">
+            <AlertTriangle className="size-4 shrink-0 text-warning" />
+            <p className="text-warning">
               You are editing your own account. Some options may be restricted.
             </p>
           </div>
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="dialog-body">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
             {/* Personal Information */}
-            <div className="col g-3">
-              <div className="section-head">
-                <User className="ico" />
+            <div className="flex flex-col gap-3">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <User className="size-4 shrink-0" />
                 Personal Information
               </div>
               
-              <div className="form-grid">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -227,8 +227,8 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="ui-label">
-                      <Mail className="ico" />
+                    <FormLabel className="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50">
+                      <Mail className="size-4 shrink-0" />
                       Email Address
                     </FormLabel>
                     <FormControl>
@@ -246,14 +246,14 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
             </div>
 
             {/* Role & Status */}
-            <div className="col g-3">
-              <div className="section-head">
-                <Shield className="ico" />
+            <div className="flex flex-col gap-3">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <Shield className="size-4 shrink-0" />
                 Role & Status
               </div>
 
-              <div className="row g-3">
-                <div className="flex-fill">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
                   <FormField
                     control={form.control}
                     name="role"
@@ -272,20 +272,20 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="VIEWER">
-                              <div className="row g-2">
-                                <Eye className="ico-sm" />
+                              <div className="flex items-center gap-2">
+                                <Eye className="size-3.5 shrink-0" />
                                 <span>Viewer</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="AGENT">
-                              <div className="row g-2">
-                                <Briefcase className="ico-sm" />
+                              <div className="flex items-center gap-2">
+                                <Briefcase className="size-3.5 shrink-0" />
                                 <span>Agent</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="ADMIN">
-                              <div className="row g-2">
-                                <Crown className="ico-sm" />
+                              <div className="flex items-center gap-2">
+                                <Crown className="size-3.5 shrink-0" />
                                 <span>Admin</span>
                               </div>
                             </SelectItem>
@@ -302,10 +302,10 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
                   />
                 </div>
 
-                <div className="center">
-                  <div className="center surface-muted g-2">
-                    <div className="center shape-square pad-1 icon-tile-brand">
-                      <roleConfig.icon className="ico-xs" />
+                <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center surface-muted gap-2">
+                    <div className="flex items-center justify-center rounded-lg p-1 icon-tile brand-gradient text-on-brand">
+                      <roleConfig.icon className="size-3 shrink-0" />
                     </div>
                     <Badge variant={roleConfig.badgeVariant} className="badge">
                       {roleConfig.label}
@@ -319,7 +319,7 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
                 name="isActive"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="row-between pad-3 surface-muted">
+                    <div className="flex items-center justify-between p-3 surface-muted">
                       <div>
                         <FormLabel className="label">Active Account</FormLabel>
                         <p className="field-hint">
@@ -343,7 +343,7 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
               />
             </div>
 
-            <DialogFooter className="dialog-foot">
+            <DialogFooter className="flex items-center justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -360,12 +360,12 @@ export function EditUserModal({ open, onOpenChange, user, currentUserId }: EditU
               >
                 {updateUserMutation.isPending ? (
                   <>
-                    <Loader2 className="ico space-r-2 spin" />
+                    <Loader2 className="size-4 shrink-0 mr-2 animate-spin" />
                     Updating...
                   </>
                 ) : (
                   <>
-                    <Edit className="ico space-r-2" />
+                    <Edit className="size-4 shrink-0 mr-2" />
                     Update User
                   </>
                 )}
