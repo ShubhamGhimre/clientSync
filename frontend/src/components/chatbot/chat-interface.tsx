@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send,
-  Bot,
   RefreshCw,
   MessageSquare,
   Copy,
@@ -25,6 +24,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { BrandMark } from '@/components/logo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -162,9 +162,7 @@ const MessageComponent = ({
   return (
     <div className={`msg group ${isUser ? 'msg-user' : 'msg-bot'}`}>
       {!isUser && (
-        <span className="avatar avatar-sm avatar-ai" aria-hidden="true">
-          <Bot className="size-3.5 shrink-0" />
-        </span>
+        <span className="avatar avatar-sm" aria-hidden="true"><BrandMark size={18} /></span>
       )}
 
       <div className="msg-body">
@@ -381,9 +379,7 @@ const ChatRoomInitializer = ({
   if (chatRoomsLoading || isInitializing || createChatRoomMutation.isPending) {
     return (
       <div className="flex h-[700px] flex-col items-center justify-center gap-6 text-center">
-        <span className="avatar avatar-ai avatar-lg" aria-hidden="true">
-          <Bot className="size-6 shrink-0" />
-        </span>
+        <span className="avatar avatar-lg" aria-hidden="true"><BrandMark size={30} /></span>
         <div className="flex flex-col gap-2 items-center justify-center">
           <h3 className="text-lg font-semibold">
             {chatRoomsLoading ? 'Loading chat' : 'Setting up chat'}
@@ -678,9 +674,7 @@ const ChatInterfaceMain = ({
       >
         {showHeader && (
           <header className="chat-header">
-            <span className="avatar avatar-ai" aria-hidden="true">
-              <Bot className="size-4 shrink-0" />
-            </span>
+            <span className="avatar" aria-hidden="true"><BrandMark size={22} /></span>
 
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-sm font-semibold">
@@ -789,9 +783,7 @@ const ChatInterfaceMain = ({
 
           {isBusy && (
             <div className="msg msg-bot">
-              <span className="avatar avatar-sm avatar-ai" aria-hidden="true">
-                <Bot className="size-3.5 shrink-0" />
-              </span>
+              <span className="avatar avatar-sm" aria-hidden="true"><BrandMark size={18} /></span>
               <div className="typing" role="status" aria-label="Assistant is typing">
                 <span />
                 <span />
