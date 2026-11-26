@@ -86,7 +86,7 @@ export default function Sidebar({ className }: SidebarProps) {
   const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   const shell = cn(
-    'relative flex h-full flex-col overflow-hidden border-r border-border/80 bg-background/95 text-foreground transition-[width] duration-200',
+    'relative flex h-full flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200',
     collapsed ? 'w-[68px]' : 'w-64',
     className
   );
@@ -94,12 +94,12 @@ export default function Sidebar({ className }: SidebarProps) {
   if (!isAuthenticated || isLoading || !displayUser) {
     return (
       <aside className={shell} aria-busy="true" aria-label="Loading navigation">
-        <div className="flex flex-col gap-2.5 p-4">
-          <div className="skeleton h-8 w-44 rounded-lg" />
-          <div className="skeleton mt-4 h-9 w-full rounded-xl" />
-          <div className="skeleton h-8 w-full rounded-lg" />
-          <div className="skeleton h-8 w-full rounded-lg" />
-          <div className="skeleton h-8 w-full rounded-lg" />
+        <div className="flex flex-col gap-2.5 p-3.5">
+          <div className="h-8 w-40 animate-pulse rounded-lg bg-muted" />
+          <div className="mt-3 h-9 w-full animate-pulse rounded-xl bg-muted" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-muted" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-muted" />
+          <div className="h-8 w-full animate-pulse rounded-lg bg-muted" />
         </div>
       </aside>
     );
@@ -116,48 +116,48 @@ export default function Sidebar({ className }: SidebarProps) {
   const navClass = (href: string) => {
     const active = isActive(href);
     return cn(
-      'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all',
+      'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition-colors',
       collapsed && 'justify-center px-0',
       active
-        ? 'bg-muted/75 text-foreground shadow-2xs ring-1 ring-border/75'
-        : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+        ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-xs ring-1 ring-sidebar-border'
+        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
     );
   };
 
   return (
     <aside className={shell} aria-label="Main navigation">
-      {/* Subtle top brand wash */}
+      {/* Subtle top brand tint */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-28 opacity-60"
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-70"
         style={{
           background:
-            'radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in oklab, var(--brand-strong, currentColor) 10%, transparent), transparent)',
+            'radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in oklab, var(--primary) 10%, transparent), transparent)',
         }}
         aria-hidden="true"
       />
 
       {/* Ambient BrandMark watermark */}
       <BrandMark
-        size={220}
-        className="pointer-events-none absolute -bottom-16 -left-14 text-foreground opacity-[0.04]"
+        size={210}
+        className="pointer-events-none absolute -bottom-16 -left-14 text-foreground opacity-[0.035]"
         aria-hidden="true"
       />
 
-      {/* Header with BrandMark */}
+      {/* Header */}
       <div
         className={cn(
-          'relative z-10 flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3.5',
+          'relative z-10 flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-3',
           collapsed && 'justify-center px-2'
         )}
       >
         {collapsed ? (
           <div className="group relative flex items-center justify-center">
-            <span className="flex size-9 items-center justify-center rounded-xl border border-border/80 bg-background text-brand-strong shadow-2xs">
-              <BrandMark size={18} />
+            <span className="flex size-8 items-center justify-center rounded-xl border border-border bg-card text-primary shadow-xs">
+              <BrandMark size={16} />
             </span>
             <button
               type="button"
-              className="absolute inset-0 flex items-center justify-center rounded-xl border border-border/80 bg-background text-foreground opacity-0 shadow-2xs transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+              className="absolute inset-0 flex items-center justify-center rounded-xl border border-border bg-card text-foreground opacity-0 shadow-xs transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
               onClick={() => setCollapsed(false)}
               aria-label="Expand sidebar"
               title="Expand sidebar"
@@ -167,15 +167,15 @@ export default function Sidebar({ className }: SidebarProps) {
           </div>
         ) : (
           <>
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-background text-brand-strong shadow-2xs">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary shadow-xs">
                 <BrandMark size={16} />
               </span>
-              <Logo showMark={true} />
+              <Logo />
             </div>
             <button
               type="button"
-              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               onClick={() => setCollapsed(true)}
               aria-label="Collapse sidebar"
               title="Collapse sidebar"
@@ -187,13 +187,13 @@ export default function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+      <nav className="relative z-10 flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
         {canCreateBot && (
           <Link
             href="/chatbots/create"
             className={cn(
-              'btn btn-brand btn-sm mb-3 flex h-9 items-center justify-center gap-2 rounded-xl text-xs font-semibold shadow-2xs',
-              collapsed ? 'w-full px-0' : 'w-full'
+              'mb-2.5 flex h-9 items-center justify-center gap-2 rounded-xl bg-primary text-xs font-medium text-primary-foreground shadow-xs transition-opacity hover:opacity-90',
+              collapsed ? 'w-full px-0' : 'w-full px-3'
             )}
             title={collapsed ? 'New chatbot' : undefined}
             aria-label="New chatbot"
@@ -205,10 +205,10 @@ export default function Sidebar({ className }: SidebarProps) {
 
         {!collapsed && (
           <div className="mb-1 flex items-center justify-between px-2.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/75">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Workspace
             </span>
-            <BrandMark size={11} className="text-muted-foreground/50" />
+            <BrandMark size={11} className="text-muted-foreground" />
           </div>
         )}
 
@@ -227,7 +227,7 @@ export default function Sidebar({ className }: SidebarProps) {
                 className={cn(
                   'size-4 shrink-0 transition-colors',
                   active
-                    ? 'text-brand-strong'
+                    ? 'text-primary'
                     : 'text-muted-foreground group-hover:text-foreground'
                 )}
               />
@@ -236,7 +236,7 @@ export default function Sidebar({ className }: SidebarProps) {
                   <span className="flex-1 truncate">{item.name}</span>
                   {active && (
                     <span
-                      className="size-1.5 shrink-0 rounded-full bg-brand-strong"
+                      className="size-1.5 shrink-0 rounded-full bg-primary"
                       aria-hidden="true"
                     />
                   )}
@@ -247,12 +247,12 @@ export default function Sidebar({ className }: SidebarProps) {
         })}
 
         {/* Bottom Utility Links */}
-        <div className="mt-auto space-y-1 border-t border-border/60 pt-3">
+        <div className="mt-auto space-y-1 border-t border-sidebar-border pt-2.5">
           <button
             type="button"
             onClick={toggleTheme}
             className={cn(
-              'group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground',
+              'group flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground',
               collapsed && 'justify-center px-0'
             )}
             title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
@@ -279,7 +279,7 @@ export default function Sidebar({ className }: SidebarProps) {
               className={cn(
                 'size-4 shrink-0 transition-colors',
                 isActive('/settings')
-                  ? 'text-brand-strong'
+                  ? 'text-primary'
                   : 'text-muted-foreground group-hover:text-foreground'
               )}
             />
@@ -289,18 +289,18 @@ export default function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* Account Footer */}
-      <div className="relative z-10 shrink-0 border-t border-border/70 bg-muted/20 p-2.5">
+      <div className="relative z-10 shrink-0 border-t border-sidebar-border bg-muted/30 p-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
               className={cn(
-                'flex w-full items-center gap-2.5 rounded-xl border border-transparent p-2 text-left transition-all hover:border-border/70 hover:bg-background/90 hover:shadow-2xs',
+                'flex w-full items-center gap-2.5 rounded-xl border border-transparent p-2 text-left transition-colors hover:border-border hover:bg-card hover:shadow-xs',
                 collapsed && 'justify-center p-1.5'
               )}
               aria-label="Account menu"
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-background text-xs font-semibold text-foreground shadow-2xs">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-xs font-semibold text-foreground shadow-xs">
                 {getUserInitials(userName)}
               </span>
 
@@ -323,7 +323,7 @@ export default function Sidebar({ className }: SidebarProps) {
           <DropdownMenuContent
             align="end"
             side={collapsed ? 'right' : 'top'}
-            className="w-60 rounded-xl border-border/80"
+            className="w-60 rounded-xl border-border bg-popover text-popover-foreground shadow-soft"
           >
             <DropdownMenuLabel>
               <span className="block truncate text-sm font-semibold leading-tight">

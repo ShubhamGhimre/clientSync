@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -21,13 +21,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,15 +35,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   MoreHorizontal,
-  ArrowUpDown,
-  ChevronDown,
   Eye,
   Edit,
   Trash2,
   MessageSquare,
-  Bot,
   User,
-  Clock,
   Download,
   Archive,
   Pin,
@@ -58,6 +48,30 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { BrandMark } from '@/components/logo';
+ 
+import { BotAvatar , ColumnsMenu,
+  EmptyState,
+  FacetFilter,
+  IconTile,
+  SkeletonRows,
+  SortButton,
+  StatusPill,
+  TablePagination,
+  TableScroll,
+  TableShell,
+  TableToolbar,
+  checkboxClass,
+  dialogCancelClass,
+  dialogDangerClass,
+  formatDate,
+  menuContentClass,
+  rowActionClass,
+  rowClass,
+  tdClass,
+  thClass,
+  timeAgo,
+  toolbarBtnClass,} from './table-kits';
 
 interface ChatRoom {
   id: string;
@@ -91,7 +105,20 @@ interface ChatsTableProps {
   onChatDelete?: (chatId: string) => void;
   onChatArchive?: (chatId: string) => void;
   onChatPin?: (chatId: string, pinned: boolean) => void;
+  toolbarLeading?: ReactNode;
 }
+
+const COLUMN_LABELS: Record<string, string> = {
+  title: 'Chat room',
+  chatBot: 'Chatbot',
+  messages: 'Messages',
+  status: 'Status',
+  updatedAt: 'Last activity',
+  createdAt: 'Created',
+};
+
+const getStatus = (chat: ChatRoom) =>
+  chat.isArchived ? 'archived' : chat.status || 'active';
 
 export function ChatsTable({
   data,
@@ -101,72 +128,36 @@ export function ChatsTable({
   onChatDelete,
   onChatArchive,
   onChatPin,
+  toolbarLeading,
 }: ChatsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  // "Created" is hidden by default - "Last activity" tells the story. Toggle it in Columns.
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    createdAt: false,
+  });
   const [rowSelection, setRowSelection] = useState({});
-
-  const getStatusBadge = (chat: ChatRoom) => {
-    if (chat.isArchived) {
-      return <span className="badge badge-neutral">Archived</span>;
-    }
-    
-    const status = chat.status || 'active';
-    const statusConfig = {
-      active: { badgeClass: 'badge badge-success', label: 'Active' },
-      paused: { badgeClass: 'badge badge-warning', label: 'Paused' },
-      archived: { badgeClass: 'badge badge-outline', label: 'Archived' },
-    };
-
-    const config = statusConfig[status];
-    return (
-      <span className={config.badgeClass}>
-        {config.label}
-      </span>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    return formatDate(dateString);
-  };
 
   const columns: ColumnDef<ChatRoom>[] = [
     {
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          className="size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
+          className={checkboxClass}
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
-        <Checkbox
-          className="size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary"
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
+        <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+          <Checkbox
+            className={checkboxClass}
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -174,49 +165,44 @@ export function ChatsTable({
     {
       accessorKey: 'title',
       header: ({ column }) => (
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
+        <SortButton
+          label="Chat room"
+          state={column.getIsSorted()}
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Chat Room
-          <ArrowUpDown className="size-4 shrink-0 ml-2" />
-        </button>
+        />
       ),
       cell: ({ row }) => {
         const chat = row.original;
         return (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center">
-              {chat.isPinned && (
-                <Pin className="size-3 shrink-0 text-warning mr-1" />
-              )}
-              <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="font-medium overflow-hidden text-ellipsis whitespace-nowrap">{chat.title}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <IconTile>
+              <MessageSquare className="size-4 shrink-0" />
+            </IconTile>
+            <div className="min-w-0 max-w-[22rem]">
+              <div className="flex items-center gap-1.5">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {chat.title}
+                </p>
                 {chat.isPinned && (
-                  <span className="badge badge-warning">
-                    Pinned
-                  </span>
+                  <Pin
+                    className="size-3 shrink-0 fill-chart-4 text-chart-4"
+                    aria-label="Pinned"
+                  />
                 )}
               </div>
               {chat.description && (
-                <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
                   {chat.description}
                 </p>
               )}
               {chat.lastMessage && (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground/80">
                   {chat.lastMessage.sender === 'bot' ? (
-                    <Bot className="size-3 shrink-0 text-brand-strong" />
+                    <BrandMark size={12} />
                   ) : (
-                    <User className="size-3 shrink-0 text-success" />
+                    <User className="size-3 shrink-0" />
                   )}
-                  <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-                    {chat.lastMessage.content}
-                  </p>
+                  <p className="truncate">{chat.lastMessage.content}</p>
                 </div>
               )}
             </div>
@@ -231,171 +217,168 @@ export function ChatsTable({
         const chatBot = row.original.chatBot;
         return chatBot ? (
           <div className="flex items-center gap-2">
-            <Avatar className="avatar avatar-sm">
-              <AvatarImage src={`https://api.dicebear.com/7.x/bottts/svg?seed=${chatBot.name}`} />
-              <AvatarFallback>
-                <Bot className="size-3 shrink-0" />
-              </AvatarFallback>
-            </Avatar>
-            <span className="font-medium">{chatBot.name}</span>
+            <BotAvatar size="sm" />
+            <span className="text-sm font-medium text-foreground">
+              {chatBot.name}
+            </span>
           </div>
         ) : (
-          <span className="text-muted-foreground">No chatbot</span>
+          <span className="text-xs text-muted-foreground">No chatbot</span>
         );
       },
     },
     {
-      accessorKey: 'conversations',
+      id: 'messages',
+      accessorFn: (chat) => chat._count?.conversations ?? 0,
       header: ({ column }) => (
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
+        <SortButton
+          label="Messages"
+          state={column.getIsSorted()}
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Messages
-          <ArrowUpDown className="size-4 shrink-0 ml-2" />
-        </button>
+        />
       ),
-      cell: ({ row }) => {
-        const count = row.original._count?.conversations || 0;
-        return (
-          <div className="flex items-center gap-2">
-            <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
-            <span className="font-medium tabular">{count}</span>
-          </div>
-        );
-      },
-      sortingFn: (rowA, rowB) => {
-        const countA = rowA.original._count?.conversations || 0;
-        const countB = rowB.original._count?.conversations || 0;
-        return countA - countB;
-      },
+      cell: ({ getValue }) => (
+        <span className="tabular text-sm font-medium text-foreground">
+          {getValue<number>()}
+        </span>
+      ),
     },
     {
-      accessorKey: 'status',
+      id: 'status',
+      accessorFn: (chat) => getStatus(chat),
       header: 'Status',
-      cell: ({ row }) => getStatusBadge(row.original),
-      filterFn: (row, id, value) => {
-        const chat = row.original;
-        const status = chat.isArchived ? 'archived' : (chat.status || 'active');
-        return value.includes(status);
+      cell: ({ getValue }) => {
+        const status = getValue<string>();
+        const tone =
+          status === 'active' ? 'primary' : status === 'paused' ? 'warning' : 'neutral';
+        return (
+          <StatusPill tone={tone}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </StatusPill>
+        );
       },
+      filterFn: (row, id, value: string[]) => value.includes(row.getValue(id)),
     },
     {
       accessorKey: 'updatedAt',
       header: ({ column }) => (
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 gap-1.5 px-3 has-[>svg]:px-2.5"
+        <SortButton
+          label="Last activity"
+          state={column.getIsSorted()}
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Last Activity
-          <ArrowUpDown className="size-4 shrink-0 ml-2" />
-        </button>
+        />
       ),
-      cell: ({ row }) => {
-        const updatedAt = row.getValue('updatedAt') as string;
-        return (
-          <div className="flex items-center gap-2">
-            <Clock className="size-3 shrink-0 text-muted-foreground" />
-            <span className="text-sm">{getTimeAgo(updatedAt)}</span>
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <span className="tabular whitespace-nowrap text-sm text-muted-foreground">
+          {timeAgo(row.original.updatedAt)}
+        </span>
+      ),
     },
     {
       accessorKey: 'createdAt',
       header: 'Created',
-      cell: ({ row }) => formatDate(row.getValue('createdAt')),
+      cell: ({ row }) => (
+        <span className="tabular whitespace-nowrap text-sm text-muted-foreground">
+          {formatDate(row.original.createdAt)}
+        </span>
+      ),
     },
     {
       id: 'actions',
       enableHiding: false,
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
         const chat = row.original;
-
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="btn btn-ghost btn-icon btn-sm">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(chat.id)}
-              >
-                Copy chat ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/chats/${chat.id}`}>
-                  <Eye className="size-4 shrink-0 mr-2" />
-                  View chat
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChatSelect?.(chat)}>
-                <ExternalLink className="size-4 shrink-0 mr-2" />
-                Open in new tab
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChatEdit?.(chat)}>
-                <Edit className="size-4 shrink-0 mr-2" />
-                Edit chat
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onChatPin?.(chat.id, !chat.isPinned)}
-              >
-                {chat.isPinned ? (
-                  <>
-                    <PinOff className="size-4 shrink-0 mr-2" />
-                    Unpin chat
-                  </>
-                ) : (
-                  <>
-                    <Pin className="size-4 shrink-0 mr-2" />
-                    Pin chat
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChatArchive?.(chat.id)}>
-                <Archive className="size-4 shrink-0 mr-2" />
-                {chat.isArchived ? 'Unarchive' : 'Archive'} chat
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onSelect={(e) => e.preventDefault()}
-                  >
-                    <Trash2 className="size-4 shrink-0 mr-2" />
-                    Delete chat
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete{' '}
-                      <strong>{chat.title}</strong> and all its conversation history.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="btn btn-secondary">Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="btn btn-danger"
-                      onClick={() => onChatDelete?.(chat.id)}
+          <div onClick={(e) => e.stopPropagation()} className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={rowActionClass}
+                  aria-label={`Actions for ${chat.title}`}
+                >
+                  <MoreHorizontal className="size-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className={`w-48 ${menuContentClass}`}>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                  Actions
+                </DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => navigator.clipboard.writeText(chat.id)}
+                >
+                  Copy chat ID
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/chats/${chat.id}`}>
+                    <Eye className="mr-2 size-4 shrink-0" />
+                    View chat
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChatSelect?.(chat)}>
+                  <ExternalLink className="mr-2 size-4 shrink-0" />
+                  Open in new tab
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChatEdit?.(chat)}>
+                  <Edit className="mr-2 size-4 shrink-0" />
+                  Edit chat
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onChatPin?.(chat.id, !chat.isPinned)}>
+                  {chat.isPinned ? (
+                    <>
+                      <PinOff className="mr-2 size-4 shrink-0" />
+                      Unpin chat
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="mr-2 size-4 shrink-0" />
+                      Pin chat
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChatArchive?.(chat.id)}>
+                  <Archive className="mr-2 size-4 shrink-0" />
+                  {chat.isArchived ? 'Unarchive' : 'Archive'} chat
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={(e) => e.preventDefault()}
                     >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                      <Trash2 className="mr-2 size-4 shrink-0" />
+                      Delete chat
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl border-border bg-card text-card-foreground shadow-soft">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete{' '}
+                        <strong>{chat.title}</strong> and all its conversation
+                        history.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className={dialogCancelClass}>
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className={dialogDangerClass}
+                        onClick={() => onChatDelete?.(chat.id)}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
@@ -412,60 +395,61 @@ export function ChatsTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
   });
 
+  const selectedIds = () =>
+    table.getFilteredSelectedRowModel().rows.map((row) => row.original.id);
+
   const handleBulkDelete = () => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedChatIds = selectedRows.map(row => row.original.id);
-    
-    if (selectedChatIds.length === 0) {
+    const ids = selectedIds();
+    if (ids.length === 0) {
       toast.error('No chats selected');
       return;
     }
-
-    selectedChatIds.forEach(id => onChatDelete?.(id));
-    toast.success(`${selectedChatIds.length} chats deleted`);
+    ids.forEach((id) => onChatDelete?.(id));
+    toast.success(`${ids.length} chats deleted`);
     setRowSelection({});
   };
 
   const handleBulkArchive = () => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedChatIds = selectedRows.map(row => row.original.id);
-    
-    if (selectedChatIds.length === 0) {
+    const ids = selectedIds();
+    if (ids.length === 0) {
       toast.error('No chats selected');
       return;
     }
-
-    selectedChatIds.forEach(id => onChatArchive?.(id));
-    toast.success(`${selectedChatIds.length} chats archived`);
+    ids.forEach((id) => onChatArchive?.(id));
+    toast.success(`${ids.length} chats archived`);
     setRowSelection({});
   };
 
   const exportChats = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const chatsToExport = selectedRows.length > 0 
-      ? selectedRows.map(row => row.original)
-      : data;
+    const chatsToExport =
+      selectedRows.length > 0 ? selectedRows.map((row) => row.original) : data;
 
-    const headers = ['Title', 'Description', 'Chatbot', 'Messages', 'Status', 'Created', 'Last Activity'];
+    const headers = [
+      'Title',
+      'Description',
+      'Chatbot',
+      'Messages',
+      'Status',
+      'Created',
+      'Last Activity',
+    ];
     const csvContent = [
       headers.join(','),
-      ...chatsToExport.map(chat => [
-        `"${chat.title}"`,
-        `"${chat.description || ''}"`,
-        `"${chat.chatBot?.name || ''}"`,
-        chat._count?.conversations || 0,
-        chat.isArchived ? 'Archived' : (chat.status || 'Active'),
-        formatDate(chat.createdAt),
-        formatDate(chat.updatedAt)
-      ].join(','))
+      ...chatsToExport.map((chat) =>
+        [
+          `"${chat.title}"`,
+          `"${chat.description || ''}"`,
+          `"${chat.chatBot?.name || ''}"`,
+          chat._count?.conversations || 0,
+          chat.isArchived ? 'Archived' : chat.status || 'Active',
+          formatDate(chat.createdAt),
+          formatDate(chat.updatedAt),
+        ].join(',')
+      ),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -475,220 +459,105 @@ export function ChatsTable({
     a.download = 'chats.csv';
     a.click();
     window.URL.revokeObjectURL(url);
-    
+
     toast.success('Chats exported successfully');
   };
 
+  const selectedCount = Object.keys(rowSelection).length;
+  const rows = table.getRowModel().rows;
+
   return (
-    <div className="stack">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="btn btn-secondary ml-auto">
-                Status
-                <ChevronDown className="size-4 shrink-0 ml-2" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {['active', 'paused', 'archived'].map((status) => (
-                <DropdownMenuCheckboxItem
-                  key={status}
-                  className="capitalize"
-                  checked={(table.getColumn('status')?.getFilterValue() as string[])?.includes(status)}
-                  onCheckedChange={(value) => {
-                    const currentFilter = (table.getColumn('status')?.getFilterValue() as string[]) || [];
-                    const newFilter = value
-                      ? [...currentFilter, status]
-                      : currentFilter.filter((s) => s !== status);
-                    table.getColumn('status')?.setFilterValue(newFilter.length ? newFilter : undefined);
-                  }}
-                >
-                  {status}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <TableShell>
+      <TableToolbar>
+        {toolbarLeading}
+        <div className="flex flex-wrap items-center gap-2">
+          <FacetFilter
+            table={table}
+            columnId="status"
+            label="Status"
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'paused', label: 'Paused' },
+              { value: 'archived', label: 'Archived' },
+            ]}
+          />
         </div>
 
-        <div className="flex items-center gap-2">
-          {Object.keys(rowSelection).length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {Object.keys(rowSelection).length} selected
+        <div className="flex flex-wrap items-center gap-2">
+          {selectedCount > 0 && (
+            <>
+              <span className="tabular mr-1 text-xs text-muted-foreground">
+                {selectedCount} selected
               </span>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={handleBulkArchive}>
-                <Archive className="size-4 shrink-0 mr-2" />
+              <button type="button" className={toolbarBtnClass} onClick={handleBulkArchive}>
+                <Archive className="size-3.5 shrink-0" />
                 Archive
               </button>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={handleBulkDelete}>
-                <Trash2 className="size-4 shrink-0 mr-2" />
+              <button
+                type="button"
+                className={`${toolbarBtnClass} text-destructive hover:bg-destructive/10`}
+                onClick={handleBulkDelete}
+              >
+                <Trash2 className="size-3.5 shrink-0" />
                 Delete
               </button>
-            </div>
+            </>
           )}
-
-          <button type="button" className="btn btn-secondary btn-sm" onClick={exportChats}>
-            <Download className="size-4 shrink-0 mr-2" />
+          <button type="button" className={toolbarBtnClass} onClick={exportChats}>
+            <Download className="size-3.5 shrink-0" />
             Export
           </button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="btn btn-secondary ml-auto">
-                Columns <ChevronDown className="size-4 shrink-0 ml-2" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ColumnsMenu table={table} labels={COLUMN_LABELS} />
         </div>
-      </div>
+      </TableToolbar>
 
-      <div className="table-wrap">
-        <table className="data-table">
+      <TableScroll>
+        <table className="w-full border-collapse text-left text-sm">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <th key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
-                  );
-                })}
+              <tr key={headerGroup.id} className="border-b border-border/60">
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id} scope="col" className={thClass}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
               </tr>
             ))}
           </thead>
           <tbody>
             {loading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <tr key={index}>
-                  {columns.map((_, cellIndex) => (
-                    <td key={cellIndex}>
-                      <div className="skeleton p-2" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              <SkeletonRows columns={table.getVisibleLeafColumns().length} />
+            ) : (
+              rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer"
+                  className={`${rowClass} cursor-pointer`}
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={() => onChatSelect?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                    <td key={cell.id} className={tdClass}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
                 </tr>
               ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="text-center p-6"
-                >
-                  No chat rooms found.
-                </td>
-              </tr>
             )}
           </tbody>
         </table>
-      </div>
+      </TableScroll>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 py-4">
-        <div className="min-w-0 flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} chat(s) selected.
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">Rows per page</p>
-            <select
-              className="h-8 w-[70px] rounded-md border border-input bg-background px-2 text-sm"
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="btn btn-secondary btn-icon btn-sm hidden lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to first page</span>
-              «
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-icon btn-sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to previous page</span>
-              ‹
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-icon btn-sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to next page</span>
-              ›
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-icon btn-sm hidden lg:flex"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to last page</span>
-              »
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      {!loading && rows.length === 0 && (
+        <EmptyState
+          icon={<BrandMark size={22} />}
+          title="No chat rooms found"
+          description="Conversations with your chatbots will show up here."
+        />
+      )}
+
+      <TablePagination table={table} noun="chats" />
+    </TableShell>
   );
 }

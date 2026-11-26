@@ -1,30 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Plus,
-  Search,
-  Filter,
-  Download,
-  HelpCircle,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Tag,
-  X,
-} from "lucide-react";
+import { useMemo, useState } from "react";
+import { Plus, Tag } from "lucide-react";
 import { TicketsTable } from "@/components/tables/tickets-table";
+import {
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  RefreshButton,
+  SecondaryActionButton,
+} from "@/components/page-kits";
+import {
+  CategoryFormDialog,
+} from "@/components/tickets/category-form-dialog";
+import {
+  DeleteTicketDialog,
+} from "@/components/tickets/delete-ticket-dialog";
+import {
+  TicketFormDialog,
+  type TicketFormValues,
+} from "@/components/tickets/ticket-form-dialog";
+import { TicketStatsStrip } from "@/components/tickets/ticket-stats-strip";
+import { TicketToolbarFilters } from "@/components/tickets/ticket-toolbar-filters";
 import {
   useSupportTickets,
   useCreateSupportTicket,
@@ -33,702 +30,215 @@ import {
   useTicketCategories,
   useCreateTicketCategory,
   useTicketStats,
-  TicketPriority,
+  type SupportTicket,
+  type TicketCategory,
+  type TicketPriority,
+  type TicketStatus,
 } from "@/hooks/api/useSupportTickets";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-  const [editingTicket, setEditingTicket] = useState<any | null>(null);
-  const [deletingTicket, setDeletingTicket] = useState<any | null>(null);
-  const [categoryComboOpen, setCategoryComboOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [formOpen, setFormOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<SupportTicket | null>(
+    null
+  );
+  const [deletingTicket, setDeletingTicket] = useState<SupportTicket | null>(
+    null
+  );
 
-  // Fetch data from APIs
   const {
     data: ticketsData,
     isLoading: ticketsLoading,
     refetch,
   } = useSupportTickets();
-  const { data: categoriesData, isLoading: categoriesLoading } =
-    useTicketCategories();
-  const { data: statsData } = useTicketStats();
+  const { data: categoriesData } = useTicketCategories();
+  const { data: statsData, isLoading: statsLoading } = useTicketStats();
 
-  // Defensive: ensure array - fix data access based on API response structure
-  const tickets = ticketsData?.data
-    ? Array.isArray(ticketsData.data)
-      ? ticketsData.data
-      : []
-    : [];
-  const categories = categoriesData?.data
-    ? Array.isArray(categoriesData.data)
-      ? categoriesData.data
-      : []
+  const tickets: SupportTicket[] = useMemo(
+    () => (Array.isArray(ticketsData?.data) ? ticketsData.data : []),
+    [ticketsData]
+  );
+  const categories: TicketCategory[] = Array.isArray(categoriesData?.data)
+    ? categoriesData.data
     : [];
 
-  // API hooks
   const createTicketMutation = useCreateSupportTicket();
   const updateTicketMutation = useUpdateSupportTicket();
   const deleteTicketMutation = useDeleteSupportTicket();
   const createCategoryMutation = useCreateTicketCategory();
 
-  // Handlers
+  const filteredTickets = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return tickets.filter((ticket) => {
+      const matchesSearch =
+        !query ||
+        ticket.title?.toLowerCase().includes(query) ||
+        ticket.description?.toLowerCase().includes(query) ||
+        ticket.customerName?.toLowerCase().includes(query) ||
+        ticket.customerEmail?.toLowerCase().includes(query) ||
+        ticket.ticketNumber?.toLowerCase().includes(query);
+
+      const matchesStatus =
+        statusFilter === "all" ||
+        ticket.status?.toLowerCase() === statusFilter.toLowerCase();
+
+      const matchesPriority =
+        priorityFilter === "all" ||
+        ticket.priority?.toLowerCase() === priorityFilter.toLowerCase();
+
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+
   const handleCreate = () => {
     setEditingTicket(null);
-    setModalOpen(true);
+    setFormOpen(true);
   };
-  const handleEdit = (ticket: any) => {
+
+  const handleEdit = (ticket: SupportTicket) => {
     setEditingTicket(ticket);
-    setModalOpen(true);
+    setFormOpen(true);
   };
-  const handleDelete = (ticket: any) => {
+
+  const handleDelete = (ticketId: string) => {
+    const ticket = tickets.find((candidate) => candidate.id === ticketId);
+    if (!ticket) return;
     setDeletingTicket(ticket);
-    setDeleteModalOpen(true);
+    setDeleteOpen(true);
   };
 
-  const handleModalClose = () => {
-    setModalOpen(false);
-    setEditingTicket(null);
-  };
-  const handleDeleteModalClose = () => {
-    setDeleteModalOpen(false);
-    setDeletingTicket(null);
-  };
-
-  // Ticket form state
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    customerName: "",
-    customerEmail: "",
-    customerPhone: "",
-    priority: "MEDIUM",
-    categoryId: "",
-    assignedAgentId: "",
-  });
-
-  // Category form state
-  const [categoryForm, setCategoryForm] = useState({
-    name: "",
-    description: "",
-    color: "#3B82F6",
-  });
-
-  // Populate form when editing
-  React.useEffect(() => {
-    if (editingTicket) {
-      setForm({
-        title: editingTicket.title || "",
-        description: editingTicket.description || "",
-        customerName: editingTicket.customerName || "",
-        customerEmail: editingTicket.customerEmail || "",
-        customerPhone: editingTicket.customerPhone || "",
-        priority: editingTicket.priority || "MEDIUM",
-        categoryId: editingTicket.categoryId || "",
-        assignedAgentId: editingTicket.assignedAgentId || "",
-      });
-    } else {
-      setForm({
-        title: "",
-        description: "",
-        customerName: "",
-        customerEmail: "",
-        customerPhone: "",
-        priority: "MEDIUM",
-        categoryId: "",
-        assignedAgentId: "",
-      });
-    }
-  }, [editingTicket, modalOpen]);
-
-  const handleFormChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleCategoryFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setCategoryForm({ ...categoryForm, [e.target.name]: e.target.value });
-  };
-
-  const handleFormSubmit = async () => {
-    if (editingTicket) {
-      await updateTicketMutation.mutateAsync({
-        id: editingTicket.id,
-        ...form,
-        priority: form.priority as TicketPriority,
-      });
-    } else {
-      await createTicketMutation.mutateAsync({
-        ...form,
-        priority: form.priority as TicketPriority,
-      });
-    }
-    setModalOpen(false);
-    setEditingTicket(null);
+  const handleStatusChange = async (ticketId: string, status: TicketStatus) => {
+    await updateTicketMutation.mutateAsync({ id: ticketId, status });
     refetch();
   };
 
-  const handleCategorySubmit = async () => {
-    await createCategoryMutation.mutateAsync(categoryForm);
-    setCategoryForm({ name: "", description: "", color: "#3B82F6" });
-    setCategoryModalOpen(false);
-    // The query will auto-invalidate and refetch categories due to onSuccess in the hook
+  const handlePriorityChange = async (
+    ticketId: string,
+    priority: TicketPriority
+  ) => {
+    await updateTicketMutation.mutateAsync({ id: ticketId, priority });
+    refetch();
   };
 
-  const handleDeleteConfirm = async () => {
-    if (deletingTicket) {
-      await deleteTicketMutation.mutateAsync(deletingTicket.id);
-      setDeleteModalOpen(false);
-      setDeletingTicket(null);
+  const handleTicketSubmit = async (values: TicketFormValues) => {
+    try {
+      if (editingTicket) {
+        const payload = { id: editingTicket.id, ...values };
+        await updateTicketMutation.mutateAsync(payload);
+      } else {
+        await createTicketMutation.mutateAsync(values);
+      }
+      setFormOpen(false);
+      setEditingTicket(null);
       refetch();
+    } catch (error) {
+      console.error("Save ticket error:", error);
     }
   };
 
-  const selectedCategory = categories.find(
-    (cat: any) => cat.id === form.categoryId
-  );
+  const handleCategorySubmit = async (values: {
+    name: string;
+    description?: string;
+    color?: string;
+  }) => {
+    try {
+      await createCategoryMutation.mutateAsync(values);
+      setCategoryOpen(false);
+    } catch (error) {
+      console.error("Create category error:", error);
+    }
+  };
 
-  // Get stats with fallback values
-  const stats = {
-    total: statsData?.data.total,
-    byPriority: statsData?.data.byPriority,
-    byStatus: statsData?.data.byStatus,
-    recent: statsData?.data.recent || 0,
+  const handleDeleteConfirm = async () => {
+    if (!deletingTicket) return;
+    try {
+      await deleteTicketMutation.mutateAsync(deletingTicket.id);
+      setDeleteOpen(false);
+      setDeletingTicket(null);
+      refetch();
+    } catch (error) {
+      console.error("Delete ticket error:", error);
+    }
   };
 
   return (
-    <div className="page stack">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Support Tickets</h1>
-          <p className="page-subtitle">
-            Manage and track customer support requests
-          </p>
-        </div>
-        <div className="cluster">
-          <Button variant="outline" onClick={() => setCategoryModalOpen(true)}>
-            <Tag className="size-4 shrink-0 mr-2" />
-            Manage Categories
-          </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="size-4 shrink-0 mr-2" />
-            Create Ticket
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Support Tickets"
+        description="Manage and track customer support requests"
+        actionsClassName="flex flex-wrap items-center gap-2"
+        actions={
+          <>
+            <RefreshButton onClick={() => refetch()} />
+            <SecondaryActionButton icon={Tag} onClick={() => setCategoryOpen(true)}>
+              Manage Categories
+            </SecondaryActionButton>
+            <PrimaryActionButton icon={Plus} onClick={handleCreate}>
+              Create Ticket
+            </PrimaryActionButton>
+          </>
+        }
+      />
 
-      {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <HelpCircle className="size-5 shrink-0 text-brand-strong" />
-              <span className="text-sm font-medium">Total Tickets</span>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              {/* <p className="text-xs text-muted-foreground">+12% from last month</p> */}
-            </div>
-          </CardContent>
-        </Card>
+      <TicketStatsStrip
+        statsData={statsData}
+        fallbackTotal={tickets.length}
+        loading={statsLoading}
+      />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Clock className="size-5 shrink-0 text-warning" />
-              <span className="text-sm font-medium">By Priority</span>
-            </div>
-            <div className="mt-2">
-              <div>
-                {stats.byPriority
-                  ? Object.entries(stats.byPriority).map(
-                      ([priority, count], idx, arr) => (
-                        <Badge
-                          variant="secondary"
-                          key={priority}
-                          className="mr-1"
-                        >
-                          <span className="text-sm">
-                            {priority.toLowerCase()}:
-                          </span>{" "}
-                          <span className="font-bold">{count}</span>
-                        </Badge>
-                      )
-                    )
-                  : "N/A"}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <TicketsTable
+        data={filteredTickets.map((ticket) => ({
+          ...ticket,
+          status:
+            ticket.status === "PENDING_CUSTOMER" ? "OPEN" : ticket.status,
+        }))}
+        loading={ticketsLoading}
+        onTicketEdit={handleEdit}
+        onTicketDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+        onPriorityChange={handlePriorityChange}
+        toolbarLeading={
+          <TicketToolbarFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            priorityFilter={priorityFilter}
+            onPriorityChange={setPriorityFilter}
+          />
+        }
+      />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="size-5 shrink-0 text-warning" />
-              <span className="text-sm font-medium">By Status</span>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">
-                {stats.byStatus
-                  ? Object.entries(stats.byStatus)
-                      .map(([status, count]) => `${status}: ${count}`)
-                      .join(", ")
-                  : "N/A"}
-              </div>
-              <p className="text-xs text-muted-foreground">Being resolved</p>
-            </div>
-          </CardContent>
-        </Card>
+      <TicketFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        ticket={editingTicket}
+        categories={categories}
+        isSubmitting={
+          createTicketMutation.isPending || updateTicketMutation.isPending
+        }
+        onAddCategory={() => setCategoryOpen(true)}
+        onSubmit={handleTicketSubmit}
+      />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="size-5 shrink-0 text-success" />
-              <span className="text-sm font-medium">Recent</span>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold">
-                {Array.isArray(stats.recent)
-                  ? stats.recent.length
-                  : stats.recent}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                80.3% resolution rate
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <CategoryFormDialog
+        open={categoryOpen}
+        onOpenChange={setCategoryOpen}
+        isSubmitting={createCategoryMutation.isPending}
+        onSubmit={handleCategorySubmit}
+      />
 
-      {/* Filters and Actions */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="relative w-full sm:max-w-sm">
-                <Search className="input-icon" />
-                <Input
-                  placeholder="Search tickets..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <Select defaultValue="all">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select defaultValue="all">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="size-4 shrink-0 mr-2" />
-                Filters
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="size-4 shrink-0 mr-2" />
-                Export
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="all" className="stack">
-        <TabsList>
-          <TabsTrigger value="all">All Tickets</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="stack">
-          <Card>
-            <CardContent>
-              <TicketsTable
-                data={tickets.map((ticket: any) => ({
-                  ...ticket,
-                  status:
-                    ticket.status === "PENDING_CUSTOMER"
-                      ? "OPEN"
-                      : ticket.status, // fallback to original if already valid
-                }))}
-                loading={ticketsLoading}
-                onTicketEdit={handleEdit}
-                onTicketDelete={handleDelete}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Create/Update Ticket Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTicket ? "Update Ticket" : "Create Ticket"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="stack">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="w-full">
-                <label className="label mb-1">
-                  Title *
-                </label>
-                <Input
-                  name="title"
-                  value={form.title}
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-
-              <div className="w-full">
-                <label className="label mb-1">
-                  Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleFormChange}
-                  className="textarea"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="label mb-1">
-                  Customer Name *
-                </label>
-                <Input
-                  name="customerName"
-                  value={form.customerName}
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="label mb-1">
-                  Customer Email *
-                </label>
-                <Input
-                  name="customerEmail"
-                  type="email"
-                  value={form.customerEmail}
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="label mb-1">
-                  Customer Phone
-                </label>
-                <Input
-                  name="customerPhone"
-                  value={form.customerPhone}
-                  onChange={handleFormChange}
-                />
-              </div>
-
-              <div>
-                <label className="label mb-1">
-                  Priority
-                </label>
-                <select
-                  name="priority"
-                  value={form.priority}
-                  onChange={handleFormChange}
-                  className="select"
-                >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
-                  <option value="CRITICAL">Critical</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="label mb-1">
-                  Category
-                </label>
-                <Popover
-                  open={categoryComboOpen}
-                  onOpenChange={setCategoryComboOpen}
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={categoryComboOpen}
-                      className="w-full flex items-center justify-between"
-                    >
-                      {selectedCategory ? (
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="inline-block size-3 shrink-0 rounded-full"
-                            style={{ backgroundColor: selectedCategory.color }}
-                          />
-                          {selectedCategory.name}
-                        </div>
-                      ) : (
-                        "Select category..."
-                      )}
-                      <ChevronsUpDown className="size-4 shrink-0 ml-2 text-muted-foreground" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full">
-                    <Command>
-                      <CommandInput placeholder="Search categories..." />
-                      <CommandEmpty>
-                        <div className="p-2">
-                          <p className="text-sm text-muted-foreground mb-2">
-                            No categories found.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setCategoryComboOpen(false);
-                              setCategoryModalOpen(true);
-                            }}
-                          >
-                            <Plus className="size-3 shrink-0 mr-1" />
-                            Add Category
-                          </Button>
-                        </div>
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {categories.map((category: any) => (
-                          <CommandItem
-                            key={category.id}
-                            value={category.name}
-                            onSelect={() => {
-                              setForm({ ...form, categoryId: category.id });
-                              setCategoryComboOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "size-4 shrink-0 mr-2",
-                                form.categoryId === category.id
-                                  ? "text-brand-strong"
-                                  : "hidden"
-                              )}
-                            />
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="inline-block size-3 shrink-0 rounded-full"
-                                style={{ backgroundColor: category.color }}
-                              />
-                              <div>
-                                <p className="font-medium">{category.name}</p>
-                                {category.description && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {category.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                        <CommandItem
-                          onSelect={() => {
-                            setCategoryComboOpen(false);
-                            setCategoryModalOpen(true);
-                          }}
-                        >
-                          <Plus className="size-4 shrink-0 mr-2" />
-                          Add new category
-                        </CommandItem>
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div>
-                <label className="label mb-1">
-                  Assigned Agent ID
-                </label>
-                <Input
-                  name="assignedAgentId"
-                  value={form.assignedAgentId}
-                  onChange={handleFormChange}
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={handleModalClose}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleFormSubmit}
-                disabled={
-                  createTicketMutation.isPending ||
-                  updateTicketMutation.isPending
-                }
-              >
-                {createTicketMutation.isPending ||
-                updateTicketMutation.isPending
-                  ? editingTicket
-                    ? "Updating..."
-                    : "Creating..."
-                  : editingTicket
-                  ? "Update"
-                  : "Create"}
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Ticket Modal */}
-      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Ticket</DialogTitle>
-          </DialogHeader>
-          <p>
-            Are you sure you want to delete this ticket? This action cannot be
-            undone.
-          </p>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleDeleteModalClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteConfirm}
-              disabled={deleteTicketMutation.isPending}
-            >
-              {deleteTicketMutation.isPending ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Category Management Modal */}
-      <Dialog open={categoryModalOpen} onOpenChange={setCategoryModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
-          </DialogHeader>
-          <div className="stack">
-            <div>
-              <label className="label mb-1">Name *</label>
-              <Input
-                name="name"
-                value={categoryForm.name}
-                onChange={handleCategoryFormChange}
-                required
-                placeholder="e.g. Technical Support"
-              />
-            </div>
-            <div>
-              <label className="label mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={categoryForm.description}
-                onChange={handleCategoryFormChange}
-                className="textarea"
-                placeholder="Brief description of this category"
-              />
-            </div>
-            <div>
-              <label className="label mb-1">Color</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  name="color"
-                  value={categoryForm.color}
-                  onChange={handleCategoryFormChange}
-                  className="surface rounded-lg"
-                />
-                <Input
-                  name="color"
-                  value={categoryForm.color}
-                  onChange={handleCategoryFormChange}
-                  placeholder="#3B82F6"
-                  className="text-sm"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setCategoryModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCategorySubmit}
-                disabled={createCategoryMutation.isPending}
-              >
-                {createCategoryMutation.isPending
-                  ? "Creating..."
-                  : "Create Category"}
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <DeleteTicketDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        ticket={deletingTicket}
+        isSubmitting={deleteTicketMutation.isPending}
+        onConfirm={handleDeleteConfirm}
+      />
+    </PageContainer>
   );
 }

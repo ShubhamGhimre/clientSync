@@ -11,7 +11,7 @@ import Sidebar from '@/components/Layout/Sidebar';
 
 function FullPageLoader({ label }: { label: string }) {
   return (
-    <div className="relative grid min-h-dvh place-items-center overflow-hidden bg-background">
+    <div className="relative grid min-h-dvh place-items-center overflow-hidden bg-background px-4 py-8">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-60"
         style={{
@@ -128,8 +128,9 @@ export default function DashboardLayout({
             </span>
           </header>
 
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-            {children}
+          {/* Main page container with consistent layout margins & padding */}
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 sm:py-5 lg:px-7 lg:py-6">
+            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
           </div>
         </main>
       </div>

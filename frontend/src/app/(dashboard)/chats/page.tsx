@@ -2,20 +2,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  MessageSquare, 
-  Plus, 
-  Search, 
-  Clock,
-  User,
-  Bot
-} from 'lucide-react'
-import Link from 'next/link'
+import { Clock, MessageSquare, Plus } from 'lucide-react'
 import { ChatsTable } from '@/components/tables/chats-table'
+import {
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  SearchField,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits'
 
 const mockChats = [
   {
@@ -93,96 +89,69 @@ export default function ChatsPage() {
     console.log('Delete chat:', chatId);
   };
 
+  const activeToday = chats.filter(chat =>
+    new Date(chat.updatedAt).toDateString() === new Date().toDateString()
+  ).length
+
+  const totalMessages = chats.reduce(
+    (sum, chat) => sum + (chat._count?.conversations || 0),
+    0
+  )
+
+  const statItems: StatItem[] = [
+    {
+      label: 'Total Chats',
+      value: chats.length,
+      icon: MessageSquare,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Active Today',
+      value: activeToday,
+      icon: Clock,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Total Messages',
+      value: totalMessages,
+      icon: MessageSquare,
+      iconClass: 'text-chart-3',
+    },
+    {
+      label: 'Avg. Response Time',
+      value: '2.3s',
+      icon: Clock,
+      iconClass: 'text-chart-4',
+    },
+  ]
 
   return (
-    <div className="stack">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">Chat Rooms</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage all chat conversations.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/chats/create">
-            <Plus className="mr-2 size-4 shrink-0" />
+    <PageContainer>
+      <PageHeader
+        title="Chat Rooms"
+        description="Monitor and manage all chat conversations."
+        actions={
+          <PrimaryActionButton href="/chats/create" icon={Plus}>
             Create Chat Room
-          </Link>
-        </Button>
-      </div>
+          </PrimaryActionButton>
+        }
+      />
 
-      {/* Stats Overview */}
-      <div className="grid-stats">
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Total Chats</CardTitle>
-            <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{chats.length}</div>
-          </CardContent>
-        </Card>
+      <StatsStrip items={statItems} />
 
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Active Today</CardTitle>
-            <Clock className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {chats.filter(chat => 
-                new Date(chat.updatedAt).toDateString() === new Date().toDateString()
-              ).length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {chats.reduce((sum, chat) => sum + (chat._count?.conversations || 0), 0)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Avg. Response Time</CardTitle>
-            <Clock className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2.3s</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative w-full sm:max-w-sm min-w-0 flex-1">
-          <Search className="input-icon" />
-          <Input
-            placeholder="Search chats..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* Chats Table */}
-      <ChatsTable 
+      <ChatsTable
         data={filteredChats}
         onChatSelect={handleChatSelect}
         onChatEdit={handleChatEdit}
         onChatDelete={handleChatDelete}
-        // onChatArchive={handleChatArchive}
-        // onChatPin={handleChatPin}
+        toolbarLeading={
+          <SearchField
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search chats"
+          />
+        }
       />
-    </div>
+    </PageContainer>
   )
 }

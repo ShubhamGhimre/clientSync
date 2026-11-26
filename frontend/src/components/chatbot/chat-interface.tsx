@@ -82,7 +82,7 @@ interface Message {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Streaming text (caret comes from .stream-caret in globals.css)             */
+/*  Streaming text                                                            */
 /* -------------------------------------------------------------------------- */
 
 const StreamingText = ({
@@ -101,7 +101,6 @@ const StreamingText = ({
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  // Restart when the text changes
   useEffect(() => {
     setCount(0);
   }, [text]);
@@ -114,9 +113,17 @@ const StreamingText = ({
     onCompleteRef.current?.();
   }, [count, text, speed]);
 
+  const isTypingText = count < text.length;
+
   return (
-    <span className={count < text.length ? 'stream-caret' : undefined}>
-      {text.slice(0, count)}
+    <span className="inline-flex items-baseline">
+      <span>{text.slice(0, count)}</span>
+      {isTypingText && (
+        <span
+          className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-primary align-middle"
+          aria-hidden="true"
+        />
+      )}
     </span>
   );
 };
@@ -160,13 +167,34 @@ const MessageComponent = ({
   };
 
   return (
-    <div className={`msg group ${isUser ? 'msg-user' : 'msg-bot'}`}>
+    <div
+      className={`group flex items-start gap-2.5 ${
+        isUser ? 'flex-row-reverse' : 'flex-row'
+      }`}
+    >
       {!isUser && (
-        <span className="avatar avatar-sm" aria-hidden="true"><BrandMark size={18} /></span>
+        <span
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"
+          aria-hidden="true"
+        >
+          <BrandMark size={18} />
+        </span>
       )}
 
-      <div className="msg-body">
-        <div className={`msg-bubble ${message.isError ? 'is-error' : ''}`}>
+      <div
+        className={`flex max-w-[82%] flex-col gap-1.5 sm:max-w-[72%] ${
+          isUser ? 'items-end' : 'items-start'
+        }`}
+      >
+        <div
+          className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-xs ${
+            message.isError
+              ? 'border border-destructive/30 bg-destructive/10 text-destructive'
+              : isUser
+              ? 'bg-primary text-primary-foreground'
+              : 'border border-border bg-secondary/50 text-foreground'
+          }`}
+        >
           {!isUser && isStreaming ? (
             <StreamingText
               text={message.content}
@@ -180,30 +208,39 @@ const MessageComponent = ({
 
         {/* Knowledge-base citations */}
         {sources.length > 0 && (
-          <div className="source-list" role="group" aria-label="Sources">
+          <div
+            className="flex flex-wrap items-center gap-1.5 pt-0.5"
+            role="group"
+            aria-label="Sources"
+          >
             {visibleSources.map((source, index) => {
               const label = (
                 <>
-                  <FileText className="size-3 shrink-0" />
-                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">{source.title}</span>
-                  <span className="tabular shrink-0">
+                  <FileText className="size-3 shrink-0 text-primary" />
+                  <span className="max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap">
+                    {source.title}
+                  </span>
+                  <span className="tabular shrink-0 text-muted-foreground">
                     {Math.round(source.score * 100)}%
                   </span>
                 </>
               );
+              const chipClass =
+                'inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground shadow-xs transition-colors hover:border-primary/30 hover:text-primary';
+
               return source.url ? (
                 <a
                   key={index}
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="source-chip"
+                  className={chipClass}
                   title={source.content}
                 >
                   {label}
                 </a>
               ) : (
-                <span key={index} className="source-chip" title={source.content}>
+                <span key={index} className={chipClass} title={source.content}>
                   {label}
                 </span>
               );
@@ -211,7 +248,7 @@ const MessageComponent = ({
             {(hiddenCount > 0 || showAllSources) && sources.length > 2 && (
               <button
                 type="button"
-                className="source-chip"
+                className="inline-flex items-center rounded-lg border border-border bg-secondary px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                 onClick={() => setShowAllSources((v) => !v)}
               >
                 {showAllSources ? 'Show fewer' : `+${hiddenCount} more`}
@@ -224,22 +261,28 @@ const MessageComponent = ({
         {message.isError && onRetry && (
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-medium text-foreground shadow-xs transition-colors hover:border-primary/30 hover:text-primary"
             onClick={() => onRetry(message.id)}
           >
-            <RefreshCw /> Retry
+            <RefreshCw className="size-3.5" />
+            <span>Retry</span>
           </button>
         )}
 
         {/* Time, status, metadata, actions */}
         <div
-          className={`msg-meta flex flex-wrap items-center gap-2 opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100 ${
+          className={`flex flex-wrap items-center gap-2 px-1 text-[11px] text-muted-foreground opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100 ${
             alwaysShowMeta ? 'opacity-100' : ''
           }`}
         >
-          <span>{formatTime(message.timestamp)}</span>
+          <span className="tabular">{formatTime(message.timestamp)}</span>
 
-          {isPending && <Loader2 className="size-3 shrink-0 animate-spin" aria-label="Sending" />}
+          {isPending && (
+            <Loader2
+              className="size-3 shrink-0 animate-spin text-primary"
+              aria-label="Sending"
+            />
+          )}
 
           {message.isError && (
             <span className="inline-flex items-center gap-1 text-destructive">
@@ -248,18 +291,19 @@ const MessageComponent = ({
           )}
 
           {meta?.processingTime && (
-            <span className="inline-flex items-center gap-1 tabular">
-              <Zap className="size-3 shrink-0" /> {meta.processingTime}ms
+            <span className="tabular inline-flex items-center gap-1">
+              <Zap className="size-3 shrink-0 text-primary" />{' '}
+              {meta.processingTime}ms
             </span>
           )}
           {meta?.tokens && <span className="tabular">{meta.tokens} tokens</span>}
           {meta?.model && <span>{meta.model}</span>}
 
           {!isPending && !message.isError && (
-            <span className="inline-flex items-center">
+            <span className="inline-flex items-center gap-0.5">
               <button
                 type="button"
-                className="btn btn-ghost btn-icon btn-sm"
+                className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 onClick={() => onCopy(message.content)}
                 aria-label="Copy message"
                 title="Copy message"
@@ -271,8 +315,10 @@ const MessageComponent = ({
                 <>
                   <button
                     type="button"
-                    className={`btn btn-ghost btn-icon btn-sm ${
-                      reaction === 'like' ? 'text-success' : ''
+                    className={`inline-flex size-6 items-center justify-center rounded-md transition-colors hover:bg-secondary ${
+                      reaction === 'like'
+                        ? 'text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                     onClick={() => handleReact('like')}
                     aria-label="Good response"
@@ -283,8 +329,10 @@ const MessageComponent = ({
                   </button>
                   <button
                     type="button"
-                    className={`btn btn-ghost btn-icon btn-sm ${
-                      reaction === 'dislike' ? 'text-destructive' : ''
+                    className={`inline-flex size-6 items-center justify-center rounded-md transition-colors hover:bg-secondary ${
+                      reaction === 'dislike'
+                        ? 'text-destructive'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                     onClick={() => handleReact('dislike')}
                     aria-label="Poor response"
@@ -303,7 +351,6 @@ const MessageComponent = ({
   );
 };
 
-// Transform API conversation data to Message format
 const transformConversationToMessage = (conversation: Conversation): Message => ({
   id: conversation.id,
   content: conversation.message,
@@ -352,7 +399,9 @@ const ChatRoomInitializer = ({
 
   useEffect(() => {
     if (chatRooms && !isInitializing) {
-      const existingChatRoom = chatRooms.find((room) => room.chatBotId === chatbotId);
+      const existingChatRoom = chatRooms.find(
+        (room) => room.chatBotId === chatbotId
+      );
 
       if (existingChatRoom) {
         setProgress(100);
@@ -366,9 +415,14 @@ const ChatRoomInitializer = ({
         });
       }
     }
-  }, [chatRooms, chatbotId, onChatRoomReady, isInitializing, createChatRoomMutation]);
+  }, [
+    chatRooms,
+    chatbotId,
+    onChatRoomReady,
+    isInitializing,
+    createChatRoomMutation,
+  ]);
 
-  // Simulate progress while the room is being created
   useEffect(() => {
     if (isInitializing && progress < 90) {
       const timer = setTimeout(() => setProgress((prev) => prev + 10), 200);
@@ -378,22 +432,32 @@ const ChatRoomInitializer = ({
 
   if (chatRoomsLoading || isInitializing || createChatRoomMutation.isPending) {
     return (
-      <div className="flex h-[700px] flex-col items-center justify-center gap-6 text-center">
-        <span className="avatar avatar-lg" aria-hidden="true"><BrandMark size={30} /></span>
-        <div className="flex flex-col gap-2 items-center justify-center">
-          <h3 className="text-lg font-semibold">
+      <div className="flex h-[700px] flex-col items-center justify-center gap-5 px-6 text-center">
+        <span
+          className="flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-xs"
+          aria-hidden="true"
+        >
+          <BrandMark size={30} />
+        </span>
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          <h3 className="text-base font-semibold text-foreground">
             {chatRoomsLoading ? 'Loading chat' : 'Setting up chat'}
           </h3>
-          <p className="field-hint">Preparing your conversation with the assistant.</p>
+          <p className="text-xs text-muted-foreground">
+            Preparing your conversation with the assistant.
+          </p>
         </div>
         <div
-          className="progress max-w-xs"
+          className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-secondary"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={progress}
         >
-          <span style={{ width: `${progress}%` }} />
+          <span
+            className="block h-full rounded-full bg-primary transition-all duration-200"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     );
@@ -401,14 +465,23 @@ const ChatRoomInitializer = ({
 
   if (chatRoomsError) {
     return (
-      <div className="empty-state flex h-[700px] flex-col items-center justify-center gap-6 text-center">
-        <WifiOff className="size-8 shrink-0 text-destructive" />
-        <h3 className="text-base font-semibold">Can't connect to chat</h3>
+      <div className="flex h-[700px] flex-col items-center justify-center gap-4 px-6 text-center">
+        <span className="flex size-12 items-center justify-center rounded-2xl border border-destructive/25 bg-destructive/10 text-destructive">
+          <WifiOff className="size-6 shrink-0" />
+        </span>
+        <h3 className="text-base font-semibold text-foreground">
+          Can&apos;t connect to chat
+        </h3>
         <p className="max-w-sm text-sm text-muted-foreground">
           Check your internet connection, then try again.
         </p>
-        <button type="button" className="btn btn-primary" onClick={() => refetchChatRooms()}>
-          <RefreshCw /> Try again
+        <button
+          type="button"
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+          onClick={() => refetchChatRooms()}
+        >
+          <RefreshCw className="size-4" />
+          <span>Try again</span>
         </button>
       </div>
     );
@@ -435,7 +508,9 @@ const ChatInterfaceMain = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+    null
+  );
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(enableSounds);
@@ -451,16 +526,16 @@ const ChatInterfaceMain = ({
     error: conversationsError,
     refetch: refetchConversations,
   } = useConversations(chatRoomId, {
-    refetchInterval: isTyping ? 1000 : 3000, // Faster polling while expecting a reply
+    refetchInterval: isTyping ? 1000 : 3000,
     staleTime: 1000,
   });
 
-  const { data: chatRoomData, isLoading: chatRoomLoading } = useChatRoom(chatRoomId);
+  const { data: chatRoomData, isLoading: chatRoomLoading } =
+    useChatRoom(chatRoomId);
 
   const sendMessageMutation = useOptimisticSendMessage({
     onSuccess: () => {
       if (soundEnabled && Date.now() - lastPlayedSoundRef.current > 1000) {
-        // Play success sound
         lastPlayedSoundRef.current = Date.now();
       }
       setIsTyping(false);
@@ -486,7 +561,8 @@ const ChatInterfaceMain = ({
   });
 
   const messages: Message[] = useMemo(
-    () => (conversations ? conversations.map(transformConversationToMessage) : []),
+    () =>
+      conversations ? conversations.map(transformConversationToMessage) : [],
     [conversations]
   );
 
@@ -522,7 +598,6 @@ const ChatInterfaceMain = ({
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, []);
 
-  // Detect new messages and start streaming the newest AI reply
   useEffect(() => {
     if (conversations && conversations.length > lastMessageCount) {
       const newMessages = conversations.slice(lastMessageCount);
@@ -542,18 +617,16 @@ const ChatInterfaceMain = ({
     scrollToBottom();
   }, [displayMessages.length, isBusy, scrollToBottom]);
 
-  // Focus input on mount
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Grow the composer with its content (capped by .chat-input max-height)
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   }, [inputValue]);
 
   const handleSendMessage = useCallback(
@@ -570,7 +643,7 @@ const ChatInterfaceMain = ({
           sender: 'user',
           message: messageContent,
         });
-      } catch (error) {
+      } catch {
         setIsTyping(false);
       }
     },
@@ -584,7 +657,6 @@ const ChatInterfaceMain = ({
 
   const handleMessageReaction = useCallback(
     (messageId: string, reaction: 'like' | 'dislike') => {
-      // Implement API call for message reaction
       toast.success(`${reaction === 'like' ? 'Liked' : 'Disliked'} message`);
     },
     []
@@ -592,7 +664,6 @@ const ChatInterfaceMain = ({
 
   const handleRetryMessage = useCallback(async (messageId: string) => {
     setRetryingMessages((prev) => new Set([...prev, messageId]));
-    // Implement retry logic
     setTimeout(() => {
       setRetryingMessages((prev) => {
         const next = new Set(prev);
@@ -620,27 +691,31 @@ const ChatInterfaceMain = ({
   /* ---------- Loading ---------- */
   if (chatRoomLoading || conversationsLoading) {
     return (
-      <div className="chat-window" style={{ height: maxHeight }} aria-busy="true">
+      <div
+        className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card"
+        style={{ height: maxHeight }}
+        aria-busy="true"
+      >
         {showHeader && (
-          <div className="chat-header">
-            <div className="skeleton avatar" />
-            <div className="flex flex-col gap-2">
-              <div className="skeleton h-4 w-32" />
-              <div className="skeleton h-4 w-full" />
+          <div className="flex items-center gap-3 border-b border-border bg-secondary/40 px-4 py-3">
+            <div className="size-9 shrink-0 animate-pulse rounded-xl bg-muted" />
+            <div className="flex flex-col gap-1.5">
+              <div className="h-4 w-32 animate-pulse rounded-md bg-muted" />
+              <div className="h-3 w-20 animate-pulse rounded-md bg-muted" />
             </div>
           </div>
         )}
-        <div className="chat-messages">
-          <div className="msg msg-bot">
-            <div className="skeleton avatar-sm" />
-            <div className="skeleton h-14 w-64 !rounded-2xl" />
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          <div className="flex items-start gap-2.5">
+            <div className="size-8 shrink-0 animate-pulse rounded-xl bg-muted" />
+            <div className="h-14 w-64 animate-pulse rounded-2xl bg-muted" />
           </div>
-          <div className="msg msg-user">
-            <div className="skeleton h-4 w-full !rounded-2xl" />
+          <div className="flex justify-end">
+            <div className="h-10 w-48 animate-pulse rounded-2xl bg-muted" />
           </div>
-          <div className="msg msg-bot">
-            <div className="skeleton avatar-sm" />
-            <div className="skeleton h-28 w-full !rounded-2xl" />
+          <div className="flex items-start gap-2.5">
+            <div className="size-8 shrink-0 animate-pulse rounded-xl bg-muted" />
+            <div className="h-24 w-80 max-w-full animate-pulse rounded-2xl bg-muted" />
           </div>
         </div>
       </div>
@@ -650,14 +725,27 @@ const ChatInterfaceMain = ({
   /* ---------- Error ---------- */
   if (conversationsError && !conversationsLoading) {
     return (
-      <div className="empty-state flex h-[700px] flex-col items-center justify-center gap-6 text-center" style={{ height: maxHeight }}>
-        <AlertCircle className="size-8 shrink-0 text-destructive" />
-        <h3 className="text-base font-semibold">Couldn't load this conversation</h3>
+      <div
+        className="flex h-[700px] flex-col items-center justify-center gap-4 px-6 text-center"
+        style={{ height: maxHeight }}
+      >
+        <span className="flex size-12 items-center justify-center rounded-2xl border border-destructive/25 bg-destructive/10 text-destructive">
+          <AlertCircle className="size-6 shrink-0" />
+        </span>
+        <h3 className="text-base font-semibold text-foreground">
+          Couldn&apos;t load this conversation
+        </h3>
         <p className="max-w-sm text-sm text-muted-foreground">
-          Your chat history didn't load. Try again, or refresh the page if it keeps failing.
+          Your chat history didn&apos;t load. Try again, or refresh the page if
+          it keeps failing.
         </p>
-        <button type="button" className="btn btn-primary" onClick={() => refetchConversations()}>
-          <RefreshCw /> Try again
+        <button
+          type="button"
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+          onClick={() => refetchConversations()}
+        >
+          <RefreshCw className="size-4" />
+          <span>Try again</span>
         </button>
       </div>
     );
@@ -669,74 +757,120 @@ const ChatInterfaceMain = ({
       style={{ height: isFullscreen ? '100dvh' : maxHeight }}
     >
       <section
-        className={`chat-window ${isFullscreen ? 'mx-auto h-full max-w-4xl' : ''}`}
+        className={`flex h-full flex-col overflow-hidden bg-card text-card-foreground ${
+          isFullscreen
+            ? 'mx-auto max-w-4xl rounded-2xl border border-border shadow-soft'
+            : ''
+        }`}
         aria-label="Chat"
       >
         {showHeader && (
-          <header className="chat-header">
-            <span className="avatar" aria-hidden="true"><BrandMark size={22} /></span>
+          <header className="relative flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-4 py-3">
+            <div
+              className="pointer-events-none absolute inset-x-8 top-0 h-[2px] rounded-full opacity-75"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent, var(--chart-1), var(--chart-2), transparent)',
+              }}
+              aria-hidden="true"
+            />
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"
+                aria-hidden="true"
+              >
+                <BrandMark size={20} />
+              </span>
 
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-sm font-semibold">
-                {chatRoomData?.title || 'AI Assistant'}
-              </h2>
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-live="polite">
-                {isBusy ? (
-                  <>
-                    <Loader2 className="size-3 shrink-0 animate-spin" /> Thinking…
-                  </>
-                ) : (
-                  <>
-                    <span className="status-dot is-online" /> Online
-                  </>
-                )}
-              </p>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-sm font-semibold text-foreground">
+                  {chatRoomData?.title || 'AI Assistant'}
+                </h2>
+                <p
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                  aria-live="polite"
+                >
+                  {isBusy ? (
+                    <>
+                      <Loader2 className="size-3 shrink-0 animate-spin text-primary" />
+                      <span>Thinking…</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="size-2 rounded-full bg-primary" />
+                      <span>Online</span>
+                    </>
+                  )}
+                </p>
+              </div>
             </div>
 
-            <div className="cluster gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-icon btn-sm"
+                    className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     onClick={() => setSoundEnabled((v) => !v)}
-                    aria-label={soundEnabled ? 'Turn sounds off' : 'Turn sounds on'}
+                    aria-label={
+                      soundEnabled ? 'Turn sounds off' : 'Turn sounds on'
+                    }
                     aria-pressed={soundEnabled}
                   >
-                    {soundEnabled ? <Volume2 /> : <VolumeX />}
+                    {soundEnabled ? (
+                      <Volume2 className="size-4" />
+                    ) : (
+                      <VolumeX className="size-4" />
+                    )}
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>{soundEnabled ? 'Turn sounds off' : 'Turn sounds on'}</TooltipContent>
+                <TooltipContent>
+                  {soundEnabled ? 'Turn sounds off' : 'Turn sounds on'}
+                </TooltipContent>
               </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-icon btn-sm"
+                    className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     onClick={() => setIsFullscreen((v) => !v)}
-                    aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+                    aria-label={
+                      isFullscreen ? 'Exit full screen' : 'Full screen'
+                    }
                   >
-                    {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+                    {isFullscreen ? (
+                      <Minimize2 className="size-4" />
+                    ) : (
+                      <Maximize2 className="size-4" />
+                    )}
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>{isFullscreen ? 'Exit full screen' : 'Full screen'}</TooltipContent>
+                <TooltipContent>
+                  {isFullscreen ? 'Exit full screen' : 'Full screen'}
+                </TooltipContent>
               </Tooltip>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-icon btn-sm"
+                    className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     aria-label="More options"
                   >
-                    <MoreVertical />
+                    <MoreVertical className="size-4" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-48 rounded-xl border-border bg-popover text-popover-foreground"
+                >
                   <DropdownMenuItem
                     onClick={handleClearChat}
-                    disabled={clearConversationsMutation.isPending || displayMessages.length <= 1}
+                    disabled={
+                      clearConversationsMutation.isPending ||
+                      displayMessages.length <= 1
+                    }
                   >
                     {clearConversationsMutation.isPending ? (
                       <Loader2 className="mr-2 size-4 shrink-0 animate-spin" />
@@ -746,7 +880,6 @@ const ChatInterfaceMain = ({
                     Clear chat
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  {/* Not wired up yet, so shown disabled */}
                   <DropdownMenuItem disabled>
                     <Share2 className="mr-2 size-4 shrink-0" />
                     Share conversation
@@ -764,7 +897,7 @@ const ChatInterfaceMain = ({
         {/* Messages */}
         <div
           ref={scrollAreaRef}
-          className="chat-messages"
+          className="flex flex-1 flex-col gap-4 overflow-y-auto p-4"
           role="log"
           aria-live="polite"
           aria-label="Conversation"
@@ -782,12 +915,21 @@ const ChatInterfaceMain = ({
           ))}
 
           {isBusy && (
-            <div className="msg msg-bot">
-              <span className="avatar avatar-sm" aria-hidden="true"><BrandMark size={18} /></span>
-              <div className="typing" role="status" aria-label="Assistant is typing">
-                <span />
-                <span />
-                <span />
+            <div className="flex items-start gap-2.5">
+              <span
+                className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"
+                aria-hidden="true"
+              >
+                <BrandMark size={18} />
+              </span>
+              <div
+                className="inline-flex items-center gap-1 rounded-2xl border border-border bg-secondary/50 px-3.5 py-2.5"
+                role="status"
+                aria-label="Assistant is typing"
+              >
+                <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.2s]" />
+                <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.1s]" />
+                <span className="size-1.5 animate-bounce rounded-full bg-primary" />
               </div>
             </div>
           )}
@@ -795,59 +937,65 @@ const ChatInterfaceMain = ({
 
         {/* Suggested prompts, only before the first message */}
         {displayMessages.length <= 1 && !isBusy && (
-          <div className="quick-replies" role="group" aria-label="Suggested questions">
+          <div
+            className="flex flex-wrap gap-2 border-t border-border/70 bg-secondary/20 px-4 py-2.5"
+            role="group"
+            aria-label="Suggested questions"
+          >
             {conversationStarters.map(({ text, icon: Icon }) => (
               <button
                 key={text}
                 type="button"
-                className="quick-reply inline-flex items-center gap-2"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow-xs transition-colors hover:border-primary/30 hover:text-primary"
                 onClick={() => handleSendMessage(text)}
               >
-                <Icon className="size-3.5 shrink-0 text-ai" />
-                {text}
+                <Icon className="size-3.5 shrink-0 text-primary" />
+                <span>{text}</span>
               </button>
             ))}
           </div>
         )}
 
         {/* Composer */}
-        <div className="chat-composer">
-          <textarea
-            ref={inputRef}
-            rows={1}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message"
-            aria-label="Message"
-            disabled={isBusy}
-            maxLength={2000}
-            className="chat-input"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="chat-send"
-            onClick={() => handleSendMessage()}
-            disabled={!inputValue.trim() || isBusy}
-            aria-label="Send message"
-          >
-            {sendMessageMutation.isPending ? (
-              <Loader2 className="size-4 shrink-0 animate-spin" />
-            ) : (
-              <Send className="size-4 shrink-0" />
-            )}
-          </button>
+        <div className="border-t border-border bg-secondary/35 px-4 pt-3 pb-2.5">
+          <div className="flex items-end gap-2 rounded-2xl border border-input bg-background p-1.5 shadow-xs transition-all focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/25">
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Type your message"
+              aria-label="Message"
+              disabled={isBusy}
+              maxLength={2000}
+              className="max-h-[140px] flex-1 resize-none bg-transparent px-2.5 py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/80 disabled:cursor-not-allowed disabled:opacity-50"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => handleSendMessage()}
+              disabled={!inputValue.trim() || isBusy}
+              aria-label="Send message"
+            >
+              {sendMessageMutation.isPending ? (
+                <Loader2 className="size-4 shrink-0 animate-spin" />
+              ) : (
+                <Send className="size-4 shrink-0" />
+              )}
+            </button>
+          </div>
+          <p className="tabular mt-1.5 px-1 text-[11px] text-muted-foreground">
+            {inputValue.length > 1500
+              ? `${inputValue.length} / 2000 characters`
+              : 'Enter to send, Shift + Enter for a new line'}
+          </p>
         </div>
-        <p className="chat-footnote">
-          {inputValue.length > 1500
-            ? `${inputValue.length} / 2000 characters`
-            : 'Enter to send, Shift + Enter for a new line'}
-        </p>
       </section>
     </div>
   );
@@ -872,7 +1020,6 @@ export function ChatInterface({
     setHasError(false);
   }, []);
 
-  // Error boundary simulation
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error('Chat interface error:', event.error);
@@ -884,21 +1031,35 @@ export function ChatInterface({
 
   if (hasError) {
     return (
-      <div className="empty-state flex h-[700px] flex-col items-center justify-center gap-6 text-center">
-        <AlertCircle className="size-8 shrink-0 text-destructive" />
-        <h3 className="text-base font-semibold">Something went wrong</h3>
+      <div className="flex h-[700px] flex-col items-center justify-center gap-4 px-6 text-center">
+        <span className="flex size-12 items-center justify-center rounded-2xl border border-destructive/25 bg-destructive/10 text-destructive">
+          <AlertCircle className="size-6 shrink-0" />
+        </span>
+        <h3 className="text-base font-semibold text-foreground">
+          Something went wrong
+        </h3>
         <p className="max-w-sm text-sm text-muted-foreground">
           The chat hit an unexpected error. Refresh the page to start again.
         </p>
-        <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
-          <RefreshCw /> Refresh page
+        <button
+          type="button"
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+          onClick={() => window.location.reload()}
+        >
+          <RefreshCw className="size-4" />
+          <span>Refresh page</span>
         </button>
       </div>
     );
   }
 
   if (!chatRoomId) {
-    return <ChatRoomInitializer chatbotId={chatbotId} onChatRoomReady={handleChatRoomReady} />;
+    return (
+      <ChatRoomInitializer
+        chatbotId={chatbotId}
+        onChatRoomReady={handleChatRoomReady}
+      />
+    );
   }
 
   return (

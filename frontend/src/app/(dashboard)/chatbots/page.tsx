@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   Bot,
   Plus,
-  Search,
   FileText,
   MessageSquare,
   Calendar,
@@ -19,7 +18,6 @@ import {
   List,
   CheckCircle2,
   Clock,
-  type LucideIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -29,23 +27,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChatbotsTable } from '@/components/tables/chatbots-table';
+import {
+  EmptyState,
+  IconTile,
+  StatusPill,
+  TableShell,
+  TableToolbar,
+  menuContentClass,
+  toolbarBtnClass,
+} from '@/components/tables/table-kits';
+import {
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  RefreshButton,
+  SearchField,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits';
 import { useChatBots } from '@/hooks/api/useChatBots';
-
-function Stat({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
-  return (
-    <div className="stat-card">
-      <div className="flex items-center justify-between">
-        <span className="stat-label">{label}</span>
-        <Icon className="size-4 shrink-0 text-muted-foreground" />
-      </div>
-      <span className="stat-value">{value}</span>
-    </div>
-  );
-}
+import { cn } from '@/lib/utils';
 
 export default function ChatBotsPage() {
   const router = useRouter();
-  const { data, isLoading } = useChatBots();
+  const { data, isLoading, refetch } = useChatBots();
   const chatbots = data?.data || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -67,7 +72,6 @@ export default function ChatBotsPage() {
     // }
   };
 
-  // Handlers for the table view
   const handleChatbotSelect = (chatbot: { id: string }) => {
     router.push(`/chatbots/${chatbot.id}`);
   };
@@ -84,223 +88,298 @@ export default function ChatBotsPage() {
   };
 
   const handleChatbotToggle = (chatbotId: string, isActive: boolean) => {
-    // TODO: implement toggle
     console.log('Toggle chatbot:', chatbotId, isActive);
   };
 
-  /* ---------- Loading ---------- */
   if (isLoading) {
     return (
-      <div className="page" aria-busy="true">
-        <div className="page-header">
-          <div className="flex flex-col gap-2">
-            <div className="skeleton" />
-            <div className="skeleton" />
-          </div>
-          <div className="skeleton" />
+      <PageContainer>
+        <div
+          className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4"
+          aria-busy="true"
+        >
+          <div className="h-5 w-36 animate-pulse rounded-lg bg-muted" />
+          <div className="h-3.5 w-64 animate-pulse rounded-lg bg-muted" />
         </div>
-        <div className="flex flex-col gap-8">
-          <div className="grid-stats">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="skeleton" />
-            ))}
-          </div>
-          <div className="grid-auto">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="skeleton" />
-            ))}
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-muted" />
+          ))}
         </div>
-      </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-44 animate-pulse rounded-2xl bg-muted" />
+          ))}
+        </div>
+      </PageContainer>
     );
   }
 
   const readyCount = chatbots.filter((c) => c.isKnowledgeInitialized).length;
-  const totalChats = chatbots.reduce((sum, c) => sum + (c._count?.chatRooms || 0), 0);
+  const totalChats = chatbots.reduce(
+    (sum, c) => sum + (c._count?.chatRooms || 0),
+    0
+  );
+
+  const statItems: StatItem[] = [
+    {
+      label: 'Total chatbots',
+      value: chatbots.length,
+      hint: 'Configured bots',
+      icon: Bot,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Ready',
+      value: readyCount,
+      hint: 'Knowledge initialized',
+      icon: CheckCircle2,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Pending setup',
+      value: chatbots.length - readyCount,
+      hint: 'Needs training data',
+      icon: Clock,
+      iconClass: 'text-chart-4',
+    },
+    {
+      label: 'Total chats',
+      value: totalChats,
+      hint: 'Across all bots',
+      icon: MessageSquare,
+      iconClass: 'text-chart-3',
+    },
+  ];
+
+  const viewToggle = (
+    <div
+      className="inline-flex items-center gap-0.5"
+      role="tablist"
+      aria-label="View"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={viewMode === 'grid'}
+        onClick={() => setViewMode('grid')}
+        className={cn(
+          toolbarBtnClass,
+          viewMode === 'grid' &&
+            'border-primary/30 bg-primary/5 text-primary'
+        )}
+      >
+        <LayoutGrid className="size-3.5 shrink-0" />
+        Grid
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={viewMode === 'table'}
+        onClick={() => setViewMode('table')}
+        className={cn(
+          toolbarBtnClass,
+          viewMode === 'table' &&
+            'border-primary/30 bg-primary/5 text-primary'
+        )}
+      >
+        <List className="size-3.5 shrink-0" />
+        Table
+      </button>
+    </div>
+  );
+
+  const toolbarContent = (
+    <>
+      <SearchField
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Search chatbots"
+      />
+      <div className="flex items-center gap-2">
+        {chatbots.length > 0 && (
+          <span className="tabular hidden text-[11px] text-muted-foreground md:inline">
+            Showing {filteredChatbots.length} of {chatbots.length}
+          </span>
+        )}
+        {viewToggle}
+      </div>
+    </>
+  );
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Chatbots</h1>
-          <p className="page-subtitle">Manage the AI assistants that answer your customers.</p>
-        </div>
-        <Link href="/chatbots/create" className="btn btn-brand">
-          <Plus />
-          Create chatbot
-        </Link>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title="Chatbots"
+        description="Manage the AI assistants that answer your customers."
+        actions={
+          <>
+            <RefreshButton onClick={() => refetch()} />
+            <PrimaryActionButton icon={Plus} href="/chatbots/create">
+              Create chatbot
+            </PrimaryActionButton>
+          </>
+        }
+      />
 
-      <div className="flex flex-col gap-8">
-        {/* Stats */}
-        {chatbots.length > 0 && (
-          <section className="grid-stats">
-            <Stat label="Total chatbots" value={chatbots.length} icon={Bot} />
-            <Stat label="Ready" value={readyCount} icon={CheckCircle2} />
-            <Stat label="Pending setup" value={chatbots.length - readyCount} icon={Clock} />
-            <Stat label="Total chats" value={totalChats} icon={MessageSquare} />
-          </section>
-        )}
+      {chatbots.length > 0 && <StatsStrip items={statItems} />}
 
-        {/* Toolbar */}
-        <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="input-wrap w-full sm:max-w-sm">
-            <Search className="input-icon" />
-            <input
-              type="search"
-              className="input"
-              placeholder="Search chatbots"
-              aria-label="Search chatbots"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      {viewMode === 'table' ? (
+        <ChatbotsTable
+          data={filteredChatbots}
+          loading={isLoading}
+          onChatbotSelect={handleChatbotSelect}
+          onChatbotEdit={handleChatbotEdit}
+          onChatbotDelete={handleChatbotDelete}
+          onChatbotToggle={handleChatbotToggle}
+          toolbar={toolbarContent}
+        />
+      ) : filteredChatbots.length > 0 ? (
+        <>
+          <TableShell>
+            <TableToolbar>{toolbarContent}</TableToolbar>
+          </TableShell>
+          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredChatbots.map((chatbot) => {
+              const ready = Boolean(chatbot.isKnowledgeInitialized);
+              return (
+                <article
+                  key={chatbot.id}
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/60 bg-card text-card-foreground shadow-soft transition-all hover:border-primary/30"
+                >
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex min-w-0 items-start gap-2.5">
+                        <IconTile>
+                          <Bot className="size-4 shrink-0" />
+                        </IconTile>
 
-          <div className="tabs" role="tablist" aria-label="View">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={viewMode === 'grid'}
-              className="tab inline-flex items-center gap-2"
-              onClick={() => setViewMode('grid')}
-            >
-              <LayoutGrid className="size-4 shrink-0" />
-              Grid
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={viewMode === 'table'}
-              className="tab inline-flex items-center gap-2"
-              onClick={() => setViewMode('table')}
-            >
-              <List className="size-4 shrink-0" />
-              Table
-            </button>
-          </div>
-        </section>
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/chatbots/${chatbot.id}`}
+                            className="block truncate text-sm font-semibold leading-tight text-foreground after:absolute after:inset-0 group-hover:text-primary"
+                          >
+                            {chatbot.name}
+                          </Link>
 
-        {/* Content */}
-        {viewMode === 'table' ? (
-          <div className="surface overflow-hidden">
-            <ChatbotsTable
-              data={filteredChatbots}
-              loading={isLoading}
-              onChatbotSelect={handleChatbotSelect}
-              onChatbotEdit={handleChatbotEdit}
-              onChatbotDelete={handleChatbotDelete}
-              onChatbotToggle={handleChatbotToggle}
-            />
-          </div>
-        ) : filteredChatbots.length > 0 ? (
-          <section className="grid-auto">
-            {filteredChatbots.map((chatbot) => (
-              <article key={chatbot.id} className="surface surface-interactive group relative flex flex-col">
-                <div className="flex items-start gap-3 p-5">
-                  <span className="doc-icon">
-                    <Bot className="size-5 shrink-0" />
-                  </span>
+                          <span className="mt-1.5 inline-block">
+                            <StatusPill tone={ready ? 'primary' : 'warning'}>
+                              {ready ? 'Ready' : 'Pending'}
+                            </StatusPill>
+                          </span>
+                        </div>
+                      </div>
 
-                  <div className="min-w-0 flex-1">
-                    {/* Stretched link: the whole card is clickable and keyboard-focusable */}
-                    <Link
-                      href={`/chatbots/${chatbot.id}`}
-                      className="block truncate text-sm font-medium leading-tight"
-                    >
-                      {chatbot.name}
-                    </Link>
-                    <span
-                      className={`badge mt-1 ${
-                        chatbot.isKnowledgeInitialized ? 'badge-success' : 'badge-warning'
-                      }`}
-                    >
-                      <span
-                        className={`status-dot ${chatbot.isKnowledgeInitialized ? 'is-online' : 'is-busy'}`}
-                      />
-                      {chatbot.isKnowledgeInitialized ? 'Ready' : 'Pending'}
-                    </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="relative z-10 flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            aria-label={`Actions for ${chatbot.name}`}
+                          >
+                            <MoreVertical className="size-3.5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className={menuContentClass}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => router.push(`/chatbots/${chatbot.id}`)}
+                          >
+                            <ExternalLink /> View details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(`/chatbots/${chatbot.id}/edit`)
+                            }
+                          >
+                            <Pencil /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              navigator.clipboard.writeText(chatbot.id)
+                            }
+                          >
+                            <Copy /> Copy ID
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() =>
+                              handleDeleteChatbot(chatbot.id, chatbot.name)
+                            }
+                          >
+                            <Trash2 /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {chatbot.description || 'No description provided.'}
+                    </p>
                   </div>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon btn-sm relative z-10"
-                        aria-label={`Actions for ${chatbot.name}`}
-                      >
-                        <MoreVertical />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/chatbots/${chatbot.id}`)}>
-                        <ExternalLink /> View details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push(`/chatbots/${chatbot.id}/edit`)}>
-                        <Pencil /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigator.clipboard.writeText(chatbot.id)}>
-                        <Copy /> Copy ID
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => handleDeleteChatbot(chatbot.id, chatbot.name)}
-                      >
-                        <Trash2 /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <p className="px-5 text-sm text-muted-foreground">
-                  {chatbot.description || 'No description'}
-                </p>
-
-                <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-5 py-3 text-xs items-center text-muted-foreground">
-                  <span className="inline-flex items-center gap-1.5">
-                    <FileText className="size-3.5 shrink-0" />
-                    {chatbot.totalChunks || 0} chunks
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MessageSquare className="size-3.5 shrink-0" />
-                    {chatbot._count?.chatRooms || 0} chats
-                  </span>
-                  <span className="ml-auto inline-flex items-center gap-1.5">
-                    <Calendar className="size-3.5 shrink-0" />
-                    {chatbot.lastKnowledgeUpdate
-                      ? `Updated ${new Date(chatbot.lastKnowledgeUpdate).toLocaleDateString()}`
-                      : `Created ${new Date(chatbot.createdAt).toLocaleDateString()}`}
-                  </span>
-                </div>
-              </article>
-            ))}
+                  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 border-t border-border/60 bg-secondary/35 px-4 py-2.5 text-[11px] text-muted-foreground">
+                    <span className="tabular inline-flex items-center gap-1">
+                      <FileText className="size-3 shrink-0 text-muted-foreground" />
+                      {chatbot.totalChunks || 0} chunks
+                    </span>
+                    <span className="tabular inline-flex items-center gap-1">
+                      <MessageSquare className="size-3 shrink-0 text-muted-foreground" />
+                      {chatbot._count?.chatRooms || 0} chats
+                    </span>
+                    <span className="ml-auto inline-flex items-center gap-1">
+                      <Calendar className="size-3 shrink-0 text-muted-foreground" />
+                      {chatbot.lastKnowledgeUpdate
+                        ? `Updated ${new Date(
+                            chatbot.lastKnowledgeUpdate
+                          ).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                          })}`
+                        : `Created ${new Date(
+                            chatbot.createdAt
+                          ).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                          })}`}
+                    </span>
+                  </div>
+                </article>
+              );
+            })}
           </section>
-        ) : (
-          <div className="empty-state">
-            <span className="doc-icon">
-              <Bot className="size-6 shrink-0" />
-            </span>
-            <h2 className="text-base font-semibold">
-              {query ? 'No chatbots match your search' : 'No chatbots yet'}
-            </h2>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              {query
+        </>
+      ) : (
+        <TableShell>
+          <EmptyState
+            icon={<Bot className="size-5" />}
+            title={query ? 'No chatbots match your search' : 'No chatbots yet'}
+            description={
+              query
                 ? 'Try a different name or clear the search to see everything.'
-                : 'Create your first assistant, add documents, and put it on your website.'}
-            </p>
+                : 'Create your first assistant, add documents, and put it on your website.'
+            }
+          />
+          <div className="flex justify-center pb-6">
             {query ? (
-              <button type="button" className="btn btn-secondary" onClick={() => setSearchTerm('')}>
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="inline-flex h-8 items-center justify-center rounded-lg border border-border/70 bg-background px-3 text-xs font-medium text-foreground hover:border-primary/30 hover:text-primary"
+              >
                 Clear search
               </button>
             ) : (
-              <Link href="/chatbots/create" className="btn btn-brand">
-                <Plus />
+              <PrimaryActionButton icon={Plus} href="/chatbots/create">
                 Create your first chatbot
-              </Link>
+              </PrimaryActionButton>
             )}
           </div>
-        )}
-      </div>
-    </div>
+        </TableShell>
+      )}
+    </PageContainer>
   );
 }

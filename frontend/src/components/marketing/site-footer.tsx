@@ -23,19 +23,19 @@ const cols = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden border-t border-border/80 bg-muted/25">
+    <footer className="relative overflow-hidden border-t border-border bg-muted/35">
       <BrandMark
-        size={300}
+        size={280}
         className="pointer-events-none absolute -bottom-20 -left-16 text-foreground opacity-[0.035]"
         aria-hidden="true"
       />
 
-      <div className="page relative z-10 grid gap-10 py-14 md:grid-cols-[1.6fr_1fr_1fr]">
-        <div className="stack gap-4">
-          <div className="flex items-center gap-3">
+      <div className="mx-auto relative z-10 grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.6fr_1fr_1fr]">
+        <div className="flex flex-col gap-3.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Logo />
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background/80 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-              <BrandMark size={12} className="text-brand-strong" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-xs">
+              <BrandMark size={12} className="text-primary" />
               AI Support Workspace
             </span>
           </div>
@@ -47,7 +47,7 @@ export function SiteFooter() {
 
           <Link
             href="/auth/register"
-            className="group inline-flex w-fit items-center gap-1 text-sm font-semibold text-brand-strong transition-colors hover:underline"
+            className="group inline-flex w-fit items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline"
           >
             Get started free
             <ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -55,11 +55,11 @@ export function SiteFooter() {
         </div>
 
         {cols.map((c) => (
-          <div key={c.title} className="stack gap-3">
+          <div key={c.title} className="flex flex-col gap-2.5">
             <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {c.title}
             </h3>
-            <ul className="stack gap-2.5">
+            <ul className="flex flex-col gap-2">
               {c.links.map(([label, href]) => (
                 <li key={href}>
                   <Link
@@ -75,11 +75,11 @@ export function SiteFooter() {
         ))}
       </div>
 
-      <div className="relative z-10 border-t border-border/70">
-        <div className="page flex flex-col items-center justify-between gap-3 py-5 text-xs text-muted-foreground sm:flex-row">
+      <div className="relative z-10 border-t border-border">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <p>© {new Date().getFullYear()} ClientSync. All rights reserved.</p>
           <span className="inline-flex items-center gap-1.5">
-            <BrandMark size={13} className="text-muted-foreground/80" />
+            <BrandMark size={13} className="text-muted-foreground" />
             Grounded in your knowledge base
           </span>
         </div>

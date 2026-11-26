@@ -58,30 +58,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Brand (existing names kept so current code keeps working) */
-  --color-brand: var(--brand);
-  --color-brand-strong: var(--brand-strong);
-  --color-brand-accent: var(--brand-accent);
-  --color-brand-alt: var(--brand-alt);
-  --color-brand-alt-accent: var(--brand-alt-accent);
-  --color-brand-highlight: var(--brand-highlight);
-  --color-on-brand: var(--on-brand);
-
-  /* Status */
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-info: var(--info);
-
-  /* AI identity: the bot is always indigo, humans are brand green */
-  --color-ai: var(--ai);
-  --color-ai-soft: var(--ai-soft);
-
-  /* Chat surfaces */
-  --color-bubble-user: var(--bubble-user);
-  --color-bubble-user-foreground: var(--bubble-user-foreground);
-  --color-bubble-bot: var(--bubble-bot);
-  --color-bubble-bot-foreground: var(--bubble-bot-foreground);
-
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -111,8 +87,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.19 0.02 258);
 
-  --primary: oklch(0.24 0.025 258);
-  --primary-foreground: oklch(0.985 0.003 255);
+  --primary: oklch(0.52 0.13 160);
+  --primary-foreground: oklch(0.985 0 0);
 
   --secondary: oklch(0.962 0.006 255);
   --secondary-foreground: oklch(0.24 0.025 258);
@@ -142,30 +118,6 @@
   --sidebar-border: oklch(0.915 0.008 255);
   --sidebar-ring: oklch(0.62 0.17 160);
 
-  /* Brand */
-  --brand: oklch(0.62 0.17 160);
-  --brand-strong: oklch(0.52 0.13 160); /* fills behind white text: 5:1 */
-  --brand-accent: oklch(0.68 0.13 205);
-  --brand-alt: oklch(0.6 0.2 265);
-  --brand-alt-accent: oklch(0.58 0.22 300);
-  --brand-highlight: oklch(0.85 0.16 95);
-  --on-brand: oklch(0.985 0 0);
-
-  /* Status */
-  --success: oklch(0.62 0.17 150);
-  --warning: oklch(0.78 0.16 75);
-  --info: oklch(0.62 0.15 240);
-
-  /* AI */
-  --ai: oklch(0.55 0.2 270);
-  --ai-soft: oklch(0.955 0.025 275);
-
-  /* Chat */
-  --bubble-user: var(--brand-strong);
-  --bubble-user-foreground: oklch(0.985 0 0);
-  --bubble-bot: oklch(0.962 0.006 255);
-  --bubble-bot-foreground: oklch(0.19 0.02 258);
-
   /* Elevation: layered and slightly tinted, never flat grey */
   --elev-xs: 0 1px 2px oklch(0.25 0.03 258 / 0.06);
   --elev-soft:
@@ -187,8 +139,8 @@
   --popover: oklch(0.22 0.015 258);
   --popover-foreground: oklch(0.965 0.005 255);
 
-  --primary: oklch(0.94 0.006 255);
-  --primary-foreground: oklch(0.2 0.014 258);
+  --primary: oklch(0.53 0.14 160);
+  --primary-foreground: oklch(0.985 0 0);
 
   --secondary: oklch(0.26 0.016 258);
   --secondary-foreground: oklch(0.965 0.005 255);
@@ -217,24 +169,6 @@
   --sidebar-accent-foreground: oklch(0.965 0.005 255);
   --sidebar-border: oklch(1 0 0 / 9%);
   --sidebar-ring: oklch(0.68 0.16 160);
-
-  --brand: oklch(0.72 0.16 160);
-  --brand-strong: oklch(0.55 0.14 160);
-  --brand-accent: oklch(0.74 0.12 205);
-  --brand-alt: oklch(0.7 0.18 270);
-  --brand-alt-accent: oklch(0.68 0.2 300);
-
-  --success: oklch(0.72 0.16 150);
-  --warning: oklch(0.82 0.15 78);
-  --info: oklch(0.72 0.14 240);
-
-  --ai: oklch(0.74 0.15 275);
-  --ai-soft: oklch(0.27 0.045 275);
-
-  --bubble-user: var(--brand-strong);
-  --bubble-user-foreground: oklch(0.985 0 0);
-  --bubble-bot: oklch(0.26 0.016 258);
-  --bubble-bot-foreground: oklch(0.965 0.005 255);
 
   --elev-xs: 0 1px 2px oklch(0 0 0 / 0.35);
   --elev-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 4px 12px oklch(0 0 0 / 0.3);
@@ -287,7 +221,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--brand) 30%, transparent);
+    background: color-mix(in oklab, var(--ring) 30%, transparent);
   }
 
   input,
@@ -339,796 +273,25 @@
   background: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
 }
 
-/* ==========================================================================
-   4. COMPONENTS
-   Usage: compose a base class with modifiers, e.g.
-     <button className="btn btn-primary btn-sm">
-     <div className="surface surface-interactive">
-   ========================================================================== */
 
-@layer components {
-  /* ---------- Layout ---------- */
-
-  .page {
-    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8;
-  }
-  .page-narrow {
-    @apply mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:py-10;
-  }
-  .page-header {
-    @apply mb-6 flex flex-wrap items-start justify-between gap-4;
-  }
-  .page-title {
-    @apply text-2xl font-semibold tracking-tight sm:text-3xl;
-  }
-  .page-subtitle {
-    @apply mt-1 max-w-prose text-sm text-muted-foreground sm:text-base;
-  }
-  .stack {
-    @apply flex flex-col gap-4;
-  }
-  .cluster {
-    @apply flex flex-wrap items-center gap-2;
-  }
-  .grid-auto {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-  }
-  .grid-stats {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
-  }
-
-  /* ---------- App shell (dashboard) ---------- */
-
-  .app-shell {
-    @apply flex min-h-dvh bg-background;
-  }
-  .app-sidebar {
-    @apply sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-1 overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground lg:flex;
-  }
-  .app-main {
-    @apply flex min-w-0 flex-1 flex-col;
-  }
-  .app-topbar {
-    @apply sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border px-4 backdrop-blur;
-    background: color-mix(in oklab, var(--background) 82%, transparent);
-  }
-
-  .nav-label {
-    @apply px-3 pb-1 pt-4 text-xs font-medium text-muted-foreground;
-  }
-  .nav-item {
-    @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors;
-  }
-  .nav-item:hover {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
-  }
-  /* Active state = tinted fill + a bar on the leading edge */
-  .nav-item.is-active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
-  }
-  .nav-item.is-active::before {
-    content: "";
-    @apply absolute -left-3 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand;
-  }
-  .nav-item svg {
-    @apply size-4 shrink-0;
-  }
-
-  /* ---------- Surfaces ---------- */
-
-  .surface {
-    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-soft;
-  }
-  .surface-pad {
-    @apply p-5;
-  }
-  .surface-muted {
-    @apply rounded-xl border border-border bg-muted/60;
-  }
-  /* Only for cards that are actually clickable */
-  .surface-interactive {
-    @apply cursor-pointer transition-[box-shadow,border-color,transform] duration-200;
-  }
-  .surface-interactive:hover {
-    @apply -translate-y-0.5 shadow-lift;
-    border-color: color-mix(in oklab, var(--brand) 40%, var(--border));
-  }
-  .surface-header {
-    @apply flex items-center justify-between gap-3 border-b border-border px-5 py-4;
-  }
-  .surface-footer {
-    @apply flex items-center justify-end gap-2 border-t border-border px-5 py-3;
-  }
-
-  /* ---------- Buttons ---------- */
-
-  .btn {
-    @apply inline-flex h-10 shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-medium transition-[background-color,box-shadow,transform,border-color] duration-150 active:translate-y-px;
-  }
-  .btn svg {
-    @apply size-4 shrink-0;
-  }
-  .btn-sm {
-    @apply h-8 gap-1.5 rounded-md px-3 text-[0.8125rem];
-  }
-  .btn-lg {
-    @apply h-12 rounded-xl px-6 text-base;
-  }
-  .btn-icon {
-    @apply size-10 px-0;
-  }
-  .btn-icon.btn-sm {
-    @apply size-8;
-  }
-  .btn-primary {
-    @apply bg-primary text-primary-foreground shadow-xs hover:opacity-90;
-  }
-  .btn-brand {
-    @apply bg-brand-strong text-on-brand shadow-xs;
-    background-image: linear-gradient(
-      to bottom,
-      color-mix(in oklab, white 14%, transparent),
-      transparent
-    );
-  }
-  .btn-brand:hover {
-    box-shadow:
-      var(--elev-soft),
-      0 0 0 4px color-mix(in oklab, var(--brand) 18%, transparent);
-  }
-  .btn-secondary {
-    @apply border border-border bg-card text-foreground shadow-xs hover:bg-secondary;
-  }
-  .btn-ghost {
-    @apply text-muted-foreground hover:bg-secondary hover:text-foreground;
-  }
-  .btn-danger {
-    @apply bg-destructive text-white shadow-xs hover:opacity-90;
-  }
-  .btn-link {
-    @apply h-auto px-0 text-brand-strong underline-offset-4 hover:underline;
-  }
-  .btn-loading {
-    @apply pointer-events-none opacity-70;
-  }
-
-  /* ---------- Forms ---------- */
-
-  .field {
-    @apply flex flex-col gap-1.5;
-  }
-  .label {
-    @apply text-sm font-medium text-foreground;
-  }
-  .field-hint {
-    @apply text-xs text-muted-foreground;
-  }
-  .field-error {
-    @apply text-sm text-destructive;
-  }
-
-  .input,
-  .textarea,
-  .select {
-    @apply w-full rounded-xl border border-input bg-card px-3 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] duration-150;
-  }
-  .input,
-  .select {
-    @apply h-10;
-  }
-  .textarea {
-    @apply min-h-24 resize-y py-2.5;
-  }
-  .input:hover,
-  .textarea:hover,
-  .select:hover {
-    border-color: color-mix(in oklab, var(--foreground) 25%, var(--input));
-  }
-  .input:focus-visible,
-  .textarea:focus-visible,
-  .select:focus-visible {
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
-  }
-  .input[aria-invalid="true"],
-  .textarea[aria-invalid="true"] {
-    border-color: var(--destructive);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 15%, transparent);
-  }
-
-
-  /* Input with a leading icon and optional trailing action (e.g. show password)
-     <div class="input-wrap"><Icon class="input-icon"/><input class="input"/>
-       <button class="input-action">...</button></div> */
-  .input-wrap {
-    @apply relative;
-  }
-  .input-wrap > .input {
-    @apply pl-10;
-  }
-  .input-wrap > .input-action ~ .input,
-  .input-wrap.has-action > .input {
-    @apply pr-11;
-  }
-  .input-icon {
-    @apply pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground;
-  }
-  .input-action {
-    @apply absolute right-1 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground;
-  }
-  /* Input + fixed suffix, e.g. "acme" + ".clientsync.com" */
-  .input-group {
-    @apply flex overflow-hidden rounded-lg border border-input bg-card shadow-xs transition-[border-color,box-shadow];
-  }
-  .input-group:focus-within {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
-  }
-  .input-group.is-invalid {
-    border-color: var(--destructive);
-  }
-  .input-group > .input {
-    @apply rounded-none border-0 shadow-none;
-  }
-  .input-group > .input:focus-visible {
-    box-shadow: none;
-  }
-  .input-addon {
-    @apply flex items-center whitespace-nowrap border-l border-border bg-muted px-3 text-sm text-muted-foreground;
-  }
-
-  /* ---------- Badges & status ---------- */
-
-  .badge {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-0.5 text-xs font-medium;
-  }
-  .badge-neutral {
-    @apply bg-secondary text-secondary-foreground;
-  }
-  .badge-brand {
-    @apply text-brand-strong;
-    background: color-mix(in oklab, var(--brand) 14%, transparent);
-  }
-  .badge-ai {
-    @apply text-ai;
-    background: var(--ai-soft);
-  }
-  .badge-success {
-    @apply text-success;
-    background: color-mix(in oklab, var(--success) 14%, transparent);
-  }
-  .badge-warning {
-    @apply text-warning;
-    background: color-mix(in oklab, var(--warning) 18%, transparent);
-  }
-  .badge-danger {
-    @apply text-destructive;
-    background: color-mix(in oklab, var(--destructive) 12%, transparent);
-  }
-  .badge-outline {
-    @apply border-border text-muted-foreground;
-  }
-
-  .status-dot {
-    @apply inline-block size-2 rounded-full bg-muted-foreground;
-  }
-  .status-dot.is-online {
-    @apply bg-success;
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 22%, transparent);
-  }
-  .status-dot.is-busy {
-    @apply bg-warning;
-  }
-  .status-dot.is-error {
-    @apply bg-destructive;
-  }
-
-  /* ---------- Avatars ---------- */
-
-  .avatar {
-    @apply relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-xs font-semibold text-secondary-foreground;
-  }
-  .avatar-sm {
-    @apply size-7 text-[0.6875rem];
-  }
-  .avatar-lg {
-    @apply size-12 text-base;
-  }
-  .avatar-ai {
-    @apply text-on-brand;
-    background-image: linear-gradient(135deg, var(--brand-alt), var(--brand-alt-accent));
-  }
-
-  /* ---------- Tables ---------- */
-
-  .table-wrap {
-    @apply overflow-x-auto rounded-2xl border border-border bg-card;
-  }
-  .data-table {
-    @apply w-full border-collapse text-sm;
-  }
-  .data-table th {
-    @apply whitespace-nowrap border-b border-border bg-muted/50 px-4 py-3 text-left text-xs font-medium text-muted-foreground;
-  }
-  .data-table td {
-    @apply border-b border-border px-4 py-3 align-middle;
-  }
-  .data-table tbody tr:last-child td {
-    @apply border-b-0;
-  }
-  .data-table tbody tr {
-    @apply transition-colors;
-  }
-  .data-table tbody tr:hover {
-    @apply bg-muted/50;
-  }
-
-  /* ---------- Stat cards (analytics) ---------- */
-
-  .stat-card {
-    @apply flex flex-col gap-1 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xs;
-  }
-  .stat-label {
-    @apply text-sm text-muted-foreground;
-  }
-  .stat-value {
-    @apply text-3xl font-semibold tabular-nums;
-    letter-spacing: -0.03em;
-  }
-  .stat-delta {
-    @apply inline-flex items-center gap-1 text-xs font-medium;
-  }
-  .stat-delta.is-up {
-    @apply text-success;
-  }
-  .stat-delta.is-down {
-    @apply text-destructive;
-  }
-
-  /* ---------- Tabs ---------- */
-
-  .tabs {
-    @apply inline-flex items-center gap-1 rounded-lg bg-secondary p-1;
-  }
-  .tab {
-    @apply rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground;
-  }
-  .tab.is-active,
-  .tab[aria-selected="true"] {
-    @apply bg-card text-foreground shadow-xs;
-  }
-
-  /* ---------- Feedback: empty, skeleton, progress, toast ---------- */
-
-  .empty-state {
-    @apply flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border px-6 py-14 text-center;
-  }
-
-  .skeleton {
-    @apply rounded-md bg-muted;
-    background-image: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in oklab, var(--foreground) 6%, transparent),
-      transparent
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.6s linear infinite;
-  }
-
-  .progress {
-    @apply h-1.5 w-full overflow-hidden rounded-full bg-secondary;
-  }
-  .progress > span {
-    @apply block h-full rounded-full bg-brand;
-    transition: width 0.4s var(--ease-out);
-  }
-
-  .toast {
-    @apply flex items-start gap-3 rounded-xl border border-border bg-popover p-4 text-sm text-popover-foreground shadow-float;
-  }
-
-  .callout {
-    @apply flex gap-3 rounded-xl border p-4 text-sm;
-    border-color: color-mix(in oklab, var(--info) 30%, var(--border));
-    background: color-mix(in oklab, var(--info) 8%, transparent);
-  }
-  .callout-warning {
-    border-color: color-mix(in oklab, var(--warning) 40%, var(--border));
-    background: color-mix(in oklab, var(--warning) 10%, transparent);
-  }
-  .callout-danger {
-    border-color: color-mix(in oklab, var(--destructive) 30%, var(--border));
-    background: color-mix(in oklab, var(--destructive) 8%, transparent);
-  }
-
-
-  /* ---------- Knowledge base ---------- */
-
-  .dropzone {
-    @apply flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-input bg-muted/30 px-6 py-10 text-center transition-colors;
-  }
-  .dropzone:hover,
-  .dropzone.is-dragging {
-    border-color: var(--brand);
-    background: color-mix(in oklab, var(--brand) 7%, transparent);
-  }
-  .doc-row {
-    @apply flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/40;
-  }
-  .doc-icon {
-    @apply flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground;
-  }
-
-  /* ---------- Auth ---------- */
-
-  .auth-layout {
-    @apply relative grid min-h-dvh place-items-center overflow-hidden bg-background p-4;
-  }
-  .auth-card {
-    @apply relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8;
-  }
-
-  /* ---------- Marketing / landing ---------- */
-
-  .dot-grid {
-    background-image: radial-gradient(
-      circle,
-      color-mix(in oklab, var(--foreground) 12%, transparent) 1px,
-      transparent 1px
-    );
-    background-size: 22px 22px;
-  }
-
-  .glass {
-    @apply rounded-2xl border border-border/60 bg-card/75 shadow-soft backdrop-blur-xl;
-  }
-
-  .hero-glow {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(
-        60% 50% at 20% 0%,
-        color-mix(in oklab, var(--brand) 18%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 45% at 85% 10%,
-        color-mix(in oklab, var(--brand-alt) 16%, transparent),
-        transparent 70%
-      );
-  }
-  .gradient-text {
-    background-image: linear-gradient(100deg, var(--brand), var(--brand-alt));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  /* Brand gradients (existing names kept) */
-  .brand-gradient {
-    background-image: linear-gradient(to bottom right, var(--brand), var(--brand-accent));
-  }
-  .brand-gradient-alt {
-    background-image: linear-gradient(
-      to bottom right,
-      var(--brand-alt),
-      var(--brand-alt-accent)
-    );
-  }
-}
-
-/* ==========================================================================
-   5. CHAT UI
-   Structure:
-     .chat-window
-       .chat-header
-       .chat-messages
-         .msg.msg-bot  > .avatar + .msg-body > .msg-bubble + .msg-meta
-         .msg.msg-user > .msg-body > .msg-bubble
-         .typing
-       .quick-replies > .quick-reply
-       .chat-composer > .chat-input + .chat-send
-   ========================================================================== */
-
-@layer components {
-  .chat-window {
-    @apply flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-float;
-  }
-  .chat-header {
-    @apply flex items-center gap-3 border-b border-border px-4 py-3;
-  }
-  .chat-header-brand {
-    @apply -mx-px -mt-px border-0 px-4 py-4 text-on-brand;
-    background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-alt));
-  }
-  .chat-messages {
-    @apply flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-5;
-    overscroll-behavior: contain;
-    scroll-padding-bottom: 1rem;
-  }
-  .chat-day {
-    @apply self-center rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground;
-  }
-
-  /* Messages */
-  .msg {
-    @apply flex max-w-[88%] items-end gap-2;
-    animation: msg-in 0.28s var(--ease-out) both;
-  }
-  .msg-bot,
-  .msg-agent {
-    @apply self-start;
-  }
-  .msg-user {
-    @apply flex-row-reverse self-end;
-  }
-  .msg-body {
-    @apply flex min-w-0 flex-col gap-1;
-  }
-  .msg-user .msg-body {
-    @apply items-end;
-  }
-  .msg-bubble {
-    @apply whitespace-pre-wrap break-words px-3.5 py-2.5 text-[0.9375rem] leading-relaxed;
-    background: var(--bubble-bot);
-    color: var(--bubble-bot-foreground);
-    border-radius: 1.125rem 1.125rem 1.125rem 0.375rem;
-  }
-  .msg-user .msg-bubble {
-    background: var(--bubble-user);
-    color: var(--bubble-user-foreground);
-    border-radius: 1.125rem 1.125rem 0.375rem 1.125rem;
-  }
-  /* Human agent replies are visually distinct from the AI */
-  .msg-agent .msg-bubble {
-    background: color-mix(in oklab, var(--brand) 12%, var(--card));
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--brand) 25%, transparent);
-  }
-  .msg-bot .msg-bubble {
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ai) 10%, transparent);
-  }
-  .msg-bubble.is-error {
-    background: color-mix(in oklab, var(--destructive) 10%, var(--card));
-    color: var(--destructive);
-  }
-  .msg-meta {
-    @apply flex items-center gap-2 px-1 text-xs text-muted-foreground;
-  }
-  .msg-user .msg-meta {
-    @apply justify-end;
-  }
-
-  /* Rich content inside bot answers (markdown output) */
-  .msg-bubble :where(p + p, ul, ol, pre) {
-    @apply mt-2;
-  }
-  .msg-bubble :where(ul) {
-    @apply list-disc pl-5;
-  }
-  .msg-bubble :where(ol) {
-    @apply list-decimal pl-5;
-  }
-  .msg-bubble :where(a) {
-    @apply underline underline-offset-2;
-    color: var(--brand-alt);
-  }
-  .msg-bubble :where(code) {
-    @apply rounded bg-foreground/10 px-1 py-0.5 font-mono text-[0.85em];
-  }
-  .msg-bubble :where(pre) {
-    @apply overflow-x-auto rounded-lg bg-foreground p-3 text-xs text-background;
-  }
-  .msg-bubble :where(pre code) {
-    @apply bg-transparent p-0;
-  }
-
-  /* Knowledge-base citations under an answer */
-  .source-list {
-    @apply flex flex-wrap gap-1.5;
-  }
-  .source-chip {
-    @apply inline-flex max-w-52 items-center gap-1.5 truncate rounded-full border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-ai hover:text-ai;
-  }
-
-  /* Streaming + typing */
-  .typing {
-    @apply inline-flex items-center gap-1 self-start rounded-2xl px-4 py-3;
-    background: var(--bubble-bot);
-    border-bottom-left-radius: 0.375rem;
-  }
-  .typing > span {
-    @apply size-1.5 rounded-full bg-muted-foreground;
-    animation: typing-bounce 1.2s ease-in-out infinite;
-  }
-  .typing > span:nth-child(2) {
-    animation-delay: 0.15s;
-  }
-  .typing > span:nth-child(3) {
-    animation-delay: 0.3s;
-  }
-  .stream-caret::after {
-    content: "";
-    @apply ml-0.5 inline-block h-[1em] w-0.5 translate-y-[2px] bg-current;
-    animation: caret 1s steps(1) infinite;
-  }
-
-  /* Suggested replies */
-  .quick-replies {
-    @apply flex gap-2 overflow-x-auto px-4 pb-2 pt-1;
-    scrollbar-width: none;
-  }
-  .quick-reply {
-    @apply shrink-0 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground transition-colors;
-  }
-  .quick-reply:hover {
-    border-color: var(--brand);
-    background: color-mix(in oklab, var(--brand) 8%, transparent);
-  }
-
-  /* Composer */
-  .chat-composer {
-    @apply flex items-end gap-2 border-t border-border bg-card p-3;
-    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
-  }
-  .chat-input {
-    @apply max-h-40 min-h-10 flex-1 resize-none rounded-xl border border-input bg-background px-3.5 py-2.5 text-[0.9375rem] leading-snug transition-[border-color,box-shadow];
-  }
-  .chat-input:focus-visible {
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
-  }
-  .chat-send {
-    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-strong text-on-brand transition-[transform,opacity] active:scale-95;
-  }
-  .chat-send:disabled {
-    @apply bg-secondary text-muted-foreground opacity-100;
-  }
-  .chat-footnote {
-    @apply px-4 pb-2 text-center text-[0.6875rem] text-muted-foreground;
-  }
-
-  /* Embeddable widget launcher + panel */
-  .widget-launcher {
-    @apply fixed bottom-5 right-5 z-50 flex size-14 items-center justify-center rounded-full text-on-brand shadow-float transition-transform hover:scale-105 active:scale-95;
-    background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-alt));
-  }
-  .widget-panel {
-    @apply fixed bottom-24 right-5 z-50 h-[min(40rem,calc(100dvh-8rem))] w-[min(24rem,calc(100vw-2.5rem))];
-    animation: panel-in 0.25s var(--ease-out) both;
-    transform-origin: bottom right;
-  }
-  @media (max-width: 480px) {
-    .widget-panel {
-      @apply inset-0 h-dvh w-screen;
-    }
-    .widget-panel .chat-window {
-      @apply rounded-none border-0;
-    }
-  }
-
-  /* Conversation inbox (agent dashboard) */
-  .inbox-item {
-    @apply flex w-full items-start gap-3 border-b border-border px-4 py-3 text-left transition-colors hover:bg-muted/50;
-  }
-  .inbox-item.is-active {
-    background: color-mix(in oklab, var(--brand) 8%, transparent);
-    box-shadow: inset 3px 0 0 var(--brand);
-  }
-  .inbox-item.is-unread .inbox-title {
-    @apply font-semibold;
-  }
-  .confidence {
-    @apply inline-flex items-center gap-1 text-xs tabular-nums text-muted-foreground;
-  }
-}
-
-/* ==========================================================================
-   6. MOTION + A11Y
-   Motion is reserved for things that respond to the user (new message,
-   opening the widget, loading). No decorative entrance animations.
-   ========================================================================== */
-
-@keyframes msg-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes typing-bounce {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.45;
-  }
-  30% {
-    transform: translateY(-4px);
-    opacity: 1;
-  }
-}
-@keyframes caret {
-  50% {
-    opacity: 0;
-  }
-}
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-
-/* ==========================================================================
-    7. COMPOSITION HELPERS (retained design-system additions)
-    ========================================================================== */
-
-@layer components {
-  .callout-success {
-    border-color: color-mix(in oklab, var(--success) 35%, var(--border));
-    background: color-mix(in oklab, var(--success) 9%, transparent);
-  }
-
-  .icon-tile {
-    @apply flex size-10 shrink-0 items-center justify-center rounded-lg text-brand-strong;
-    background: color-mix(in oklab, var(--brand) 14%, transparent);
-  }
-}
 
 
 
 /* ==========================================================================
    8. AUTH PAGES (login + register)
-   Paste this at the END of globals.css. It only adds new classes, so
-   nothing existing is changed.
    ========================================================================== */
 
 @layer components {
-  /* ---------- Brand panel ---------- */
+  /* ---------- Side panel ---------- */
   .auth-aurora {
     position: absolute;
     inset: 0;
+    color: var(--primary-foreground);
     background:
-      radial-gradient(70% 55% at 15% 10%, color-mix(in oklab, var(--brand-alt-accent) 85%, transparent), transparent 65%),
-      radial-gradient(60% 50% at 90% 30%, color-mix(in oklab, var(--brand-accent) 70%, transparent), transparent 65%),
-      radial-gradient(70% 60% at 30% 100%, color-mix(in oklab, var(--brand) 60%, transparent), transparent 65%),
-      linear-gradient(160deg, var(--brand-alt), color-mix(in oklab, var(--brand-alt) 55%, black));
+      radial-gradient(70% 55% at 15% 10%, color-mix(in oklab, color-mix(in oklch, var(--chart-2) 70%, var(--chart-5)) 85%, transparent), transparent 65%),
+      radial-gradient(60% 50% at 90% 30%, color-mix(in oklab, var(--chart-3) 70%, transparent), transparent 65%),
+      radial-gradient(70% 60% at 30% 100%, color-mix(in oklab, var(--chart-1) 60%, transparent), transparent 65%),
+      linear-gradient(160deg, var(--chart-2), color-mix(in oklab, var(--chart-2) 55%, var(--primary)));
   }
 
   .auth-orb {
@@ -1143,22 +306,22 @@
     height: 22rem;
     top: -6rem;
     right: -4rem;
-    background: color-mix(in oklab, var(--brand-highlight) 30%, transparent);
+    background: color-mix(in oklab, var(--chart-4) 30%, transparent);
   }
   .auth-orb-b {
     width: 20rem;
     height: 20rem;
     bottom: 10%;
     left: -6rem;
-    background: color-mix(in oklab, var(--brand) 45%, transparent);
+    background: color-mix(in oklab, var(--chart-1) 45%, transparent);
     animation-delay: -9s;
   }
 
   .auth-pill {
     @apply inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium backdrop-blur-md;
-    border-color: color-mix(in oklab, var(--on-brand) 25%, transparent);
-    background: color-mix(in oklab, var(--on-brand) 12%, transparent);
-    color: var(--on-brand);
+    border-color: color-mix(in oklab, var(--primary-foreground) 25%, transparent);
+    background: color-mix(in oklab, var(--primary-foreground) 12%, transparent);
+    color: var(--primary-foreground);
   }
 
   .auth-float {
@@ -1172,8 +335,8 @@
   /* ---------- Form panel ---------- */
   .auth-form-bg {
     background:
-      radial-gradient(50% 40% at 80% 0%, color-mix(in oklab, var(--brand) 9%, transparent), transparent 70%),
-      radial-gradient(45% 40% at 0% 100%, color-mix(in oklab, var(--brand-alt) 8%, transparent), transparent 70%),
+      radial-gradient(50% 40% at 80% 0%, color-mix(in oklab, var(--chart-1) 9%, transparent), transparent 70%),
+      radial-gradient(45% 40% at 0% 100%, color-mix(in oklab, var(--chart-2) 8%, transparent), transparent 70%),
       var(--background);
   }
 
@@ -1181,21 +344,21 @@
     @apply relative rounded-3xl border border-border bg-card p-6 sm:p-9;
     box-shadow: var(--elev-lift);
   }
-  /* Hairline brand gradient along the top edge */
+  /* Hairline gradient along the top edge */
   .auth-panel::before {
     content: "";
     position: absolute;
     inset: 0 2rem auto 2rem;
     height: 2px;
     border-radius: 9999px;
-    background: linear-gradient(90deg, transparent, var(--brand), var(--brand-alt), transparent);
+    background: linear-gradient(90deg, transparent, var(--chart-1), var(--chart-2), transparent);
     opacity: 0.8;
   }
 
   .auth-icon {
-    background-image: linear-gradient(135deg, var(--brand-strong), var(--brand-alt));
-    color: var(--on-brand);
-    box-shadow: 0 8px 20px color-mix(in oklab, var(--brand-alt) 35%, transparent);
+    background-image: linear-gradient(135deg, var(--primary), var(--chart-2));
+    color: var(--primary-foreground);
+    box-shadow: 0 8px 20px color-mix(in oklab, var(--chart-2) 35%, transparent);
   }
 
   .auth-input {
@@ -1223,9 +386,9 @@
     @apply h-1 flex-1 rounded-full bg-secondary transition-colors duration-300;
   }
   .strength[data-score="1"] > span:nth-child(-n + 1) { background: var(--destructive); }
-  .strength[data-score="2"] > span:nth-child(-n + 2) { background: var(--warning); }
-  .strength[data-score="3"] > span:nth-child(-n + 3) { background: var(--brand); }
-  .strength[data-score="4"] > span:nth-child(-n + 4) { background: var(--success); }
+  .strength[data-score="2"] > span:nth-child(-n + 2) { background: var(--chart-4); }
+  .strength[data-score="3"] > span:nth-child(-n + 3) { background: var(--primary); }
+  .strength[data-score="4"] > span:nth-child(-n + 4) { background: var(--chart-1); }
 }
 
 @keyframes auth-float {

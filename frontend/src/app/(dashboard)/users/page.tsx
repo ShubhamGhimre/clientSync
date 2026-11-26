@@ -1,59 +1,69 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  UserPlus,
+import {
+  Headphones,
   Shield,
-  Crown,
-  Eye,
   UserCheck,
-  UserX,
-  AlertCircle,
-  Loader2,
-  RefreshCw
+  UserPlus,
+  Users,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { UsersTable } from '@/components/tables/users-table';
+import { TableShell, TableToolbar } from '@/components/tables/table-kits';
+import {
+  FilterDropdown,
+  PageContainer,
+  PageErrorState,
+  PageHeader,
+  PrimaryActionButton,
+  RefreshButton,
+  SearchField,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits';
+import { UserAttentionPanel } from '@/components/users/user-attention-panel';
 import { CreateUserModal } from '@/components/modals/create-user-modal';
 import { EditUserModal } from '@/components/modals/edit-user-modal';
 import { ResetPasswordModal } from '@/components/modals/reset-password-modal';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { 
-  useUsers, 
-  useUserStats, 
-  useDeleteUser, 
+import {
+  useUsers,
+  useUserStats,
+  useDeleteUser,
   useUpdateUser,
-  useCreateUser,
-  useResetPassword,
   User,
-  UpdateUserData 
 } from '@/hooks/api/useUsers';
 import { useDisplayUser } from '@/hooks/useDisplayUser';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils'; // If you have a classnames util
+
+type Role = 'ADMIN' | 'AGENT' | 'VIEWER';
+
+const roleOptions = [
+  { value: 'ALL', label: 'All roles' },
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'AGENT', label: 'Agent' },
+  { value: 'VIEWER', label: 'Viewer' },
+];
+
+const statusOptions = [
+  { value: 'ALL', label: 'All statuses' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'INACTIVE', label: 'Inactive' },
+];
 
 export default function UsersPage() {
-  // State for filters and pagination
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [roleFilter, setRoleFilter] = useState<'ADMIN' | 'AGENT' | 'VIEWER' | undefined>();
+  const [roleFilter, setRoleFilter] = useState<Role | undefined>();
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>();
   const [pageSize] = useState(10);
 
-  // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] =
+    useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Confirmation dialog states
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -67,80 +77,71 @@ export default function UsersPage() {
     description: '',
     action: () => {},
   });
+  const closeConfirm = () => setConfirmDialog((d) => ({ ...d, open: false }));
 
   const { displayUser } = useDisplayUser();
   const isAdmin = displayUser?.role === 'ADMIN';
 
-  // Memoize query parameters to prevent unnecessary re-renders
-  const queryParams = useMemo(() => ({
-    page: currentPage,
-    limit: pageSize,
-    search: searchTerm.trim() || undefined,
-    role: roleFilter,
-    isActive: statusFilter
-  }), [currentPage, pageSize, searchTerm, roleFilter, statusFilter]);
+  const queryParams = useMemo(
+    () => ({
+      page: currentPage,
+      limit: pageSize,
+      search: searchTerm.trim() || undefined,
+      role: roleFilter,
+      isActive: statusFilter,
+    }),
+    [currentPage, pageSize, searchTerm, roleFilter, statusFilter]
+  );
 
-  // Fetch data using hooks
-  const { 
-    data: usersResponse, 
+  const {
+    data: usersResponse,
     isLoading: usersLoading,
     error: usersError,
-    refetch: refetchUsers
+    refetch: refetchUsers,
   } = useUsers(queryParams);
 
-  const { 
-    data: statsResponse, 
+  const {
+    data: statsResponse,
     isLoading: statsLoading,
     error: statsError,
-    refetch: refetchStats
+    refetch: refetchStats,
   } = useUserStats();
 
-  // Mutations
   const deleteUserMutation = useDeleteUser();
   const updateUserMutation = useUpdateUser();
-  const createUserMutation = useCreateUser();
-  const resetPasswordMutation = useResetPassword();
 
-  // Extract data from responses
   const users = usersResponse?.data || [];
   const pagination = usersResponse?.pagination;
   const stats = statsResponse?.data;
 
-  // Loading states
   const isLoadingAny = usersLoading || statsLoading;
-  const isMutating = deleteUserMutation.isPending || updateUserMutation.isPending;
-
-  // Event handlers
-  const handleUserSelect = (user: User) => {
-    console.log('Selected user:', user);
-    // Navigate to user details or open modal
-    // router.push(`/users/${user.id}`);
-  };
+  const isMutating =
+    deleteUserMutation.isPending || updateUserMutation.isPending;
 
   const handleUserEdit = (user: User) => {
     setSelectedUser(user);
     setIsEditModalOpen(true);
   };
 
-  const handleUserDelete = async (userId: string) => {
+  const handleUserDelete = (userId: string) => {
     if (!isAdmin) {
       toast.error('Only administrators can delete users');
       return;
     }
-
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     if (!user) return;
 
+    const targetUser = { ...user };
     setConfirmDialog({
       open: true,
       title: 'Delete User',
-      description: `Are you sure you want to delete ${user.firstName} ${user.lastName}?\n\nThis action cannot be undone and will:\n• Remove the user's access to the system\n• Delete their account permanently\n• Reassign their tickets to other agents`,
+      description: `Are you sure you want to delete ${targetUser.firstName} ${targetUser.lastName}?\n\nThis action cannot be undone and will:\n• Remove the user's access to the system\n• Delete their account permanently\n• Reassign their tickets to other agents`,
       variant: 'destructive',
       icon: 'delete',
       action: async () => {
         try {
-          await deleteUserMutation.mutateAsync(userId);
-          setConfirmDialog({ ...confirmDialog, open: false });
+          await deleteUserMutation.mutateAsync(targetUser.id);
+          closeConfirm();
         } catch (error) {
           console.error('Delete user error:', error);
         }
@@ -156,32 +157,31 @@ export default function UsersPage() {
     setIsCreateModalOpen(true);
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'ADMIN' | 'AGENT' | 'VIEWER') => {
+  const handleRoleChange = (userId: string, newRole: Role) => {
     if (!isAdmin) {
       toast.error('Only administrators can change user roles');
       return;
     }
-
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     if (!user) return;
 
-    // Prevent changing own role
     if (userId === displayUser?.id && newRole !== displayUser?.role) {
       toast.error('You cannot change your own role');
       return;
     }
 
+    const targetUser = { ...user };
     setConfirmDialog({
       open: true,
       title: 'Change User Role',
-      description: `Change ${user.firstName} ${user.lastName}'s role from ${user.role} to ${newRole}?`,
+      description: `Change ${targetUser.firstName} ${targetUser.lastName}'s role from ${targetUser.role} to ${newRole}?`,
       action: async () => {
         try {
           await updateUserMutation.mutateAsync({
-            id: userId,
-            data: { role: newRole }
+            id: targetUser.id,
+            data: { role: newRole },
           });
-          setConfirmDialog({ ...confirmDialog, open: false });
+          closeConfirm();
         } catch (error) {
           console.error('Role change error:', error);
         }
@@ -189,16 +189,14 @@ export default function UsersPage() {
     });
   };
 
-  const handleStatusToggle = async (userId: string, currentStatus: boolean) => {
+  const handleStatusToggle = (userId: string, currentStatus: boolean) => {
     if (!isAdmin) {
       toast.error('Only administrators can change user status');
       return;
     }
-
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     if (!user) return;
 
-    // Prevent deactivating own account
     if (userId === displayUser?.id && currentStatus) {
       toast.error('You cannot deactivate your own account');
       return;
@@ -206,19 +204,20 @@ export default function UsersPage() {
 
     const action = currentStatus ? 'deactivate' : 'activate';
     const actionCapitalized = action.charAt(0).toUpperCase() + action.slice(1);
+    const targetUser = { ...user };
 
     setConfirmDialog({
       open: true,
       title: `${actionCapitalized} User`,
-      description: `Are you sure you want to ${action} ${user.firstName} ${user.lastName}?`,
+      description: `Are you sure you want to ${action} ${targetUser.firstName} ${targetUser.lastName}?`,
       icon: currentStatus ? 'deactivate' : 'activate',
       action: async () => {
         try {
           await updateUserMutation.mutateAsync({
-            id: userId,
-            data: { isActive: !currentStatus }
+            id: targetUser.id,
+            data: { isActive: !currentStatus },
           });
-          setConfirmDialog({ ...confirmDialog, open: false });
+          closeConfirm();
         } catch (error) {
           console.error('Status toggle error:', error);
         }
@@ -231,21 +230,15 @@ export default function UsersPage() {
       toast.error('Only administrators can reset passwords');
       return;
     }
-
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     if (!user) return;
-
     setSelectedUser(user);
     setIsResetPasswordModalOpen(true);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   const handleRefresh = () => {
@@ -253,315 +246,173 @@ export default function UsersPage() {
     refetchStats();
   };
 
-  // Error handling
+  const handleAttentionRoleFilter = (role: Role) => {
+    setRoleFilter(role);
+    setCurrentPage(1);
+  };
+
+  const handleAttentionStatusFilter = (active: boolean) => {
+    setStatusFilter(active);
+    setCurrentPage(1);
+  };
+
+  const roleValue = roleFilter ?? 'ALL';
+  const statusValue =
+    statusFilter === undefined ? 'ALL' : statusFilter ? 'ACTIVE' : 'INACTIVE';
+
+  const activePct =
+    stats && stats.total > 0
+      ? `${Math.round((stats.active / stats.total) * 100)}% of total`
+      : '';
+
+  const statItems: StatItem[] = [
+    {
+      label: 'Total users',
+      value: stats?.total ?? 0,
+      hint: `${stats?.active ?? 0} active`,
+      icon: Users,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Active',
+      value: stats?.active ?? 0,
+      hint: activePct,
+      icon: UserCheck,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Admins',
+      value: stats?.byRole?.ADMIN ?? 0,
+      hint: 'Full access',
+      icon: Shield,
+      iconClass: 'text-chart-4',
+    },
+    {
+      label: 'Agents',
+      value: stats?.byRole?.AGENT ?? 0,
+      hint: 'Support team',
+      icon: Headphones,
+      iconClass: 'text-chart-3',
+    },
+  ];
+
   if (usersError || statsError) {
     return (
-      <div className="stack gap-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-            <p className="text-muted-foreground">Manage user accounts and permissions</p>
-          </div>
-          <Button onClick={handleRefresh} variant="outline">
-            <RefreshCw className="mr-2 size-4 shrink-0" />
-            Retry
-          </Button>
-        </div>
-        
-        <Alert variant="destructive">
-          <AlertCircle className="size-4 shrink-0" />
-          <AlertDescription>
-            Failed to load users data. {usersError?.message || statsError?.message}
-          </AlertDescription>
-        </Alert>
-      </div>
+      <PageErrorState
+        title="Users"
+        noun="users"
+        message={usersError?.message || statsError?.message}
+        onRetry={handleRefresh}
+      />
     );
   }
 
   return (
-    <div className="page stack gap-8 min-h-dvh">
-      {/* Page Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="page-title">Users</h1>
-          <p className="page-subtitle">
-            Manage user accounts and permissions
-          </p>
-        </div>
-        <div className="cluster">
-          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoadingAny}>
-            <RefreshCw className={cn("mr-2 size-4 shrink-0", isLoadingAny && "animate-spin")} />
-            Refresh
-          </Button>
-          {isAdmin && (
-            <Button onClick={handleUserInvite} disabled={isMutating} className="btn btn-brand">
-              <UserPlus className="mr-2 size-4 shrink-0" />
-              Invite User
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid-stats">
-        <Card className="surface">
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-semibold">Total Users</CardTitle>
-            <Users className="size-5 shrink-0 text-brand-strong" />
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">
-              {statsLoading ? (
-                <Loader2 className="size-6 shrink-0 animate-spin" />
-              ) : (
-                stats?.total || 0
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {statsLoading ? '...' : `${stats?.active || 0} active users`}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="surface">
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-semibold">Active Users</CardTitle>
-            <UserCheck className="size-5 shrink-0 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">
-              {statsLoading ? (
-                <Loader2 className="size-6 shrink-0 animate-spin" />
-              ) : (
-                stats?.active || 0
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {statsLoading || !stats ? '...' : `${Math.round((stats.active / stats.total) * 100)}% of total`}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="surface">
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-semibold">Admins</CardTitle>
-            <Shield className="size-5 shrink-0 text-brand-strong" />
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">
-              {statsLoading ? (
-                <Loader2 className="size-6 shrink-0 animate-spin" />
-              ) : (
-                stats?.byRole?.ADMIN || 0
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Administrative access
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="surface">
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-semibold">Agents</CardTitle>
-            <UserCheck className="size-5 shrink-0 text-ai" />
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">
-              {statsLoading ? (
-                <Loader2 className="size-6 shrink-0 animate-spin" />
-              ) : (
-                stats?.byRole?.AGENT || 0
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Support agents
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-sm min-w-0 flex-1">
-          <Search className="input-icon" />
-          <Input
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10"
-            disabled={usersLoading}
-          />
-        </div>
-        <div className="cluster gap-3">
-          <Button
-            variant={roleFilter === undefined ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setRoleFilter(undefined); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            All Roles
-          </Button>
-          <Button
-            variant={roleFilter === 'ADMIN' ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setRoleFilter('ADMIN'); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            <Shield className="size-3 shrink-0 mr-1" />
-            Admin
-          </Button>
-          <Button
-            variant={roleFilter === 'AGENT' ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setRoleFilter('AGENT'); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            <UserCheck className="size-3 shrink-0 mr-1" />
-            Agent
-          </Button>
-          <Button
-            variant={roleFilter === 'VIEWER' ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setRoleFilter('VIEWER'); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            <Eye className="size-3 shrink-0 mr-1" />
-            Viewer
-          </Button>
-        </div>
-        <div className="cluster">
-          <Button
-            variant={statusFilter === undefined ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setStatusFilter(undefined); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            All Status
-          </Button>
-          <Button
-            variant={statusFilter === true ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setStatusFilter(true); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            <UserCheck className="size-3 shrink-0 mr-1" />
-            Active
-          </Button>
-          <Button
-            variant={statusFilter === false ? "default" : "outline"}
-            size="sm"
-            className="rounded-full"
-            onClick={() => { setStatusFilter(false); setCurrentPage(1); }}
-            disabled={usersLoading}
-          >
-            <UserX className="size-3 shrink-0 mr-1" />
-            Inactive
-          </Button>
-        </div>
-      </div>
-
-      {/* Users Table */}
-      <Card className="surface shadow-soft">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">User Management</CardTitle>
-          <CardDescription>
-            View and manage all users in your organization
-            {pagination && (
-              <span className="ml-2">
-                ({pagination.total} total users)
-              </span>
+    <PageContainer>
+      <PageHeader
+        title="Users"
+        description="Manage accounts, roles and access for your organization."
+        actions={
+          <>
+            <RefreshButton
+              onClick={handleRefresh}
+              loading={isLoadingAny}
+              disabled={isLoadingAny}
+            />
+            {isAdmin && (
+              <PrimaryActionButton
+                onClick={handleUserInvite}
+                disabled={isMutating}
+                icon={UserPlus}
+              >
+                Invite user
+              </PrimaryActionButton>
             )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UsersTable
-            data={users}
-            loading={usersLoading}
-            onUserSelect={handleUserSelect}
-            onUserEdit={handleUserEdit}
-            onUserDelete={handleUserDelete}
-            onUserInvite={handleUserInvite}
-            onRoleChange={handleRoleChange}
-            onStatusToggle={handleStatusToggle}
-            onResetPassword={handleResetPassword}
-            pagination={pagination}
-            onPageChange={handlePageChange}
-            isAdmin={isAdmin}
-            isMutating={isMutating}
+          </>
+        }
+      />
+
+      <StatsStrip items={statItems} loading={statsLoading} />
+
+      <TableShell>
+        <TableToolbar>
+          <SearchField
+            value={searchTerm}
+            onChange={handleSearch}
+            placeholder="Search users"
           />
-        </CardContent>
-      </Card>
 
-      {/* Recent Activity */}
-      {stats?.recentlyJoined && stats.recentlyJoined.length > 0 && (
-        <Card className="surface">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Recent Additions</CardTitle>
-            <CardDescription>
-              Users who recently joined your organization
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="stack gap-3">
-              {stats.recentlyJoined.map((user) => (
-                <div key={user.id} className="flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50">
-                  <div className="avatar-sm avatar-ai text-sm font-semibold">
-                    {user.firstName[0]}{user.lastName[0]}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="block truncate text-sm font-medium leading-tight">
-                      {user.firstName} {user.lastName}
-                    </p>
-                    <p className="block truncate text-xs text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-xs shrink-0">
-                    {user.role}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground shrink-0">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterDropdown
+              options={roleOptions}
+              value={roleValue}
+              onValueChange={(value) => {
+                setRoleFilter(value === 'ALL' ? undefined : (value as Role));
+                setCurrentPage(1);
+              }}
+            />
 
-      {/* Modals */}
+            <FilterDropdown
+              options={statusOptions}
+              value={statusValue}
+              onValueChange={(value) => {
+                setStatusFilter(value === 'ALL' ? undefined : value === 'ACTIVE');
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        </TableToolbar>
+
+        <UsersTable
+          data={users}
+          loading={usersLoading}
+          onUserEdit={handleUserEdit}
+          onUserDelete={handleUserDelete}
+          onUserInvite={handleUserInvite}
+          onRoleChange={handleRoleChange}
+          onStatusToggle={handleStatusToggle}
+          onResetPassword={handleResetPassword}
+          pagination={pagination}
+          onPageChange={setCurrentPage}
+          isAdmin={isAdmin}
+          isMutating={isMutating}
+        />
+      </TableShell>
+
+      <UserAttentionPanel
+        stats={stats}
+        loading={statsLoading}
+        onRoleFilter={handleAttentionRoleFilter}
+        onStatusFilter={handleAttentionStatusFilter}
+      />
+
       <CreateUserModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
       />
-
       <EditUserModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         user={selectedUser}
         currentUserId={displayUser?.id}
       />
-
       <ResetPasswordModal
         open={isResetPasswordModalOpen}
         onOpenChange={setIsResetPasswordModalOpen}
         user={selectedUser}
       />
-
       <ConfirmationDialog
         open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        onOpenChange={(open) => setConfirmDialog((d) => ({ ...d, open }))}
         title={confirmDialog.title}
         description={confirmDialog.description}
         variant={confirmDialog.variant}
         icon={confirmDialog.icon}
         onConfirm={confirmDialog.action}
-        confirmText={confirmDialog.variant === 'destructive' ? 'Delete' : 'Confirm'}
+        confirmText={
+          confirmDialog.variant === 'destructive' ? 'Delete' : 'Confirm'
+        }
       />
-    </div>
+    </PageContainer>
   );
 }

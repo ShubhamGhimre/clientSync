@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, type ReactNode } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -11,7 +9,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Shield, Globe, Palette, Users, Bell, Database } from 'lucide-react';
+import {
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  SecondaryActionButton,
+} from '@/components/page-kits';
+import { TableShell } from '@/components/tables/table-kits';
+
+const inputClass =
+  'h-8 rounded-full border border-border/70 bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-primary/40 focus-visible:ring-[3px] focus-visible:ring-ring/25';
+const labelClass = 'mb-1.5 block text-xs font-medium text-foreground';
+const textareaClass =
+  'min-h-[96px] w-full rounded-2xl border border-border/70 bg-background px-3 py-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-primary/40 focus-visible:ring-[3px] focus-visible:ring-ring/25';
+
+function SettingsSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-b border-border/50 last:border-b-0">
+      <div className="border-b border-border/60 px-5 py-3">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {description && (
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+      <div className="flex flex-col gap-4 px-5 py-4">{children}</div>
+    </section>
+  );
+}
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -24,17 +56,13 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="page stack">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Settings</h1>
-          <p className="page-subtitle">
-            Manage your organization settings and preferences
-          </p>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Settings"
+        description="Manage your organization settings and preferences"
+      />
 
-      <Tabs defaultValue="general" className="stack">
+      <Tabs defaultValue="general" className="flex w-full flex-col gap-4">
         <TabsList className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
@@ -44,75 +72,88 @@ export default function SettingsPage() {
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Organization Details</CardTitle>
-              <CardDescription>Basic information about your organization</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
+        <TabsContent value="general" className="flex flex-col gap-4">
+          <TableShell>
+            <SettingsSection
+              title="Organization Details"
+              description="Basic information about your organization"
+            >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="orgName">Organization Name</Label>
-                  <Input id="orgName" defaultValue="Acme Corporation" />
+                  <Label htmlFor="orgName" className={labelClass}>
+                    Organization Name
+                  </Label>
+                  <Input id="orgName" defaultValue="Acme Corporation" className={inputClass} />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="subdomain">Subdomain</Label>
-                  <div className="input-group">
-                    <Input id="subdomain" className="input" defaultValue="acme" />
-                    <div className="input-addon">.clientsync.com</div>
+                  <Label htmlFor="subdomain" className={labelClass}>
+                    Subdomain
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input id="subdomain" className={inputClass} defaultValue="acme" />
+                    <span className="whitespace-nowrap text-xs text-muted-foreground">
+                      .clientsync.com
+                    </span>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className={labelClass}>
+                  Description
+                </Label>
                 <Textarea
                   id="description"
                   placeholder="Tell us about your organization..."
-                  className="textarea"
+                  className={textareaClass}
                   rows={3}
                 />
               </div>
-              <Button>Save Changes</Button>
-            </CardContent>
-          </Card>
+              <div>
+                <PrimaryActionButton>Save Changes</PrimaryActionButton>
+              </div>
+            </SettingsSection>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-              <CardDescription>How customers can reach you</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
+            <SettingsSection
+              title="Contact Information"
+              description="How customers can reach you"
+            >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="email">Contact Email</Label>
-                  <Input id="email" type="email" defaultValue="support@acme.com" />
+                  <Label htmlFor="email" className={labelClass}>
+                    Contact Email
+                  </Label>
+                  <Input id="email" type="email" defaultValue="support@acme.com" className={inputClass} />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" defaultValue="+1 (555) 123-4567" />
+                  <Label htmlFor="phone" className={labelClass}>
+                    Phone Number
+                  </Label>
+                  <Input id="phone" defaultValue="+1 (555) 123-4567" className={inputClass} />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="website">Website</Label>
-                <Input id="website" defaultValue="https://acme.com" />
+                <Label htmlFor="website" className={labelClass}>
+                  Website
+                </Label>
+                <Input id="website" defaultValue="https://acme.com" className={inputClass} />
               </div>
-              <Button>Update Contact Info</Button>
-            </CardContent>
-          </Card>
+              <div>
+                <PrimaryActionButton>Update Contact Info</PrimaryActionButton>
+              </div>
+            </SettingsSection>
+          </TableShell>
         </TabsContent>
 
-        <TabsContent value="security" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Authentication Settings</CardTitle>
-              <CardDescription>Configure security and access controls</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
-              <div className="flex items-center justify-between">
+        <TabsContent value="security" className="flex flex-col gap-4">
+          <TableShell>
+            <SettingsSection
+              title="Authentication Settings"
+              description="Configure security and access controls"
+            >
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <Label>Two-Factor Authentication</Label>
-                  <p className="text-sm text-muted-foreground space-t-0.5">
+                  <Label className={labelClass}>Two-Factor Authentication</Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Require 2FA for all organization members
                   </p>
                 </div>
@@ -121,22 +162,22 @@ export default function SettingsPage() {
 
               <Separator />
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <Label>Single Sign-On (SSO)</Label>
-                  <p className="text-sm text-muted-foreground space-t-0.5">
+                  <Label className={labelClass}>Single Sign-On (SSO)</Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Enable SSO with your identity provider
                   </p>
                 </div>
-                <Badge variant="secondary">Coming Soon</Badge>
+                <Badge variant="secondary" className="rounded-full">Coming Soon</Badge>
               </div>
 
               <Separator />
 
               <div className="flex flex-col gap-2">
-                <Label>Session Timeout</Label>
+                <Label className={labelClass}>Session Timeout</Label>
                 <Select defaultValue="24h">
-                  <SelectTrigger>
+                  <SelectTrigger className={inputClass}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -147,49 +188,50 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+            </SettingsSection>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>API Access</CardTitle>
-              <CardDescription>Manage API keys and webhooks</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
+            <SettingsSection
+              title="API Access"
+              description="Manage API keys and webhooks"
+            >
               <div className="flex flex-col gap-2">
-                <Label>API Key</Label>
+                <Label className={labelClass}>API Key</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     value="sk-1234567890abcdef..."
                     readOnly
-                    className="text-sm"
+                    className={`${inputClass} min-w-0 flex-1`}
                   />
-                  <Button variant="outline">Regenerate</Button>
+                  <SecondaryActionButton>Regenerate</SecondaryActionButton>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="webhook">Webhook URL</Label>
+                <Label htmlFor="webhook" className={labelClass}>
+                  Webhook URL
+                </Label>
                 <Input
                   id="webhook"
                   placeholder="https://your-app.com/webhooks/clientsync"
+                  className={inputClass}
                 />
               </div>
-              <Button>Save API Settings</Button>
-            </CardContent>
-          </Card>
+              <div>
+                <PrimaryActionButton>Save API Settings</PrimaryActionButton>
+              </div>
+            </SettingsSection>
+          </TableShell>
         </TabsContent>
 
-        <TabsContent value="users" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Control user access and permissions</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
-              <div className="flex items-center justify-between">
+        <TabsContent value="users" className="flex flex-col gap-4">
+          <TableShell>
+            <SettingsSection
+              title="User Management"
+              description="Control user access and permissions"
+            >
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <Label>Allow User Registration</Label>
-                  <p className="text-sm text-muted-foreground space-t-0.5">
+                  <Label className={labelClass}>Allow User Registration</Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Let users sign up for your organization
                   </p>
                 </div>
@@ -204,9 +246,9 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="flex flex-col gap-2">
-                <Label>Default User Role</Label>
+                <Label className={labelClass}>Default User Role</Label>
                 <Select defaultValue="user">
-                  <SelectTrigger>
+                  <SelectTrigger className={inputClass}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -218,9 +260,9 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label>Invitation Link Expiry</Label>
+                <Label className={labelClass}>Invitation Link Expiry</Label>
                 <Select defaultValue="7d">
-                  <SelectTrigger>
+                  <SelectTrigger className={inputClass}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -231,21 +273,20 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+            </SettingsSection>
+          </TableShell>
         </TabsContent>
 
-        <TabsContent value="branding" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Custom Branding</CardTitle>
-              <CardDescription>Customize the appearance of your chatbots</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
-              <div className="flex items-center justify-between">
+        <TabsContent value="branding" className="flex flex-col gap-4">
+          <TableShell>
+            <SettingsSection
+              title="Custom Branding"
+              description="Customize the appearance of your chatbots"
+            >
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <Label>Enable Custom Branding</Label>
-                  <p className="text-sm text-muted-foreground space-t-0.5">
+                  <Label className={labelClass}>Enable Custom Branding</Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Use your own colors and logo
                   </p>
                 </div>
@@ -263,48 +304,48 @@ export default function SettingsPage() {
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="flex flex-col gap-2">
-                      <Label>Primary Color</Label>
+                      <Label className={labelClass}>Primary Color</Label>
                       <div className="flex items-center gap-2">
-                        <Input defaultValue="#2563eb" />
-                        <div className="doc-icon bg-brand"></div>
+                        <Input defaultValue="#2563eb" className={inputClass} />
+                        <span className="size-6 shrink-0 rounded-lg bg-primary" />
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <Label>Secondary Color</Label>
+                      <Label className={labelClass}>Secondary Color</Label>
                       <div className="flex items-center gap-2">
-                        <Input defaultValue="#64748b" />
-                        <div className="doc-icon bg-muted-foreground"></div>
+                        <Input defaultValue="#64748b" className={inputClass} />
+                        <span className="size-6 shrink-0 rounded-lg bg-muted-foreground" />
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <Label>Logo Upload</Label>
-                    <div className="dropzone">
-                      <p className="text-sm text-muted-foreground">
+                    <Label className={labelClass}>Logo Upload</Label>
+                    <div className="flex flex-col items-start gap-2 rounded-2xl border border-dashed border-border/70 bg-background/50 px-4 py-5">
+                      <p className="text-xs text-muted-foreground">
                         Drag and drop your logo here, or click to browse
                       </p>
-                      <Button variant="outline" className="mt-2">Choose File</Button>
+                      <SecondaryActionButton>Choose File</SecondaryActionButton>
                     </div>
                   </div>
                 </>
               )}
-            </CardContent>
-          </Card>
+            </SettingsSection>
+          </TableShell>
         </TabsContent>
 
-        <TabsContent value="limits" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Usage Limits</CardTitle>
-              <CardDescription>Configure resource limits and quotas</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
+        <TabsContent value="limits" className="flex flex-col gap-4">
+          <TableShell>
+            <SettingsSection
+              title="Usage Limits"
+              description="Configure resource limits and quotas"
+            >
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label>Max Chatbots per User</Label>
+                  <Label className={labelClass}>Max Chatbots per User</Label>
                   <Input
                     type="number"
+                    className={inputClass}
                     value={settings.maxChatbotsPerUser}
                     onChange={(e) =>
                       setSettings(prev => ({ ...prev, maxChatbotsPerUser: parseInt(e.target.value) }))
@@ -312,9 +353,10 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label>Max Files per Chatbot</Label>
+                  <Label className={labelClass}>Max Files per Chatbot</Label>
                   <Input
                     type="number"
+                    className={inputClass}
                     value={settings.maxFilesPerChatbot}
                     onChange={(e) =>
                       setSettings(prev => ({ ...prev, maxFilesPerChatbot: parseInt(e.target.value) }))
@@ -324,9 +366,10 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label>Max File Size (MB)</Label>
+                <Label className={labelClass}>Max File Size (MB)</Label>
                 <Input
                   type="number"
+                  className={inputClass}
                   value={settings.maxFileSize}
                   onChange={(e) =>
                     setSettings(prev => ({ ...prev, maxFileSize: parseInt(e.target.value) }))
@@ -335,61 +378,64 @@ export default function SettingsPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label>Allowed File Types</Label>
-                <div className="cluster">
+                <Label className={labelClass}>Allowed File Types</Label>
+                <div className="flex flex-wrap gap-2">
                   {['PDF', 'TXT', 'CSV', 'DOCX', 'XLSX'].map((type) => (
-                    <Badge key={type} variant="secondary">{type}</Badge>
+                    <Badge key={type} variant="secondary" className="rounded-full">
+                      {type}
+                    </Badge>
                   ))}
                 </div>
               </div>
 
-              <Button>Save Limits</Button>
-            </CardContent>
-          </Card>
+              <div>
+                <PrimaryActionButton>Save Limits</PrimaryActionButton>
+              </div>
+            </SettingsSection>
+          </TableShell>
         </TabsContent>
 
-        <TabsContent value="notifications" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-              <CardDescription>Choose what notifications you want to receive</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
-              <div className="stack">
-                <div className="flex items-center justify-between">
+        <TabsContent value="notifications" className="flex flex-col gap-4">
+          <TableShell>
+            <SettingsSection
+              title="Notification Preferences"
+              description="Choose what notifications you want to receive"
+            >
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label>Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground space-t-0.5">
+                    <Label className={labelClass}>Email Notifications</Label>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       Receive updates about your chatbots via email
                     </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label>New User Registrations</Label>
-                    <p className="text-sm text-muted-foreground space-t-0.5">
+                    <Label className={labelClass}>New User Registrations</Label>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       Get notified when new users join your organization
                     </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label>Failed Conversations</Label>
-                    <p className="text-sm text-muted-foreground space-t-0.5">
+                    <Label className={labelClass}>Failed Conversations</Label>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       Alert when chatbot can't answer questions
                     </p>
                   </div>
                   <Switch />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label>Weekly Reports</Label>
-                    <p className="text-sm text-muted-foreground space-t-0.5">
+                    <Label className={labelClass}>Weekly Reports</Label>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       Receive weekly performance summaries
                     </p>
                   </div>
@@ -400,15 +446,17 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="flex flex-col gap-2">
-                <Label>Notification Email</Label>
-                <Input defaultValue="admin@acme.com" />
+                <Label className={labelClass}>Notification Email</Label>
+                <Input defaultValue="admin@acme.com" className={inputClass} />
               </div>
 
-              <Button>Save Preferences</Button>
-            </CardContent>
-          </Card>
+              <div>
+                <PrimaryActionButton>Save Preferences</PrimaryActionButton>
+              </div>
+            </SettingsSection>
+          </TableShell>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

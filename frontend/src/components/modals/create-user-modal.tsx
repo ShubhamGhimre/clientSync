@@ -29,17 +29,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Loader2, 
-  User, 
-  Mail, 
-  Lock, 
-  Shield, 
-  Eye, 
+import {
+  Loader2,
+  User,
+  Mail,
+  Lock,
+  Shield,
+  Eye,
   UserPlus,
   Crown,
   Briefcase,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 import { useCreateUser, CreateUserData } from '@/hooks/api/useUsers';
 
@@ -78,7 +78,6 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
   const watchedRole = form.watch('role');
 
   const onSubmit = async (data: CreateUserFormData) => {
-    // Basic validation
     if (data.password !== data.confirmPassword) {
       form.setError('confirmPassword', { message: "Passwords don't match" });
       return;
@@ -141,18 +140,21 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
   };
 
   const roleConfig = getRoleConfig(watchedRole);
+  const RoleIcon = roleConfig.icon;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto">
-        <DialogHeader className="flex items-center gap-3 pb-4">
+      <DialogContent className="max-h-[85vh] overflow-y-auto rounded-2xl border-border bg-card text-card-foreground shadow-soft">
+        <DialogHeader className="border-b border-border pb-4 text-left">
           <div className="flex items-center gap-3">
-            <div className="icon-tile brand-gradient-alt text-on-brand">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
               <UserPlus className="size-5 shrink-0" />
-            </div>
+            </span>
             <div>
-              <DialogTitle className="text-xl font-semibold">Create New User</DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
+              <DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
+                Create New User
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
                 Add a new team member to your organization
               </DialogDescription>
             </div>
@@ -160,25 +162,31 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-5 pt-1"
+          >
             {/* Personal Information */}
             <div className="flex flex-col gap-3">
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                <User className="size-4 shrink-0" />
-                Personal Information
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <User className="size-3.5 shrink-0 text-primary" />
+                <span>Personal Information</span>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="label">First Name</FormLabel>
+                      <FormLabel className="text-xs font-medium text-foreground">
+                        First Name
+                      </FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="John" 
-                          {...field} 
+                        <Input
+                          placeholder="John"
+                          className="h-10 rounded-xl border-input bg-background text-sm focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                          {...field}
                           disabled={createUserMutation.isPending}
                         />
                       </FormControl>
@@ -192,11 +200,14 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="label">Last Name</FormLabel>
+                      <FormLabel className="text-xs font-medium text-foreground">
+                        Last Name
+                      </FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Doe" 
-                          {...field} 
+                        <Input
+                          placeholder="Doe"
+                          className="h-10 rounded-xl border-input bg-background text-sm focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                          {...field}
                           disabled={createUserMutation.isPending}
                         />
                       </FormControl>
@@ -211,15 +222,16 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50">
-                      <Mail className="size-4 shrink-0" />
-                      Email Address
+                    <FormLabel className="flex items-center gap-2 text-xs font-medium text-foreground">
+                      <Mail className="size-3.5 shrink-0 text-muted-foreground" />
+                      <span>Email Address</span>
                     </FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="email"
-                        placeholder="john.doe@company.com" 
-                        {...field} 
+                        placeholder="john.doe@company.com"
+                        className="h-10 rounded-xl border-input bg-background text-sm focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                        {...field}
                         disabled={createUserMutation.isPending}
                       />
                     </FormControl>
@@ -231,9 +243,9 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
 
             {/* Security */}
             <div className="flex flex-col gap-3">
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                <Lock className="size-4 shrink-0" />
-                Security
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Lock className="size-3.5 shrink-0 text-primary" />
+                <span>Security</span>
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -242,21 +254,26 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="label">Password</FormLabel>
+                      <FormLabel className="text-xs font-medium text-foreground">
+                        Password
+                      </FormLabel>
                       <FormControl>
-                        <div className="input-wrap has-action">
-                          <input 
-                            type={showPassword ? "text" : "password"}
-                            className="input"
-                            placeholder="••••••••" 
-                            {...field} 
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            className="h-10 rounded-xl border-input bg-background pr-10 text-sm focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                            {...field}
                             disabled={createUserMutation.isPending}
                           />
                           <button
                             type="button"
-                            className="input-action"
+                            className="absolute top-1/2 right-2.5 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
                             onClick={() => setShowPassword(!showPassword)}
                             disabled={createUserMutation.isPending}
+                            aria-label={
+                              showPassword ? 'Hide password' : 'Show password'
+                            }
                           >
                             {showPassword ? (
                               <EyeOff className="size-3.5 shrink-0" />
@@ -276,21 +293,30 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="label">Confirm Password</FormLabel>
+                      <FormLabel className="text-xs font-medium text-foreground">
+                        Confirm Password
+                      </FormLabel>
                       <FormControl>
-                        <div className="input-wrap has-action">
-                          <input 
-                            type={showConfirmPassword ? "text" : "password"}
-                            className="input"
-                            placeholder="••••••••" 
-                            {...field} 
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            className="h-10 rounded-xl border-input bg-background pr-10 text-sm focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                            {...field}
                             disabled={createUserMutation.isPending}
                           />
                           <button
                             type="button"
-                            className="input-action"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute top-1/2 right-2.5 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
                             disabled={createUserMutation.isPending}
+                            aria-label={
+                              showConfirmPassword
+                                ? 'Hide confirm password'
+                                : 'Show confirm password'
+                            }
                           >
                             {showConfirmPassword ? (
                               <EyeOff className="size-3.5 shrink-0" />
@@ -309,30 +335,32 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
 
             {/* Role & Status */}
             <div className="flex flex-col gap-3">
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                <Shield className="size-4 shrink-0" />
-                Role & Status
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Shield className="size-3.5 shrink-0 text-primary" />
+                <span>Role & Status</span>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div className="min-w-0 flex-1">
                   <FormField
                     control={form.control}
                     name="role"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="label">Role</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <FormLabel className="text-xs font-medium text-foreground">
+                          Role
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
                           value={field.value}
                           disabled={createUserMutation.isPending}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-10 rounded-xl border-input bg-background text-sm">
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="rounded-xl border-border bg-popover text-popover-foreground">
                             <SelectItem value="VIEWER">
                               <div className="flex items-center gap-2">
                                 <Eye className="size-3.5 shrink-0" />
@@ -359,15 +387,16 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                   />
                 </div>
 
-                <div className="flex items-center justify-center">
-                  <div className="flex items-center justify-center surface-muted gap-2">
-                    <div className="flex items-center justify-center rounded-lg p-1 icon-tile brand-gradient text-on-brand">
-                      <roleConfig.icon className="size-3 shrink-0" />
-                    </div>
-                    <Badge variant={roleConfig.badgeVariant} className="badge">
-                      {roleConfig.label}
-                    </Badge>
-                  </div>
+                <div className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-secondary/40 px-3 py-2">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                    <RoleIcon className="size-3.5 shrink-0" />
+                  </span>
+                  <Badge
+                    variant={roleConfig.badgeVariant}
+                    className="rounded-full text-xs font-medium"
+                  >
+                    {roleConfig.label}
+                  </Badge>
                 </div>
               </div>
 
@@ -376,10 +405,12 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 name="isActive"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between p-3 surface-muted">
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-secondary/40 p-3.5">
                       <div>
-                        <FormLabel className="label">Active Account</FormLabel>
-                        <p className="field-hint">
+                        <FormLabel className="text-xs font-semibold text-foreground">
+                          Active Account
+                        </FormLabel>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
                           User can access the system immediately
                         </p>
                       </div>
@@ -397,29 +428,29 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
               />
             </div>
 
-            <DialogFooter className="flex items-center justify-end gap-2 pt-4">
+            <DialogFooter className="flex items-center justify-end gap-2 border-t border-border pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
                 disabled={createUserMutation.isPending}
-                className="btn btn-secondary"
+                className="h-10 rounded-xl border-border bg-card px-4 text-sm font-medium text-foreground shadow-xs hover:border-primary/30 hover:text-primary"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={createUserMutation.isPending}
-                className="btn btn-brand"
+                className="h-10 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90"
               >
                 {createUserMutation.isPending ? (
                   <>
-                    <Loader2 className="size-4 shrink-0 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 size-4 shrink-0 animate-spin" />
                     Creating...
                   </>
                 ) : (
                   <>
-                    <UserPlus className="size-4 shrink-0 mr-2" />
+                    <UserPlus className="mr-2 size-4 shrink-0" />
                     Create User
                   </>
                 )}

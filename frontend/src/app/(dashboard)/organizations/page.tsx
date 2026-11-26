@@ -1,22 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Building, 
-  Plus, 
-  Search, 
-  Users,
+import {
   Bot,
-  Calendar,
+  Building,
   Edit,
   MoreVertical,
-  Trash2
+  Plus,
+  Trash2,
+  Users,
 } from 'lucide-react'
-import Link from 'next/link'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +17,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  ListRow,
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  SearchField,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits'
+import {
+  IconTile,
+  TableShell,
+  TableToolbar,
+  menuContentClass,
+  toolbarBtnClass,
+} from '@/components/tables/table-kits'
 
 const mockOrganizations = [
   {
@@ -60,140 +69,111 @@ export default function OrganizationsPage() {
     org.subdomain.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const totalUsers = mockOrganizations.reduce((sum, org) => sum + org._count.users, 0)
+  const totalChatBots = mockOrganizations.reduce((sum, org) => sum + org._count.chatBots, 0)
+
+  const statItems: StatItem[] = [
+    {
+      label: 'Total Organizations',
+      value: mockOrganizations.length,
+      icon: Building,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Total Users',
+      value: totalUsers,
+      icon: Users,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Total Chatbots',
+      value: totalChatBots,
+      icon: Bot,
+      iconClass: 'text-chart-3',
+    },
+    {
+      label: 'Avg Users/Org',
+      value: Math.round(totalUsers / mockOrganizations.length),
+      icon: Users,
+      iconClass: 'text-chart-4',
+    },
+  ]
+
   return (
-    <div className="page stack">
-      {/* Page Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Organizations</h1>
-          <p className="page-subtitle">
-            Manage organizations and their configurations.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/organizations/create">
-            <Plus className="size-4 shrink-0 mr-2" />
+    <PageContainer>
+      <PageHeader
+        title="Organizations"
+        description="Manage organizations and their configurations."
+        actions={
+          <PrimaryActionButton href="/organizations/create" icon={Plus}>
             Add Organization
-          </Link>
-        </Button>
-      </div>
+          </PrimaryActionButton>
+        }
+      />
 
-      {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
-            <Building className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockOrganizations.length}</div>
-          </CardContent>
-        </Card>
+      <StatsStrip items={statItems} />
 
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockOrganizations.reduce((sum, org) => sum + org._count.users, 0)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Total Chatbots</CardTitle>
-            <Bot className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockOrganizations.reduce((sum, org) => sum + org._count.chatBots, 0)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex items-center justify-between py-2">
-            <CardTitle className="text-sm font-medium">Avg Users/Org</CardTitle>
-            <Users className="size-4 shrink-0 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(mockOrganizations.reduce((sum, org) => sum + org._count.users, 0) / mockOrganizations.length)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="input-icon" />
-          <Input
-            placeholder="Search organizations..."
+      <TableShell>
+        <TableToolbar>
+          <SearchField
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            onChange={setSearchTerm}
+            placeholder="Search organizations"
           />
-        </div>
-      </div>
+        </TableToolbar>
 
-      {/* Organizations Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredOrganizations.map((org) => (
-          <Card key={org.id} className="transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+        <ul>
+          {filteredOrganizations.map((org) => (
+            <ListRow
+              key={org.id}
+              icon={
+                <IconTile>
+                  <Building className="size-4 shrink-0" />
+                </IconTile>
+              }
+              title={org.name}
+              subtitle={`${org.subdomain}.clientsync.com`}
+              badge={
                 <div className="flex items-center gap-2">
-                  <Building className="size-5 shrink-0" />
-                  <CardTitle className="text-lg">{org.name}</CardTitle>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreVertical className="size-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Edit className="size-4 shrink-0 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="size-4 shrink-0 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <CardDescription>
-                <Badge variant="outline">{org.subdomain}.clientsync.com</Badge>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="stack">
-                <div className="grid gap-4 md:grid-cols-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="size-4 shrink-0 text-muted-foreground" />
-                    <span>{org._count.users} users</span>
+                  <div className="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="size-3.5 shrink-0" />
+                      {org._count.users} users
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Bot className="size-3.5 shrink-0" />
+                      {org._count.chatBots} chatbots
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Bot className="size-4 shrink-0 text-muted-foreground" />
-                    <span>{org._count.chatBots} chatbots</span>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className={toolbarBtnClass}
+                        aria-label={`Actions for ${org.name}`}
+                      >
+                        <MoreVertical className="size-4 shrink-0" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className={menuContentClass}>
+                      <DropdownMenuItem>
+                        <Edit className="mr-2 size-4 shrink-0" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive">
+                        <Trash2 className="mr-2 size-4 shrink-0" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="size-4 shrink-0" />
-                  <span>Created {new Date(org.createdAt).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+              }
+              meta={new Date(org.createdAt).toLocaleDateString()}
+            />
+          ))}
+        </ul>
+      </TableShell>
+    </PageContainer>
   )
 }

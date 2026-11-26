@@ -1,69 +1,110 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { FileUpload } from '@/components/file-upload/file-upload';
 import { FilesTable } from '@/components/tables/files-table';
-import { Upload, FileText, Brain, Zap, AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, Brain, CheckCircle, FileText, Upload, Zap } from 'lucide-react';
+import {
+  ListPanel,
+  ListRow,
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  SecondaryActionButton,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits';
+import {
+  BotAvatar,
+  IconTile,
+  StatusPill,
+  TableShell,
+} from '@/components/tables/table-kits';
+
+const chatbots = [
+  { id: 'chatbot-1', name: 'Customer Support Bot', status: 'active', files: 15 },
+  { id: 'chatbot-2', name: 'Sales Assistant', status: 'training', files: 8 },
+  { id: 'chatbot-3', name: 'Technical Help', status: 'inactive', files: 0 },
+];
 
 export default function TrainingPage() {
   const [selectedChatbot, setSelectedChatbot] = useState('chatbot-1');
 
+  const knowledgeStats: StatItem[] = [
+    {
+      label: 'Total Documents',
+      value: 15,
+      hint: '+3 this week',
+      icon: FileText,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Knowledge Chunks',
+      value: '1,247',
+      hint: 'Processed segments',
+      icon: Brain,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Last Updated',
+      value: '2h ago',
+      hint: 'Knowledge base sync',
+      icon: Zap,
+      iconClass: 'text-chart-4',
+    },
+    {
+      label: 'Total Files',
+      value: chatbots.reduce((sum, bot) => sum + bot.files, 0),
+      hint: 'Across all chatbots',
+      icon: Upload,
+      iconClass: 'text-chart-3',
+    },
+  ];
+
   return (
-    <div className="page stack">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Training Data</h1>
-          <p className="page-subtitle">
-            Upload and manage training data for your chatbots
-          </p>
-        </div>
-        <Button>
-          <Upload className="size-4 shrink-0 mr-2" />
-          Upload Files
-        </Button>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Training Data"
+        description="Upload and manage training data for your chatbots"
+        actions={
+          <PrimaryActionButton icon={Upload}>
+            Upload Files
+          </PrimaryActionButton>
+        }
+      />
 
-      {/* Chatbot Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Chatbot</CardTitle>
-          <CardDescription>Choose which chatbot to train</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              { id: 'chatbot-1', name: 'Customer Support Bot', status: 'active', files: 15 },
-              { id: 'chatbot-2', name: 'Sales Assistant', status: 'training', files: 8 },
-              { id: 'chatbot-3', name: 'Technical Help', status: 'inactive', files: 0 },
-            ].map((bot) => (
-              <Card
-                key={bot.id}
-                className={`surface surface-interactive ${
-                  selectedChatbot === bot.id ? 'surface shadow-soft' : ''
-                }`}
-                onClick={() => setSelectedChatbot(bot.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{bot.name}</h3>
-                    <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
-                      {bot.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{bot.files} files uploaded</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPanel title="Select Chatbot">
+        {chatbots.map((bot) => {
+          const tone =
+            bot.status === 'active'
+              ? 'primary'
+              : bot.status === 'training'
+                ? 'warning'
+                : 'neutral';
+          return (
+            <ListRow
+              key={bot.id}
+              className={`relative ${selectedChatbot === bot.id ? 'bg-primary/[0.045]' : ''}`}
+              icon={<BotAvatar size="sm" />}
+              title={
+                <button
+                  type="button"
+                  onClick={() => setSelectedChatbot(bot.id)}
+                  className="text-left after:absolute after:inset-0"
+                >
+                  {bot.name}
+                </button>
+              }
+              subtitle={`${bot.files} files uploaded`}
+              badge={<StatusPill tone={tone}>{bot.status}</StatusPill>}
+            />
+          );
+        })}
+      </ListPanel>
 
-      <Tabs defaultValue="upload" className="stack">
+      <Tabs defaultValue="upload" className="flex w-full flex-col gap-4">
         <TabsList className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 w-full">
           <TabsTrigger value="upload">Upload Files</TabsTrigger>
           <TabsTrigger value="files">Manage Files</TabsTrigger>
@@ -71,180 +112,162 @@ export default function TrainingPage() {
           <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload" className="stack">
+        <TabsContent value="upload" className="flex flex-col gap-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload Training Files</CardTitle>
-                <CardDescription>
+            <TableShell>
+              <div className="border-b border-border/60 px-5 py-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Upload Training Files
+                </h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Upload documents to train your chatbot. Supported formats: PDF, TXT, CSV, DOCX
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </div>
+              <div className="px-5 py-4">
                 <FileUpload />
-              </CardContent>
-            </Card>
+              </div>
+            </TableShell>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload Guidelines</CardTitle>
-                <CardDescription>Best practices for training data</CardDescription>
-              </CardHeader>
-              <CardContent className="stack">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="size-5 shrink-0 text-success space-t-0.5" />
+            <TableShell>
+              <div className="border-b border-border/60 px-5 py-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Upload Guidelines
+                </h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Best practices for training data
+                </p>
+              </div>
+              <ul className="px-5">
+                <li className="flex items-start gap-3 border-b border-border/50 py-3 last:border-b-0">
+                  <CheckCircle className="mt-0.5 size-5 shrink-0 text-success" />
                   <div>
-                    <p className="font-medium">Quality Content</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground">Quality Content</p>
+                    <p className="text-xs text-muted-foreground">
                       Use clear, well-structured documents with relevant information
                     </p>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="size-5 shrink-0 text-success space-t-0.5" />
+                </li>
+                <li className="flex items-start gap-3 border-b border-border/50 py-3 last:border-b-0">
+                  <CheckCircle className="mt-0.5 size-5 shrink-0 text-success" />
                   <div>
-                    <p className="font-medium">File Size</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground">File Size</p>
+                    <p className="text-xs text-muted-foreground">
                       Keep files under 10MB for optimal processing
                     </p>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="size-5 shrink-0 text-warning space-t-0.5" />
+                </li>
+                <li className="flex items-start gap-3 border-b border-border/50 py-3 last:border-b-0">
+                  <AlertCircle className="mt-0.5 size-5 shrink-0 text-warning" />
                   <div>
-                    <p className="font-medium">Privacy Notice</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground">Privacy Notice</p>
+                    <p className="text-xs text-muted-foreground">
                       Ensure documents don't contain sensitive information
                     </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </li>
+              </ul>
+            </TableShell>
           </div>
         </TabsContent>
 
-        <TabsContent value="files" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Uploaded Files</CardTitle>
-              <CardDescription>Manage your training files</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FilesTable />
-            </CardContent>
-          </Card>
+        <TabsContent value="files" className="flex flex-col gap-4">
+          <FilesTable chatbotId={selectedChatbot} />
         </TabsContent>
 
-        <TabsContent value="processing" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Processing Status</CardTitle>
-              <CardDescription>Monitor file processing and knowledge base updates</CardDescription>
-            </CardHeader>
-            <CardContent className="stack">
-              <div className="stack">
-                <div className="flex items-center justify-between">
+        <TabsContent value="processing" className="flex flex-col gap-4">
+          <TableShell>
+            <div className="border-b border-border/60 px-5 py-3">
+              <h2 className="text-sm font-semibold text-foreground">
+                Processing Status
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Monitor file processing and knowledge base updates
+              </p>
+            </div>
+            <div className="flex flex-col gap-4 px-5 py-4">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <Brain className="size-5 shrink-0 text-brand-strong" />
                     <div>
-                      <p className="font-medium">Knowledge Base Processing</p>
-                      <p className="text-sm text-muted-foreground">Extracting and indexing content</p>
+                      <p className="text-sm font-medium text-foreground">
+                        Knowledge Base Processing
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Extracting and indexing content
+                      </p>
                     </div>
                   </div>
-                  <Badge variant="secondary">In Progress</Badge>
+                  <StatusPill tone="warning">In Progress</StatusPill>
                 </div>
                 <Progress value={65} className="w-full" />
-                <p className="text-sm text-muted-foreground">Processing 3 of 8 files...</p>
+                <p className="text-xs text-muted-foreground">Processing 3 of 8 files...</p>
               </div>
+            </div>
+          </TableShell>
 
-              <div className="flex flex-col gap-2">
-                <h4 className="font-medium">Recent Processing Activity</h4>
-                <div className="flex flex-col gap-2">
-                  {[
-                    { file: 'user-manual.pdf', status: 'completed', time: '2 min ago' },
-                    { file: 'faq-document.docx', status: 'processing', time: 'Now' },
-                    { file: 'product-specs.txt', status: 'queued', time: 'Pending' },
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-center justify-between surface p-3">
-                      <div className="flex items-center gap-3">
-                        <FileText className="size-4 shrink-0 text-muted-foreground" />
-                        <span className="text-sm">{item.file}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={item.status === 'completed' ? 'default' : 'secondary'}>
-                          {item.status}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">{item.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ListPanel title="Recent Processing Activity">
+            {[
+              { file: 'user-manual.pdf', status: 'completed', time: '2 min ago' },
+              { file: 'faq-document.docx', status: 'processing', time: 'Now' },
+              { file: 'product-specs.txt', status: 'queued', time: 'Pending' },
+            ].map((item) => {
+              const tone =
+                item.status === 'completed'
+                  ? 'primary'
+                  : item.status === 'processing'
+                    ? 'warning'
+                    : 'neutral';
+              return (
+                <ListRow
+                  key={item.file}
+                  icon={
+                    <IconTile>
+                      <FileText className="size-4 shrink-0" />
+                    </IconTile>
+                  }
+                  title={item.file}
+                  badge={<StatusPill tone={tone}>{item.status}</StatusPill>}
+                  meta={item.time}
+                />
+              );
+            })}
+          </ListPanel>
         </TabsContent>
 
-        <TabsContent value="knowledge" className="stack">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="size-5 shrink-0 text-brand-strong" />
-                  <span className="font-medium">Total Documents</span>
-                </div>
-                <p className="text-2xl font-bold">15</p>
-                <p className="text-xs text-muted-foreground">+3 this week</p>
-              </CardContent>
-            </Card>
+        <TabsContent value="knowledge" className="flex flex-col gap-4">
+          <StatsStrip items={knowledgeStats} />
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Brain className="size-5 shrink-0 text-success" />
-                  <span className="font-medium">Knowledge Chunks</span>
+          <TableShell>
+            <div className="border-b border-border/60 px-5 py-3">
+              <h2 className="text-sm font-semibold text-foreground">
+                Knowledge Base Status
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Current state of your chatbot's knowledge
+              </p>
+            </div>
+            <ul>
+              <li className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Customer Support Bot
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    15 documents, 1,247 chunks
+                  </p>
                 </div>
-                <p className="text-2xl font-bold">1,247</p>
-                <p className="text-xs text-muted-foreground">Processed segments</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="size-5 shrink-0 text-ai" />
-                  <span className="font-medium">Last Updated</span>
+                <div className="flex items-center gap-2">
+                  <StatusPill tone="primary">Active</StatusPill>
+                  <SecondaryActionButton icon={Brain}>
+                    Retrain
+                  </SecondaryActionButton>
                 </div>
-                <p className="text-2xl font-bold">2h ago</p>
-                <p className="text-xs text-muted-foreground">Knowledge base sync</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Knowledge Base Status</CardTitle>
-              <CardDescription>Current state of your chatbot's knowledge</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="stack">
-                <div className="flex items-center justify-between surface p-4">
-                  <div>
-                    <p className="font-medium">Customer Support Bot</p>
-                    <p className="text-sm text-muted-foreground">15 documents, 1,247 chunks</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="default">Active</Badge>
-                    <Button variant="outline" size="sm">
-                      <Brain className="size-4 shrink-0 mr-2" />
-                      Retrain
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </li>
+            </ul>
+          </TableShell>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

@@ -81,12 +81,13 @@ export function FileUpload({
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], rejectedFiles: any[]) => {
-      // Report rejected files
       rejectedFiles.forEach((rejection) => {
         const { file, errors } = rejection;
         errors.forEach((error: any) => {
           if (error.code === 'file-too-large') {
-            toast.error(`${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)} MB`);
+            toast.error(
+              `${file.name} is too large. Maximum size is ${maxSize / (1024 * 1024)} MB`
+            );
           } else if (error.code === 'file-invalid-type') {
             toast.error(`${file.name} is not a supported file type`);
           } else {
@@ -95,8 +96,8 @@ export function FileUpload({
         });
       });
 
-      // Enforce the file limit
-      const totalFiles = uploadingFiles.length + completedFiles.length + acceptedFiles.length;
+      const totalFiles =
+        uploadingFiles.length + completedFiles.length + acceptedFiles.length;
       if (totalFiles > maxFiles) {
         toast.error(`Cannot upload more than ${maxFiles} files`);
         return;
@@ -114,7 +115,6 @@ export function FileUpload({
       const uploadedInThisBatch: UploadedFile[] = [];
 
       for (const uploadingFile of newUploadingFiles) {
-        // Simulated progress for UI feedback
         const progressInterval = setInterval(() => {
           setUploadingFiles((prev) =>
             prev.map((uf) =>
@@ -134,7 +134,9 @@ export function FileUpload({
 
           setUploadingFiles((prev) =>
             prev.map((uf) =>
-              uf.id === uploadingFile.id ? { ...uf, progress: 100, status: 'completed' } : uf
+              uf.id === uploadingFile.id
+                ? { ...uf, progress: 100, status: 'completed' }
+                : uf
             )
           );
 
@@ -150,15 +152,20 @@ export function FileUpload({
           setCompletedFiles((prev) => [...prev, completedFile]);
           toast.success(`${uploadingFile.file.name} uploaded`);
 
-          // Clear the finished row after a short delay
           setTimeout(() => {
-            setUploadingFiles((prev) => prev.filter((uf) => uf.id !== uploadingFile.id));
+            setUploadingFiles((prev) =>
+              prev.filter((uf) => uf.id !== uploadingFile.id)
+            );
           }, 2000);
         } catch (error: any) {
           setUploadingFiles((prev) =>
             prev.map((uf) =>
               uf.id === uploadingFile.id
-                ? { ...uf, status: 'error', error: error.message || 'Upload failed' }
+                ? {
+                    ...uf,
+                    status: 'error',
+                    error: error.message || 'Upload failed',
+                  }
                 : uf
             )
           );
@@ -172,7 +179,15 @@ export function FileUpload({
         onUploadComplete(uploadedInThisBatch);
       }
     },
-    [chatbotId, maxFiles, maxSize, onUploadComplete, uploadingFiles.length, completedFiles.length, uploadFileMutation]
+    [
+      chatbotId,
+      maxFiles,
+      maxSize,
+      onUploadComplete,
+      uploadingFiles.length,
+      completedFiles.length,
+      uploadFileMutation,
+    ]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -193,95 +208,133 @@ export function FileUpload({
     setCompletedFiles((prev) => prev.filter((cf) => cf.id !== id));
 
   return (
-    <div className={`flex flex-col gap-8 ${className}`}>
+    <div className={`flex flex-col gap-6 ${className}`}>
       {/* Drop zone */}
       <div
         {...getRootProps()}
-        className={`dropzone ${isDragActive ? 'is-dragging' : ''}`}
+        className={`relative flex cursor-pointer flex-col items-center justify-center gap-3.5 overflow-hidden rounded-2xl border-2 border-dashed p-8 text-center transition-all outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/25 ${
+          isDragActive
+            ? 'border-primary bg-primary/10 shadow-soft'
+            : 'border-border bg-card text-card-foreground shadow-xs hover:border-primary/40 hover:bg-secondary/35'
+        }`}
       >
         <input {...getInputProps()} />
 
-        <span className="doc-icon !size-12 !rounded-xl">
+        <span
+          className={`flex size-12 items-center justify-center rounded-2xl border transition-colors ${
+            isDragActive
+              ? 'border-primary/30 bg-primary text-primary-foreground shadow-xs'
+              : 'border-primary/20 bg-primary/10 text-primary'
+          }`}
+        >
           <CloudUpload className="size-6 shrink-0" />
         </span>
 
-        <div className="flex flex-col gap-2 items-center justify-center">
-          <p className="text-lg font-semibold">
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          <p className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
             {isDragActive ? 'Drop files to upload' : 'Upload training files'}
           </p>
           <p className="text-sm text-muted-foreground">
             Drag and drop files here, or{' '}
-            <span className="font-medium text-brand-strong">browse your computer</span>
+            <span className="font-semibold text-primary underline-offset-2 hover:underline">
+              browse your computer
+            </span>
           </p>
         </div>
 
-        <div className="cluster flex items-center justify-center" aria-label="Supported file types">
-          {Object.entries(allowedTypes).map(([type, info]) => (
-            <span key={type} className="badge badge-neutral">
-              <info.icon className="size-3 shrink-0" />
-              {info.label}
-            </span>
-          ))}
+        <div
+          className="flex flex-wrap items-center justify-center gap-1.5"
+          aria-label="Supported file types"
+        >
+          {Object.entries(allowedTypes).map(([type, info]) => {
+            const TypeIcon = info.icon;
+            return (
+              <span
+                key={type}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground"
+              >
+                <TypeIcon className="size-3 shrink-0 text-primary" />
+                {info.label}
+              </span>
+            );
+          })}
         </div>
 
-        <p className="field-hint">
+        <p className="tabular text-xs text-muted-foreground">
           Up to {maxSize / (1024 * 1024)} MB per file, {maxFiles} files total
         </p>
       </div>
 
       {/* In progress */}
       {uploadingFiles.length > 0 && (
-        <section className="surface" aria-label="Uploading files">
-          <div className="surface-header">
-            <h3 className="text-lg font-semibold">Uploading ({uploadingFiles.length})</h3>
+        <section
+          className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs"
+          aria-label="Uploading files"
+        >
+          <div className="border-b border-border bg-secondary/40 px-5 py-3.5">
+            <h3 className="tabular text-sm font-semibold tracking-tight text-foreground">
+              Uploading ({uploadingFiles.length})
+            </h3>
           </div>
 
-          <ul className="surface-pad flex flex-col gap-2">
+          <ul className="divide-y divide-border/70 p-4">
             {uploadingFiles.map((uploadingFile) => {
               const Icon = getFileIcon(uploadingFile.file.type);
 
               return (
-                <li key={uploadingFile.id} className="doc-flex items-center">
-                  <span className="doc-icon">
+                <li
+                  key={uploadingFile.id}
+                  className="flex items-center gap-3.5 py-3 first:pt-0 last:pb-0"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
                     <Icon className="size-5 shrink-0" />
                   </span>
 
-                  <div className="min-w-0 flex-1 flex flex-col gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">{uploadingFile.file.name}</p>
-                      <span className="field-hint shrink-0 tabular">
-                        {getFileLabel(uploadingFile.file.type)}, {formatFileSize(uploadingFile.file.size)}
+                      <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-foreground">
+                        {uploadingFile.file.name}
+                      </p>
+                      <span className="tabular shrink-0 text-xs text-muted-foreground">
+                        {getFileLabel(uploadingFile.file.type)},{' '}
+                        {formatFileSize(uploadingFile.file.size)}
                       </span>
                     </div>
 
                     {uploadingFile.status === 'uploading' && (
                       <>
                         <div
-                          className="progress"
+                          className="h-2 w-full overflow-hidden rounded-full bg-secondary"
                           role="progressbar"
                           aria-valuemin={0}
                           aria-valuemax={100}
                           aria-valuenow={uploadingFile.progress}
                           aria-label={`Uploading ${uploadingFile.file.name}`}
                         >
-                          <span style={{ width: `${uploadingFile.progress}%` }} />
+                          <span
+                            className="block h-full rounded-full bg-primary transition-all duration-200"
+                            style={{ width: `${uploadingFile.progress}%` }}
+                          />
                         </div>
-                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular">
-                          <Loader2 className="size-3 shrink-0 animate-spin" />
+                        <p className="tabular flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Loader2 className="size-3 shrink-0 animate-spin text-primary" />
                           Uploading, {uploadingFile.progress}%
                         </p>
                       </>
                     )}
 
                     {uploadingFile.status === 'completed' && (
-                      <p className="flex items-center gap-1.5 text-sm font-medium text-success">
+                      <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
                         <CheckCircle className="size-4 shrink-0" />
                         Upload complete
                       </p>
                     )}
 
                     {uploadingFile.status === 'error' && (
-                      <p className="flex items-center gap-1.5 text-sm text-destructive" role="alert">
+                      <p
+                        className="flex items-center gap-1.5 text-xs font-medium text-destructive"
+                        role="alert"
+                      >
                         <AlertCircle className="size-4 shrink-0" />
                         {uploadingFile.error || 'Upload failed'}
                       </p>
@@ -290,11 +343,11 @@ export function FileUpload({
 
                   <button
                     type="button"
-                    className="btn btn-ghost btn-icon btn-sm"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     onClick={() => removeUploadingFile(uploadingFile.id)}
                     aria-label={`Remove ${uploadingFile.file.name}`}
                   >
-                    <X />
+                    <X className="size-4" />
                   </button>
                 </li>
               );
@@ -305,41 +358,52 @@ export function FileUpload({
 
       {/* Done */}
       {completedFiles.length > 0 && (
-        <section className="surface" aria-label="Uploaded files">
-          <div className="surface-header">
-            <h3 className="text-lg font-semibold">Uploaded ({completedFiles.length})</h3>
+        <section
+          className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs"
+          aria-label="Uploaded files"
+        >
+          <div className="border-b border-border bg-secondary/40 px-5 py-3.5">
+            <h3 className="tabular text-sm font-semibold tracking-tight text-foreground">
+              Uploaded ({completedFiles.length})
+            </h3>
           </div>
 
-          <ul className="surface-pad flex flex-col gap-2">
+          <ul className="divide-y divide-border/70 p-4">
             {completedFiles.map((file) => {
               const Icon = getFileIcon(file.fileType);
 
               return (
-                <li key={file.id} className="doc-flex items-center">
-                  <span className="doc-icon">
+                <li
+                  key={file.id}
+                  className="flex items-center gap-3.5 py-3 first:pt-0 last:pb-0"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
                     <Icon className="size-5 shrink-0" />
                   </span>
 
                   <div className="min-w-0 flex-1">
-                    <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">{file.fileName}</p>
-                    <p className="field-hint tabular">
-                      {getFileLabel(file.fileType)}, {formatFileSize(file.fileSize)}, uploaded{' '}
+                    <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-foreground">
+                      {file.fileName}
+                    </p>
+                    <p className="tabular mt-0.5 text-xs text-muted-foreground">
+                      {getFileLabel(file.fileType)},{' '}
+                      {formatFileSize(file.fileSize)}, uploaded{' '}
                       {new Date(file.uploadedAt).toLocaleTimeString()}
                     </p>
                   </div>
 
-                  <span className="badge badge-success">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                     <CheckCircle className="size-3 shrink-0" />
                     Done
                   </span>
 
                   <button
                     type="button"
-                    className="btn btn-ghost btn-icon btn-sm"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     onClick={() => removeCompletedFile(file.id)}
                     aria-label={`Dismiss ${file.fileName}`}
                   >
-                    <X />
+                    <X className="size-4" />
                   </button>
                 </li>
               );

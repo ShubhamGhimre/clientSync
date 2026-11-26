@@ -2,9 +2,15 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Bot } from 'lucide-react';
-import { ChatInterface } from '@/components/chatbot/chat-interface';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  PageContainer,
+  PageHeader,
+  SecondaryActionButton,
+} from '@/components/page-kits';
 import { useChatBot } from '@/hooks/api/useChatBots';
+import { ChatInterface } from '@/components/chatbot/chat-interface';
 
 export default function ChatbotChatsPage() {
   const { id } = useParams();
@@ -15,71 +21,62 @@ export default function ChatbotChatsPage() {
   /* ---------- Loading ---------- */
   if (isLoading) {
     return (
-      <div className="page" aria-busy="true">
-        <div className="skeleton mb-6" />
-        <div className="flex flex-col gap-2 mb-6">
-          <div className="skeleton" />
-          <div className="skeleton" />
+      <PageContainer className="mx-auto max-w-5xl">
+        <div className="flex flex-col gap-6" aria-busy="true">
+          <div className="h-9 w-36 animate-pulse rounded-xl bg-muted" />
+          <div className="h-24 w-full animate-pulse rounded-2xl bg-muted" />
+          <div className="h-[520px] w-full animate-pulse rounded-2xl bg-muted" />
         </div>
-        <div className="skeleton w-full" />
-      </div>
+      </PageContainer>
     );
   }
 
   /* ---------- Error ---------- */
   if (error || !chatbot) {
     return (
-      <div className="page-narrow">
-        <div className="empty-state">
-          <span className="doc-icon">
-            <Bot className="size-6 shrink-0" />
-          </span>
-          <h1 className="text-base font-semibold">Couldn&apos;t load this chatbot</h1>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Refresh the page, or go back to your chatbots. Contact support if it keeps happening.
-          </p>
-          <Link href="/chatbots" className="btn btn-secondary">
+      <PageContainer className="mx-auto max-w-3xl">
+        <Alert
+          variant="destructive"
+          className="rounded-2xl border-destructive/25 bg-destructive/10"
+        >
+          <AlertCircle className="size-4 shrink-0" />
+          <AlertTitle>Couldn&apos;t load this chatbot</AlertTitle>
+          <AlertDescription>
+            Refresh the page, or go back to your chatbots. Contact support if it
+            keeps happening.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-wrap gap-2">
+          <SecondaryActionButton href="/chatbots">
             Back to chatbots
-          </Link>
+          </SecondaryActionButton>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   const ready = chatbot.isKnowledgeInitialized;
 
   return (
-    <div className="page">
-      <Link href={`/chatbots/${chatbotId}`} className="btn btn-ghost btn-sm mb-4">
-        <ArrowLeft />
-        {chatbot.name}
-      </Link>
-
-      <header className="page-header">
-        <div className="flex items-start min-w-0 gap-4">
-          <span className="doc-icon">
-            <Bot className="size-6 shrink-0" />
-          </span>
-          <div className="min-w-0">
-            <div className="cluster gap-3">
-              <h1 className="page-title overflow-hidden text-ellipsis whitespace-nowrap">{chatbot.name}</h1>
-              <span className={`badge ${ready ? 'badge-success' : 'badge-warning'}`}>
-                <span className={`status-dot ${ready ? 'is-online' : 'is-busy'}`} />
-                {ready ? 'Ready' : 'Setup pending'}
-              </span>
-            </div>
-            {chatbot.description && <p className="page-subtitle">{chatbot.description}</p>}
-          </div>
-        </div>
-      </header>
+    <PageContainer className="mx-auto max-w-5xl">
+      <PageHeader
+        title={chatbot.name}
+        description={chatbot.description || undefined}
+        actions={
+          <SecondaryActionButton href={`/chatbots/${chatbotId}`} icon={ArrowLeft}>
+            {chatbot.name}
+          </SecondaryActionButton>
+        }
+      />
 
       {!ready && (
-        <div className="callout callout-warning mb-4">
+        <div className="rounded-xl border border-chart-4/30 bg-chart-4/10 px-4 py-3.5 text-sm text-foreground">
           <span>
-            This chatbot has no knowledge base yet, so answers won&apos;t come from your documents.{' '}
+            This chatbot has no knowledge base yet, so answers won&apos;t come
+            from your documents.{' '}
             <Link
               href={`/chatbots/${chatbotId}?tab=knowledge`}
-              className="font-medium underline underline-offset-2"
+              className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
             >
               Finish setup
             </Link>
@@ -87,9 +84,7 @@ export default function ChatbotChatsPage() {
         </div>
       )}
 
-      <div className="surface overflow-hidden">
-        <ChatInterface chatbotId={chatbotId} />
-      </div>
-    </div>
+      <ChatInterface chatbotId={chatbotId} />
+    </PageContainer>
   );
 }

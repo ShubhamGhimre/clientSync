@@ -1,19 +1,35 @@
 'use client';
 
-import Link from 'next/link';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
+  AlertCircle,
   ArrowLeft,
   Bot,
+  CheckCircle2,
+  Database,
   FileText,
   MessageSquare,
   Settings,
-  Upload,
-  Database,
   Sparkles,
-  CheckCircle2,
-  type LucideIcon,
+  Upload,
 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  PageContainer,
+  PageHeader,
+  PrimaryActionButton,
+  SecondaryActionButton,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits';
+import {
+  EmptyState,
+  IconTile,
+  TableShell,
+  TableToolbar,
+  toolbarBtnClass,
+} from '@/components/tables/table-kits';
+import { cn } from '@/lib/utils';
 import { FilesTable } from '@/components/tables/files-table';
 import { FileUpload } from '@/components/file-upload/file-upload';
 import { ChatInterface } from '@/components/chatbot/chat-interface';
@@ -30,28 +46,6 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-function Stat({
-  label,
-  value,
-  note,
-  icon: Icon,
-}: {
-  label: string;
-  value: string | number;
-  note: string;
-  icon: LucideIcon;
-}) {
-  return (
-    <div className="stat-card">
-      <div className="flex items-center justify-between">
-        <span className="stat-label">{label}</span>
-        <Icon className="size-4 shrink-0 text-muted-foreground" />
-      </div>
-      <span className="stat-value">{value}</span>
-      <span className="field-hint">{note}</span>
-    </div>
-  );
-}
 
 export default function ChatbotDetailPage() {
   const { id } = useParams();
@@ -63,203 +57,217 @@ export default function ChatbotDetailPage() {
   const { data, isLoading, error } = useChatBot(chatbotId);
   const chatbot = data?.data;
 
-  // The active tab lives in the URL, so ?tab=knowledge (used after creating a bot) works
-  // and tabs can be linked to or reloaded.
   const tabParam = searchParams.get('tab');
-  const activeTab: TabId = TABS.some((t) => t.id === tabParam) ? (tabParam as TabId) : 'overview';
-  const setTab = (tab: TabId) => router.replace(`${pathname}?tab=${tab}`, { scroll: false });
+  const activeTab: TabId = TABS.some((t) => t.id === tabParam)
+    ? (tabParam as TabId)
+    : 'overview';
+  const setTab = (tab: TabId) =>
+    router.replace(`${pathname}?tab=${tab}`, { scroll: false });
 
   /* ---------- Loading ---------- */
   if (isLoading) {
     return (
-      <div className="page" aria-busy="true">
-        <div className="skeleton mb-6" />
-        <div className="page-header">
-          <div className="flex flex-col gap-2">
-            <div className="skeleton" />
-            <div className="skeleton" />
-          </div>
-          <div className="skeleton" />
+      <PageContainer>
+        <div className="flex flex-col gap-6" aria-busy="true">
+          <div className="h-9 w-28 animate-pulse rounded-xl bg-muted" />
+          <TableShell className="h-28 p-5">
+            <div className="h-full w-full animate-pulse rounded-xl bg-muted" />
+          </TableShell>
+          <div className="h-10 w-96 max-w-full animate-pulse rounded-xl bg-muted" />
+          <TableShell>
+            <dl className="grid grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-32 animate-pulse bg-muted max-lg:[&:nth-child(even)]:border-l max-lg:[&:nth-child(even)]:border-border/60 max-lg:[&:nth-child(n+3)]:border-t max-lg:[&:nth-child(n+3)]:border-border/60 lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-border/60"
+                />
+              ))}
+            </dl>
+          </TableShell>
         </div>
-        <div className="skeleton mb-6" />
-        <div className="grid-stats">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="skeleton" />
-          ))}
-        </div>
-      </div>
+      </PageContainer>
     );
   }
 
   /* ---------- Error ---------- */
   if (error || !chatbot) {
     return (
-      <div className="page-narrow">
-        <div className="empty-state">
-          <span className="doc-icon">
-            <Bot className="size-6 shrink-0" />
-          </span>
-          <h1 className="text-base font-semibold">Couldn&apos;t load this chatbot</h1>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            It may have been deleted, or something went wrong. Try again, or go back to your chatbots.
-          </p>
-          <div className="cluster">
-            <button type="button" className="btn btn-secondary" onClick={() => window.location.reload()}>
-              Try again
-            </button>
-            <Link href="/chatbots" className="btn btn-ghost">
-              Back to chatbots
-            </Link>
-          </div>
+      <PageContainer className="mx-auto max-w-3xl">
+        <Alert
+          variant="destructive"
+          className="rounded-2xl border-destructive/25 bg-destructive/10"
+        >
+          <AlertCircle className="size-4 shrink-0" />
+          <AlertTitle>Couldn&apos;t load this chatbot</AlertTitle>
+          <AlertDescription>
+            It may have been deleted, or something went wrong. Try again, or go
+            back to your chatbots.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-wrap gap-2">
+          <SecondaryActionButton onClick={() => window.location.reload()}>
+            Try again
+          </SecondaryActionButton>
+          <SecondaryActionButton href="/chatbots">
+            Back to chatbots
+          </SecondaryActionButton>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   const ready = chatbot.isKnowledgeInitialized;
 
+  const statItems: StatItem[] = [
+    {
+      label: 'Knowledge chunks',
+      value: chatbot.totalChunks?.toLocaleString() || '0',
+      hint: 'Searchable pieces of your documents',
+      icon: Database,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Conversations',
+      value: chatbot._count?.chatRooms ?? 0,
+      hint: 'Chat rooms with this chatbot',
+      icon: MessageSquare,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Files',
+      value: chatbot._count?.files ?? 0,
+      hint: 'Uploaded documents',
+      icon: Upload,
+      iconClass: 'text-chart-3',
+    },
+    {
+      label: 'Status',
+      value: ready ? 'Ready' : 'Pending',
+      hint: ready
+        ? 'Answering from your documents'
+        : 'Needs a knowledge base',
+      icon: ready ? CheckCircle2 : Bot,
+      iconClass: 'text-chart-4',
+    },
+  ];
+
   return (
-    <div className="page">
-      <Link href="/chatbots" className="btn btn-ghost btn-sm mb-4">
-        <ArrowLeft />
-        Chatbots
-      </Link>
-
-      {/* Header */}
-      <header className="page-header">
-        <div className="flex items-start min-w-0 gap-4">
-          <span className="doc-icon">
-            <Bot className="size-6 shrink-0" />
-          </span>
-          <div className="min-w-0">
-            <div className="cluster gap-3">
-              <h1 className="page-title overflow-hidden text-ellipsis whitespace-nowrap">{chatbot.name}</h1>
-              <span className={`badge ${ready ? 'badge-success' : 'badge-warning'}`}>
-                <span className={`status-dot ${ready ? 'is-online' : 'is-busy'}`} />
-                {ready ? 'Ready' : 'Setup pending'}
-              </span>
-            </div>
-            {chatbot.description && <p className="page-subtitle">{chatbot.description}</p>}
-          </div>
-        </div>
-
-        <div className="cluster">
-          <Link href={`/chatbots/${chatbotId}/edit`} className="btn btn-secondary">
-            <Settings />
-            Settings
-          </Link>
-          <Link href={`/chatbots/${chatbotId}/chats`} className="btn btn-brand">
-            <MessageSquare />
-            Start chat
-          </Link>
-        </div>
-      </header>
-
-      {/* Tabs */}
-      <div className="mb-6 overflow-x-auto">
-        <div className="tabs" role="tablist" aria-label="Chatbot sections">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              id={`tab-${tab.id}`}
-              aria-selected={activeTab === tab.id}
-              aria-controls={`panel-${tab.id}`}
-              className="tab overflow-hidden text-ellipsis whitespace-nowrap"
-              onClick={() => setTab(tab.id)}
+    <PageContainer>
+      <PageHeader
+        title={chatbot.name}
+        description={chatbot.description || undefined}
+        actions={
+          <>
+            <SecondaryActionButton href="/chatbots" icon={ArrowLeft}>
+              Chatbots
+            </SecondaryActionButton>
+            <SecondaryActionButton
+              href={`/chatbots/${chatbotId}/edit`}
+              icon={Settings}
             >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+              Settings
+            </SecondaryActionButton>
+            <PrimaryActionButton
+              href={`/chatbots/${chatbotId}/chats`}
+              icon={MessageSquare}
+            >
+              Start chat
+            </PrimaryActionButton>
+          </>
+        }
+      />
 
-      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-        {activeTab === 'overview' && (
-          <div className="flex flex-col gap-8">
-            <section className="grid-stats">
-              <Stat
-                label="Knowledge chunks"
-                value={chatbot.totalChunks?.toLocaleString() || '0'}
-                note="Searchable pieces of your documents"
-                icon={Database}
-              />
-              <Stat
-                label="Conversations"
-                value={chatbot._count?.chatRooms ?? 0}
-                note="Chat rooms with this chatbot"
-                icon={MessageSquare}
-              />
-              <Stat
-                label="Files"
-                value={chatbot._count?.files ?? 0}
-                note="Uploaded documents"
-                icon={Upload}
-              />
-              <Stat
-                label="Status"
-                value={ready ? 'Ready' : 'Pending'}
-                note={ready ? 'Answering from your documents' : 'Needs a knowledge base'}
-                icon={ready ? CheckCircle2 : Bot}
-              />
-            </section>
+      <StatsStrip items={statItems} />
 
-            {!ready && (
-              <div className="callout callout-warning">
-                <FileText className="space-t-0.5 size-4 shrink-0 text-warning" />
-                <div className="flex flex-col gap-2">
-                  <p className="font-medium">Finish setting up this chatbot</p>
-                  <p className="text-muted-foreground">
-                    Upload your documents, then build the knowledge base so it can answer questions.
-                  </p>
-                  <div className="cluster mt-1">
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setTab('files')}>
-                      Upload files
-                    </button>
-                    <button type="button" className="btn btn-brand btn-sm" onClick={() => setTab('knowledge')}>
-                      Build knowledge base
-                    </button>
-                  </div>
+      <TableShell>
+        <TableToolbar>
+          <div
+            className="flex w-full items-center gap-1 overflow-x-auto"
+            role="tablist"
+            aria-label="Chatbot sections"
+          >
+            {TABS.map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={`tab-${tab.id}`}
+                  aria-selected={isSelected}
+                  aria-controls={`panel-${tab.id}`}
+                  className={cn(
+                    toolbarBtnClass,
+                    'border border-transparent px-3.5',
+                    isSelected && 'border-primary/30 bg-primary/5 text-primary'
+                  )}
+                  onClick={() => setTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </TableToolbar>
+      </TableShell>
+
+      <div
+        role="tabpanel"
+        id={`panel-${activeTab}`}
+        aria-labelledby={`tab-${activeTab}`}
+      >
+        {activeTab === 'overview' && !ready && (
+          <TableShell className="p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <IconTile>
+                <FileText className="size-4" />
+              </IconTile>
+              <div className="flex flex-1 flex-col gap-2">
+                <p className="text-sm font-semibold text-foreground">
+                  Finish setting up this chatbot
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Upload your documents, then build the knowledge base so it
+                  can answer questions.
+                </p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <SecondaryActionButton onClick={() => setTab('files')}>
+                    Upload files
+                  </SecondaryActionButton>
+                  <PrimaryActionButton onClick={() => setTab('knowledge')}>
+                    Build knowledge base
+                  </PrimaryActionButton>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          </TableShell>
         )}
 
         {activeTab === 'files' && (
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-5">
             <FileUpload chatbotId={chatbotId} />
-            <div className="surface surface-pad">
-              <FilesTable chatbotId={chatbotId} />
-            </div>
+            <FilesTable chatbotId={chatbotId} />
           </div>
         )}
 
         {activeTab === 'knowledge' && (
-          <div className="surface surface-pad">
+          <TableShell className="p-5 sm:p-6">
             <KnowledgeBaseInitializer chatbotId={chatbotId} />
-          </div>
+          </TableShell>
         )}
 
-        {activeTab === 'chat' && (
-          <div className="surface overflow-hidden">
-            <ChatInterface chatbotId={chatbotId} />
-          </div>
-        )}
+        {activeTab === 'chat' && <ChatInterface chatbotId={chatbotId} />}
 
         {activeTab === 'analytics' && (
-          <div className="empty-state">
-            <span className="doc-icon">
-              <Sparkles className="size-6 shrink-0" />
-            </span>
-            <h2 className="text-base font-semibold">Analytics are coming soon</h2>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              You&apos;ll see how often this chatbot resolves questions, what customers ask, and where your documents have gaps.
-            </p>
-          </div>
+          <TableShell>
+            <EmptyState
+              icon={<Sparkles className="size-4" />}
+              title="Analytics are coming soon"
+              description="You'll see how often this chatbot resolves questions, what customers ask, and where your documents have gaps."
+            />
+          </TableShell>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

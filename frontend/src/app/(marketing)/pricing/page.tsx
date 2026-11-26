@@ -48,7 +48,7 @@ const faqs = [
 function CellView({ v }: { v: Cell }) {
   if (v === true) {
     return (
-      <span className="mx-auto inline-flex size-6 items-center justify-center rounded-full border border-border/80 bg-muted/40 text-brand-strong">
+      <span className="mx-auto inline-flex size-6 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-primary">
         <Check className="size-3.5" aria-label="Included" />
       </span>
     );
@@ -61,30 +61,49 @@ function CellView({ v }: { v: Cell }) {
       />
     );
   }
-  return <span className="font-medium text-foreground">{v}</span>;
+  return <span className="tabular font-medium text-foreground">{v}</span>;
 }
 
 export default function PricingPage() {
   return (
     <>
       {/* HERO */}
-      <section className="relative overflow-hidden border-b border-border/70">
-        <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.14] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+      <section className="relative overflow-hidden border-b border-border bg-background">
+        {/* Subtle dot pattern + brand radial glow */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]"
+          style={{
+            backgroundImage:
+              "radial-gradient(color-mix(in oklab, var(--foreground) 12%, transparent) 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(50% 60% at 50% 0%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 70%), radial-gradient(40% 50% at 85% 20%, color-mix(in oklab, var(--chart-2) 8%, transparent), transparent 70%)",
+          }}
+          aria-hidden="true"
+        />
         <BrandMark
           size={400}
-          className="pointer-events-none absolute -top-24 right-[6%] text-foreground opacity-[0.03]"
+          className="pointer-events-none absolute -top-24 right-[6%] text-primary opacity-[0.04]"
           aria-hidden="true"
         />
 
-        <div className="page-narrow relative stack gap-5 py-20 text-center">
-          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-border/80 bg-background/85 px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-2xs backdrop-blur-xs">
-            <BrandMark size={14} className="shrink-0 text-brand-strong" />
+        <div className="relative mx-auto flex max-w-4xl flex-col gap-5 px-4 py-20 text-center sm:px-6">
+          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary shadow-xs backdrop-blur-xs">
+            <BrandMark size={14} className="shrink-0 text-primary" />
             <span>Simple, transparent pricing</span>
           </span>
 
-          <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
+          <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-6xl">
             Pricing that grows with{" "}
-            <span className="gradient-text">your support volume</span>
+            <span className="bg-gradient-to-r from-primary via-chart-3 to-chart-2 bg-clip-text text-transparent">
+              your support volume
+            </span>
           </h1>
 
           <p className="mx-auto max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
@@ -95,13 +114,13 @@ export default function PricingPage() {
       </section>
 
       {/* PLANS */}
-      <section className="page py-16">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <PricingPlans />
       </section>
 
       {/* COMPARISON TABLE */}
-      <section className="page-narrow stack gap-6 pb-20">
-        <div className="stack gap-1.5">
+      <section className="mx-auto flex max-w-4xl flex-col gap-6 px-4 pb-20 sm:px-6">
+        <div className="flex flex-col gap-1.5">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Compare plans
           </h2>
@@ -110,33 +129,43 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border/80 bg-background/95 shadow-2xs">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-soft">
+          {/* Top brand hairline accent */}
+          <div
+            className="pointer-events-none absolute inset-x-8 top-0 h-[2px] rounded-full opacity-80"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, var(--chart-1), var(--chart-2), transparent)",
+            }}
+            aria-hidden="true"
+          />
+
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-center text-sm">
               <thead>
-                <tr className="border-b border-border/80 bg-muted/35 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border bg-secondary/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <th className="px-5 py-4 text-left font-semibold text-foreground">
                     Feature
                   </th>
                   <th className="px-5 py-4">Free</th>
-                  <th className="px-5 py-4 text-brand-strong">Pro</th>
+                  <th className="bg-primary/5 px-5 py-4 text-primary">Pro</th>
                   <th className="px-5 py-4">Business</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/60">
+              <tbody className="divide-y divide-border/70">
                 {rows.map(([name, ...cells]) => (
                   <tr
                     key={name}
-                    className="transition-colors hover:bg-muted/25"
+                    className="transition-colors hover:bg-secondary/35"
                   >
-                    <td className="px-5 py-3.5 text-left font-medium text-foreground/90">
+                    <td className="px-5 py-3.5 text-left font-medium text-foreground">
                       {name}
                     </td>
                     {cells.map((c, i) => (
                       <td
                         key={i}
                         className={`px-5 py-3.5 text-muted-foreground ${
-                          i === 1 ? "bg-muted/15" : ""
+                          i === 1 ? "bg-primary/[0.03]" : ""
                         }`}
                       >
                         <CellView v={c} />
@@ -151,8 +180,8 @@ export default function PricingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="page-narrow stack gap-6 pb-24">
-        <div className="stack gap-1.5">
+      <section className="mx-auto flex max-w-4xl flex-col gap-6 px-4 pb-24 sm:px-6">
+        <div className="flex flex-col gap-1.5">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Questions about billing
           </h2>
@@ -161,33 +190,33 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="stack gap-2.5">
+        <div className="flex flex-col gap-2.5">
           {faqs.map(([q, a]) => (
             <details
               key={q}
-              className="group rounded-2xl border border-border/80 bg-background/95 px-5 py-4 shadow-2xs transition-colors hover:border-foreground/15"
+              className="group rounded-2xl border border-border bg-card px-5 py-4 text-card-foreground shadow-xs transition-colors hover:border-primary/30"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-foreground">
                 <span>{q}</span>
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-muted/40 text-muted-foreground transition-transform duration-200 group-open:rotate-45">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground transition-all duration-200 group-open:rotate-45 group-open:border-primary/30 group-open:bg-primary/10 group-open:text-primary">
                   <Plus className="size-3.5" />
                 </span>
               </summary>
-              <p className="mt-3 border-t border-border/50 pt-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-3 border-t border-border/70 pt-3 text-sm leading-relaxed text-muted-foreground">
                 {a}
               </p>
             </details>
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-secondary/40 px-5 py-4 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-2">
-            <BrandMark size={15} className="shrink-0 text-brand-strong" />
+            <BrandMark size={15} className="shrink-0 text-primary" />
             Need custom volume or enterprise security?
           </span>
           <Link
             href="/contact"
-            className="group inline-flex items-center gap-1 font-semibold text-brand-strong hover:underline"
+            className="group inline-flex items-center gap-1 font-semibold text-primary hover:underline"
           >
             Contact us
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />

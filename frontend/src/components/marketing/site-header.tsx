@@ -17,12 +17,12 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-5 px-4 sm:px-6">
         <Logo />
 
         <nav
-          className="ml-4 hidden items-center gap-1 rounded-full border border-border/60 bg-muted/35 p-1 md:flex"
+          className="ml-2 hidden items-center gap-1 rounded-full border border-border bg-muted/50 p-1 md:flex"
           aria-label="Main"
         >
           {links.map((l) => {
@@ -31,9 +31,9 @@ export function SiteHeader() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   active
-                    ? "bg-background text-foreground shadow-2xs ring-1 ring-border/70"
+                    ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -43,15 +43,18 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2.5 md:flex">
+        <div className="ml-auto hidden items-center gap-2 md:flex">
           <ThemeToggle inline />
-          <div className="mx-1 h-4 w-px bg-border/80" aria-hidden="true" />
-          <Link href="/auth/login" className="btn btn-ghost btn-sm">
+          <div className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
+          <Link
+            href="/auth/login"
+            className="inline-flex h-8 items-center justify-center rounded-lg px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
             Log in
           </Link>
           <Link
             href="/auth/register"
-            className="btn btn-brand btn-sm group inline-flex items-center gap-1.5 rounded-xl"
+            className="group inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-xs font-medium text-primary-foreground shadow-xs transition-opacity hover:opacity-90"
           >
             Start free
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -59,18 +62,19 @@ export function SiteHeader() {
         </div>
 
         <button
-          className="btn btn-ghost btn-icon btn-sm ml-auto md:hidden"
+          type="button"
+          className="ml-auto inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground md:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X /> : <Menu />}
+          {open ? <X className="size-4" /> : <Menu className="size-4" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-border/70 bg-background/95 p-4 backdrop-blur-xl md:hidden">
-          <div className="stack gap-2">
+        <div className="border-t border-border bg-card p-3.5 shadow-soft md:hidden">
+          <div className="flex flex-col gap-1.5">
             {links.map((l) => {
               const active = pathname === l.href;
               return (
@@ -78,8 +82,10 @@ export function SiteHeader() {
                   key={l.href}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className={`btn btn-ghost justify-start rounded-xl ${
-                    active ? "bg-muted text-foreground" : ""
+                  className={`flex h-9 items-center rounded-lg px-3 text-xs font-medium transition-colors ${
+                    active
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   }`}
                 >
                   {l.label}
@@ -87,26 +93,29 @@ export function SiteHeader() {
               );
             })}
 
-            <div className="my-1 h-px bg-border/70" />
+            <div className="my-1.5 h-px bg-border" />
 
-            <Link
-              href="/auth/login"
-              onClick={() => setOpen(false)}
-              className="btn btn-secondary rounded-xl"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/auth/register"
-              onClick={() => setOpen(false)}
-              className="btn btn-brand rounded-xl"
-            >
-              Start free <ArrowRight className="size-4" />
-            </Link>
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/auth/login"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-secondary px-3 text-xs font-medium text-secondary-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/auth/register"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground shadow-xs transition-opacity hover:opacity-90"
+              >
+                Start free
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
 
-            <div className="mt-2 flex items-center justify-between rounded-xl border border-border/70 bg-muted/35 px-3 py-2 text-xs text-muted-foreground">
+            <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
-                <BrandMark size={14} className="text-brand-strong" />
+                <BrandMark size={14} className="text-primary" />
                 Appearance
               </span>
               <ThemeToggle inline />

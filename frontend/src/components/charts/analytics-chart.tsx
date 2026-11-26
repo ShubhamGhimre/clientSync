@@ -19,16 +19,15 @@ import {
 } from 'recharts';
 
 interface AnalyticsChartProps {
-  type: 
-    | 'conversations' 
-    | 'users' 
-    | 'detailed-conversations' 
-    | 'response-times' 
-    | 'resolution' 
+  type:
+    | 'conversations'
+    | 'users'
+    | 'detailed-conversations'
+    | 'response-times'
+    | 'resolution'
     | 'satisfaction';
 }
 
-// Sample data for different chart types
 const conversationData = [
   { date: 'Jan', conversations: 1200, resolved: 1080, pending: 120 },
   { date: 'Feb', conversations: 1890, resolved: 1700, pending: 190 },
@@ -57,9 +56,9 @@ const responseTimeData = [
 ];
 
 const satisfactionData = [
-  { name: 'Very Satisfied', value: 45, color: 'var(--success)' },
-  { name: 'Satisfied', value: 35, color: 'var(--chart-4)' },
-  { name: 'Neutral', value: 15, color: 'var(--warning)' },
+  { name: 'Very Satisfied', value: 45, color: 'var(--chart-1)' },
+  { name: 'Satisfied', value: 35, color: 'var(--chart-3)' },
+  { name: 'Neutral', value: 15, color: 'var(--chart-4)' },
   { name: 'Dissatisfied', value: 3, color: 'var(--chart-5)' },
   { name: 'Very Dissatisfied', value: 2, color: 'var(--destructive)' },
 ];
@@ -87,6 +86,15 @@ const detailedConversationData = [
   { hour: '22', messages: 67, bots: 61, humans: 6 },
 ];
 
+const tooltipStyle = {
+  backgroundColor: 'var(--popover)',
+  color: 'var(--popover-foreground)',
+  borderColor: 'var(--border)',
+  borderRadius: '0.75rem',
+  fontSize: '12px',
+  boxShadow: 'var(--elev-soft)',
+};
+
 export function AnalyticsChart({ type }: AnalyticsChartProps) {
   const renderChart = () => {
     switch (type) {
@@ -94,18 +102,25 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
         return (
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={conversationData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="date"
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <YAxis
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Area
                 type="monotone"
                 dataKey="conversations"
                 stackId="1"
-                stroke="var(--chart-2)"
-                fill="var(--chart-2)"
-                fillOpacity={0.6}
+                stroke="var(--chart-1)"
+                fill="var(--chart-1)"
+                fillOpacity={0.25}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -115,11 +130,18 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
         return (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={userEngagementData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="date"
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <YAxis
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line
                 type="monotone"
                 dataKey="active"
@@ -130,9 +152,9 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
               <Line
                 type="monotone"
                 dataKey="new"
-                stroke="var(--ai)"
+                stroke="var(--chart-2)"
                 strokeWidth={2}
-                dot={{ fill: 'var(--ai)', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'var(--chart-2)', strokeWidth: 2, r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -142,13 +164,30 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
         return (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={detailedConversationData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="bots" stackId="a" fill="var(--chart-2)" />
-              <Bar dataKey="humans" stackId="a" fill="var(--warning)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="hour"
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <YAxis
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
+              <Bar
+                dataKey="bots"
+                stackId="a"
+                fill="var(--chart-1)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="humans"
+                stackId="a"
+                fill="var(--chart-2)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -157,17 +196,24 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
         return (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={responseTimeData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="time"
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <YAxis
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line
                 type="monotone"
                 dataKey="avgTime"
-                stroke="var(--destructive)"
+                stroke="var(--chart-4)"
                 strokeWidth={2}
-                dot={{ fill: 'var(--destructive)', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'var(--chart-4)', strokeWidth: 2, r: 4 }}
                 name="Avg Response Time (s)"
               />
               <Line
@@ -187,13 +233,27 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
         return (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={resolutionData} layout="horizontal">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="category" type="category" />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                type="number"
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <YAxis
+                dataKey="category"
+                type="category"
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                stroke="var(--border)"
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="resolved" stackId="a" fill="var(--chart-1)" />
-              <Bar dataKey="unresolved" stackId="a" fill="var(--destructive)" />
+              <Bar
+                dataKey="unresolved"
+                stackId="a"
+                fill="var(--destructive)"
+                radius={[0, 4, 4, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -207,7 +267,9 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                label={({ name, percent }) =>
+                  `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                }
                 outerRadius={80}
                 fill="var(--chart-3)"
                 dataKey="value"
@@ -216,23 +278,19 @@ export function AnalyticsChart({ type }: AnalyticsChartProps) {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={tooltipStyle} />
             </PieChart>
           </ResponsiveContainer>
         );
 
       default:
         return (
-          <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
             <p>Chart type not implemented</p>
           </div>
         );
     }
   };
 
-  return (
-    <div className="w-full">
-      {renderChart()}
-    </div>
-  );
+  return <div className="tabular w-full">{renderChart()}</div>;
 }

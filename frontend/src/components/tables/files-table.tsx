@@ -23,6 +23,20 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 import { useFiles, useDeleteFile } from '@/hooks/api/useFiles';
+import {
+  EmptyState,
+  IconTile,
+  SkeletonRows,
+  StatusPill,
+  TableScroll,
+  TableShell,
+  TableToolbar,
+  menuContentClass,
+  rowActionClass,
+  rowClass,
+  tdClass,
+  thClass,
+} from './table-kits';
 
 interface FilesTableProps {
   chatbotId: string;
@@ -35,12 +49,10 @@ type FileItem = {
   fileSize?: number;
   processed?: boolean;
   uploadedAt?: string;
-  // add other fields as needed
 };
 
 type FilesApiResponse = {
   data: FileItem[];
-  // add other fields as needed
 };
 
 const normalizeType = (fileType?: string) =>
@@ -61,6 +73,12 @@ const getFileIcon = (fileType?: string) => {
   }
 };
 
+const formatFileSize = (sizeInMB?: number) => {
+  if (!sizeInMB) return 'Unknown size';
+  if (sizeInMB < 1) return `${(sizeInMB * 1024).toFixed(0)} KB`;
+  return `${sizeInMB.toFixed(1)} MB`;
+};
+
 export function FilesTable({ chatbotId }: FilesTableProps) {
   const { data, isLoading, error } = useFiles(chatbotId) as {
     data?: FilesApiResponse;
@@ -70,11 +88,10 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
   const deleteFileMutation = useDeleteFile();
   const files = data?.data || [];
 
-  const formatFileSize = (sizeInMB?: number) => {
-    if (!sizeInMB) return 'Unknown';
-    if (sizeInMB < 1) return `${(sizeInMB * 1024).toFixed(0)} KB`;
-    return `${sizeInMB.toFixed(1)} MB`;
-  };
+  // Only the row being deleted shows the spinner
+  const deletingId = deleteFileMutation.isPending
+    ? (deleteFileMutation.variables as string | undefined)
+    : undefined;
 
   const handleDeleteFile = async (fileId: string) => {
     try {
@@ -95,153 +112,159 @@ export function FilesTable({ chatbotId }: FilesTableProps) {
     document.body.removeChild(link);
   };
 
-  /* ---------- Loading ---------- */
-  if (isLoading) {
-    return (
-      <div className="table-wrap" aria-busy="true" aria-label="Loading files">
-        <div className="flex flex-col gap-2 p-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="skeleton doc-icon" />
-              <div className="skeleton min-w-0 flex-1 p-1" />
-              <div className="skeleton badge" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  /* ---------- Error ---------- */
   if (error) {
     return (
-      <div className="empty-state" role="alert">
-        <AlertCircle className="size-8 shrink-0 text-destructive" />
-        <h3 className="text-base font-semibold">Couldn&apos;t load files</h3>
-        <p className="max-w-sm text-sm text-muted-foreground">Refresh the page to try again.</p>
-      </div>
+      <TableShell>
+        <EmptyState
+          tone="danger"
+          icon={<AlertCircle className="size-5 shrink-0" />}
+          title="Couldn't load files"
+          description="Refresh the page to try again."
+        />
+      </TableShell>
     );
   }
 
-  /* ---------- Empty ---------- */
-  if (files.length === 0) {
+  if (!isLoading && files.length === 0) {
     return (
-      <div className="empty-state">
-        <FileText className="size-8 shrink-0 text-muted-foreground" />
-        <h3 className="text-base font-semibold">No files yet</h3>
-        <p className="max-w-sm text-sm text-muted-foreground">
-          Upload your first document to start building this chatbot&apos;s knowledge base.
-        </p>
-      </div>
+      <TableShell>
+        <EmptyState
+          icon={<FileText className="size-5 shrink-0" />}
+          title="No files yet"
+          description="Upload your first document to start building this chatbot's knowledge base."
+        />
+      </TableShell>
     );
   }
 
   return (
-    <div className="stack">
-      <div>
-        <h3 className="text-lg font-semibold">Uploaded files</h3>
-        <p className="field-hint mt-1">
-          {files.length} {files.length === 1 ? 'file' : 'files'} in your knowledge base
-        </p>
-      </div>
+    <TableShell>
+      <TableToolbar>
+        <div>
+          <h3 className="text-sm font-semibold tracking-tight text-foreground">
+            Uploaded files
+          </h3>
+          <p className="tabular mt-0.5 text-xs text-muted-foreground">
+            {isLoading
+              ? 'Loading...'
+              : `${files.length} ${files.length === 1 ? 'file' : 'files'} in your knowledge base`}
+          </p>
+        </div>
+      </TableToolbar>
 
-      <div className="table-wrap">
-        <table className="data-table">
+      <TableScroll>
+        <table
+          className="w-full border-collapse text-left text-sm"
+          aria-busy={isLoading}
+        >
           <thead>
-            <tr>
-              <th scope="col">File</th>
-              <th scope="col">Type</th>
-              <th scope="col">Size</th>
-              <th scope="col">Status</th>
-              <th scope="col">Uploaded</th>
-              <th scope="col" className="text-right">
+            <tr className="border-b border-border/60">
+              <th scope="col" className={thClass}>
+                File
+              </th>
+              <th scope="col" className={thClass}>
+                Status
+              </th>
+              <th scope="col" className={thClass}>
+                Uploaded
+              </th>
+              <th scope="col" className={thClass}>
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
           <tbody>
-            {files.map((file) => {
-              const Icon = getFileIcon(file.fileType);
-              return (
-                <tr key={file.id}>
-                  <td>
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="doc-icon">
-                        <Icon className="size-5 shrink-0" />
-                      </span>
-                      <p className="font-medium overflow-hidden text-ellipsis whitespace-nowrap min-w-0 flex-1">{file.fileName}</p>
-                    </div>
-                  </td>
+            {isLoading ? (
+              <SkeletonRows columns={4} rows={4} />
+            ) : (
+              files.map((file) => {
+                const Icon = getFileIcon(file.fileType);
+                const isDeleting = deletingId === file.id;
+                return (
+                  <tr key={file.id} className={rowClass}>
+                    <td className={tdClass}>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <IconTile>
+                          <Icon className="size-4 shrink-0" />
+                        </IconTile>
+                        <div className="min-w-0 max-w-[22rem]">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {file.fileName}
+                          </p>
+                          <p className="tabular mt-0.5 text-xs text-muted-foreground">
+                            {normalizeType(file.fileType) || 'FILE'} ·{' '}
+                            {formatFileSize(file.fileSize)}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
 
-                  <td>
-                    <span className="badge badge-outline">
-                      {normalizeType(file.fileType) || 'FILE'}
-                    </span>
-                  </td>
+                    <td className={tdClass}>
+                      {file.processed ? (
+                        <StatusPill tone="primary">Processed</StatusPill>
+                      ) : (
+                        <StatusPill tone="warning" pulse>
+                          Processing
+                        </StatusPill>
+                      )}
+                    </td>
 
-                  <td className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-                    {formatFileSize(file.fileSize)}
-                  </td>
+                    <td
+                      className={`${tdClass} whitespace-nowrap text-sm text-muted-foreground`}
+                    >
+                      {file.uploadedAt
+                        ? formatDistanceToNow(new Date(file.uploadedAt), {
+                            addSuffix: true,
+                          })
+                        : '-'}
+                    </td>
 
-                  <td>
-                    {file.processed ? (
-                      <span className="badge badge-success">Processed</span>
-                    ) : (
-                      <span className="badge badge-warning">
-                        <span className="status-dot is-busy animate-pulse" />
-                        Processing
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-                    {file.uploadedAt
-                      ? formatDistanceToNow(new Date(file.uploadedAt), { addSuffix: true })
-                      : '-'}
-                  </td>
-
-                  <td className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-icon btn-sm"
-                          aria-label={`Actions for ${file.fileName}`}
+                    <td className={`${tdClass} text-right`}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className={rowActionClass}
+                            aria-label={`Actions for ${file.fileName}`}
+                          >
+                            {isDeleting ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <MoreHorizontal className="size-4" />
+                            )}
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className={`w-40 ${menuContentClass}`}
                         >
-                          <MoreHorizontal />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem disabled>
-                          <Eye className="size-4 shrink-0 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDownload(file)}>
-                          <Download className="size-4 shrink-0 mr-2" />
-                          Download
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDeleteFile(file.id)}
-                          disabled={deleteFileMutation.isPending}
-                        >
-                          {deleteFileMutation.isPending ? (
-                            <Loader2 className="size-4 shrink-0 mr-2 animate-spin" />
-                          ) : (
-                            <Trash2 className="size-4 shrink-0 mr-2" />
-                          )}
-                          {deleteFileMutation.isPending ? 'Deleting...' : 'Delete'}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              );
-            })}
+                          <DropdownMenuItem disabled>
+                            <Eye className="mr-2 size-4 shrink-0" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownload(file)}>
+                            <Download className="mr-2 size-4 shrink-0" />
+                            Download
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDeleteFile(file.id)}
+                            disabled={deleteFileMutation.isPending}
+                          >
+                            <Trash2 className="mr-2 size-4 shrink-0" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
-      </div>
-    </div>
+      </TableScroll>
+    </TableShell>
   );
 }

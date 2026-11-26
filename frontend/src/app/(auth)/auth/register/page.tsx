@@ -34,7 +34,6 @@ type FormData = {
 
 type SubdomainStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
-/* Shared field wrapper */
 function Field({
   id,
   label,
@@ -77,7 +76,6 @@ function Field({
   );
 }
 
-/* Password strength */
 function getStrength(pw: string) {
   let score = 0;
 
@@ -94,9 +92,8 @@ function getStrength(pw: string) {
   };
 }
 
-/* Reusable input styling */
 const inputClass =
-  'h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm text-foreground shadow-sm outline-none transition-all placeholder:text-muted-foreground/60 hover:border-foreground/20 focus:border-brand-strong focus:ring-[3px] focus:ring-brand-strong/10 disabled:cursor-not-allowed disabled:opacity-60';
+  'auth-input w-full rounded-xl border border-input bg-background pl-10 pr-3 text-sm text-foreground shadow-xs outline-none transition-all placeholder:text-muted-foreground/80 hover:border-foreground/20 focus:border-primary focus:ring-[3px] focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50';
 
 const iconClass =
   'pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground';
@@ -249,21 +246,31 @@ export default function RegisterPage() {
     formData.password === formData.confirmPassword;
 
   return (
-    <div className="flex min-h-dvh">
-      {/* ---------- LEFT BRAND PANEL: SLICK & MINIMAL ---------- */}
-      <aside className="relative hidden w-[44%] overflow-hidden border-r border-border/80 bg-gradient-to-b from-muted/45 via-background to-muted/30 text-foreground lg:flex">
+    <div className="flex min-h-dvh bg-background text-foreground">
+      {/* ---------- LEFT BRAND PANEL ---------- */}
+      <aside className="relative hidden w-[44%] overflow-hidden border-r border-border bg-secondary/35 text-foreground lg:flex">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-60"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(ellipse 75% 55% at 50% 0%, color-mix(in oklab, var(--brand-strong, currentColor) 12%, transparent), transparent)',
+              'radial-gradient(75% 55% at 50% 0%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 70%), radial-gradient(55% 50% at 85% 90%, color-mix(in oklab, var(--chart-2) 9%, transparent), transparent 70%)',
           }}
+          aria-hidden="true"
         />
-        <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.12]" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-55"
+          style={{
+            backgroundImage:
+              'radial-gradient(color-mix(in oklab, var(--foreground) 12%, transparent) 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+          aria-hidden="true"
+        />
 
         <BrandMark
           size={420}
-          className="pointer-events-none absolute -bottom-24 -right-20 text-foreground opacity-[0.04]"
+          className="pointer-events-none absolute -bottom-24 -right-20 text-primary opacity-[0.04]"
+          aria-hidden="true"
         />
 
         <div className="sticky top-0 relative z-10 flex h-dvh w-full flex-col justify-between px-10 py-9 xl:px-14 xl:py-11">
@@ -271,18 +278,18 @@ export default function RegisterPage() {
           <div className="flex items-center justify-between">
             <Logo nameClassName="inline" />
 
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background/80 px-3 py-1 text-[11px] font-medium tracking-wide text-muted-foreground shadow-2xs backdrop-blur-xs">
-              <BrandMark size={13} className="shrink-0 text-brand-strong" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-medium tracking-wide text-primary shadow-xs">
+              <BrandMark size={13} className="shrink-0 text-primary" />
               Knowledge-base AI workspace
             </span>
           </div>
 
-          {/* Center headline + slick preview card */}
+          {/* Center headline + preview card */}
           <div className="my-auto max-w-md space-y-6 py-4">
             <div className="space-y-3">
               <h2 className="text-[2rem] font-semibold leading-[1.12] tracking-tight text-foreground xl:text-[2.45rem]">
                 Answer customers instantly,{' '}
-                <span className="text-muted-foreground">
+                <span className="text-primary">
                   from your own docs
                 </span>
               </h2>
@@ -293,48 +300,56 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Sleek answer preview card */}
+            {/* Answer preview card */}
             <div
-              className="overflow-hidden rounded-2xl border border-border/80 bg-background/95 shadow-sm ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
+              className="relative overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-soft"
               aria-hidden="true"
             >
-              <div className="flex items-center justify-between border-b border-border/70 bg-muted/35 px-4 py-2.5">
+              <div
+                className="pointer-events-none absolute inset-x-8 top-0 h-[2px] rounded-full opacity-80"
+                style={{
+                  background:
+                    'linear-gradient(90deg, transparent, var(--chart-1), var(--chart-2), transparent)',
+                }}
+              />
+
+              <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="flex size-5 items-center justify-center rounded-md border border-border/80 bg-background">
+                  <span className="flex size-5 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary">
                     <BrandMark size={12} />
                   </span>
-                  <span className="text-[11px] font-medium text-foreground/85">
+                  <span className="text-[11px] font-medium text-foreground">
                     ClientSync Assistant
                   </span>
                 </div>
-                <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border/70">
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                   Instant match
                 </span>
               </div>
 
               <div className="space-y-3.5 p-4 text-[13px]">
                 <div className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-foreground px-3.5 py-2 text-background shadow-2xs">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-primary-foreground shadow-xs">
                     How do I change my billing email?
                   </div>
                 </div>
 
                 <div className="flex items-start gap-2.5">
-                  <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-muted/60">
+                  <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
                     <BrandMark size={13} />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <div className="rounded-2xl rounded-bl-sm border border-border/80 bg-muted/35 px-3.5 py-2.5 leading-relaxed text-foreground">
+                    <div className="rounded-2xl rounded-bl-sm border border-border bg-secondary/50 px-3.5 py-2.5 leading-relaxed text-foreground">
                       Go to{' '}
-                      <span className="font-medium text-foreground">
+                      <span className="font-semibold text-foreground">
                         Settings → Billing
                       </span>{' '}
                       and update the contact email. Changes take effect on your
                       next invoice.
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                      <FileText className="size-3 text-brand-strong" />
+                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-xs">
+                      <FileText className="size-3 text-primary" />
                       <span>Billing guide.pdf</span>
                     </div>
                   </div>
@@ -344,23 +359,23 @@ export default function RegisterPage() {
           </div>
 
           {/* Bottom feature strip */}
-          <div className="grid gap-2.5 border-t border-border/70 pt-5">
-            <div className="flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border/60 hover:bg-background/70 hover:text-foreground">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-background text-foreground/85 shadow-2xs">
+          <div className="grid gap-2.5 border-t border-border pt-5">
+            <div className="flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-card/80 hover:text-foreground">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-xs">
                 <MessageSquare className="size-3.5" />
               </span>
               <span>Embeddable chat widget with human handoff</span>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border/60 hover:bg-background/70 hover:text-foreground">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-background text-foreground/85 shadow-2xs">
+            <div className="flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-card/80 hover:text-foreground">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-xs">
                 <BookOpen className="size-3.5" />
               </span>
               <span>Upload PDFs, DOCX, TXT, and CSV files</span>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border/60 hover:bg-background/70 hover:text-foreground">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-background text-foreground/85 shadow-2xs">
+            <div className="flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-card/80 hover:text-foreground">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-xs">
                 <BarChart3 className="size-3.5" />
               </span>
               <span>Track resolution rate and customer satisfaction</span>
@@ -369,7 +384,7 @@ export default function RegisterPage() {
         </div>
       </aside>
 
-      {/* ---------- RIGHT FORM PANEL: MINIMAL ---------- */}
+      {/* ---------- RIGHT FORM PANEL ---------- */}
       <main className="auth-form-bg relative flex min-h-dvh flex-1 items-center justify-center px-4 py-5 sm:px-8 lg:px-10 xl:px-14">
         <div className="relative z-10 w-full max-w-[520px]">
           {/* Mobile logo */}
@@ -383,13 +398,13 @@ export default function RegisterPage() {
               <div className="mb-4 flex items-center justify-between">
                 <Logo />
 
-                <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                  <Sparkles className="size-3 text-brand-strong" />
+                <span className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+                  <Sparkles className="size-3 text-primary" />
                   Get started free
                 </span>
               </div>
 
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
                 Create your account
               </h1>
 
@@ -404,7 +419,7 @@ export default function RegisterPage() {
                 {error && (
                   <div
                     role="alert"
-                    className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive"
+                    className="flex items-center gap-2 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive"
                   >
                     <X className="size-4 shrink-0" />
                     {(error as { message?: string })?.message}
@@ -412,7 +427,7 @@ export default function RegisterPage() {
                 )}
 
                 {/* PERSONAL DETAILS */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Field
                     id="name"
                     label="Full name"
@@ -485,10 +500,10 @@ export default function RegisterPage() {
                   error={formErrors.subdomain}
                 >
                   <div
-                    className={`flex h-11 overflow-hidden rounded-xl border bg-background transition-all focus-within:border-brand-strong focus-within:ring-[3px] focus-within:ring-brand-strong/10 ${
+                    className={`flex h-11 overflow-hidden rounded-xl border bg-background transition-all focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/25 ${
                       formErrors.subdomain
                         ? 'border-destructive'
-                        : 'border-border'
+                        : 'border-input'
                     }`}
                   >
                     <div className="flex min-w-0 flex-1 items-center">
@@ -496,7 +511,7 @@ export default function RegisterPage() {
 
                       <input
                         id="subdomain"
-                        className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground/60"
+                        className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/80"
                         placeholder="acme"
                         autoComplete="off"
                         value={formData.subdomain}
@@ -512,7 +527,7 @@ export default function RegisterPage() {
                       />
                     </div>
 
-                    <span className="flex shrink-0 items-center border-l border-border bg-muted/40 px-2.5 text-[11px] text-muted-foreground sm:text-xs">
+                    <span className="flex shrink-0 items-center border-l border-border bg-secondary/50 px-2.5 text-[11px] font-medium text-muted-foreground sm:text-xs">
                       .clientsync.com
                     </span>
                   </div>
@@ -533,8 +548,8 @@ export default function RegisterPage() {
 
                       {subdomainStatus === 'available' && (
                         <>
-                          <Check className="size-3.5 text-success" />
-                          <span className="text-xs font-medium text-success">
+                          <Check className="size-3.5 text-primary" />
+                          <span className="text-xs font-medium text-primary">
                             Workspace address available
                           </span>
                         </>
@@ -553,7 +568,7 @@ export default function RegisterPage() {
                 </Field>
 
                 {/* PASSWORDS */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Field
                     id="password"
                     label="Password"
@@ -593,20 +608,16 @@ export default function RegisterPage() {
 
                     {formData.password && (
                       <div
-                        className="mt-1.5 flex items-center gap-1"
+                        className="mt-1.5 flex items-center gap-2"
                         aria-live="polite"
                       >
-                        {[1, 2, 3, 4].map((item) => (
-                          <div
-                            key={item}
-                            className={`h-1 flex-1 rounded-full ${
-                              item <= strength.score
-                                ? 'bg-brand-strong'
-                                : 'bg-muted'
-                            }`}
-                          />
-                        ))}
-                        <span className="ml-1 text-[10px] text-muted-foreground">
+                        <div className="strength" data-score={strength.score}>
+                          <span />
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                        <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
                           {strength.label}
                         </span>
                       </div>
@@ -655,7 +666,7 @@ export default function RegisterPage() {
                     </div>
 
                     {passwordsMatch && !formErrors.confirmPassword && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-success">
+                      <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-primary">
                         <Check className="size-3" />
                         Passwords match
                       </p>
@@ -666,7 +677,7 @@ export default function RegisterPage() {
                 {/* SUBMIT */}
                 <button
                   type="submit"
-                  className="btn btn-brand btn-lg group flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                  className="group flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isPending || !isFormValid}
                 >
                   {isPending ? (
@@ -687,7 +698,7 @@ export default function RegisterPage() {
                   Already have an account?{' '}
                   <Link
                     href="/auth/login"
-                    className="font-semibold text-brand-strong hover:underline"
+                    className="font-semibold text-primary hover:underline"
                   >
                     Sign in
                   </Link>

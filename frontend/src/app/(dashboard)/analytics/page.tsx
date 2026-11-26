@@ -1,136 +1,194 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { AnalyticsChart } from '@/components/charts/analytics-chart';
-import { MetricsCard } from '@/components/charts/metrics-card';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, MessageSquare, Users, TrendingUp, Clock, Bot } from 'lucide-react';
+import {
+  MessageSquare,
+  Users,
+  TrendingUp,
+  Clock,
+  Sparkles,
+  CheckCircle2,
+  SmilePlus,
+  Activity,
+  type LucideIcon,
+} from 'lucide-react';
+import {
+  PageContainer,
+  PageHeader,
+  StatsStrip,
+  type StatItem,
+} from '@/components/page-kits';
+import { IconTile, TableShell } from '@/components/tables/table-kits';
 
+function ChartPanel({
+  title,
+  description,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  children: ReactNode;
+}) {
+  return (
+    <TableShell>
+      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-5 py-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">
+            {title}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        </div>
+        <IconTile>
+          <Icon className="size-3.5" />
+        </IconTile>
+      </div>
+      <div className="p-5">{children}</div>
+    </TableShell>
+  );
+}
 
 export default function AnalyticsPage() {
+  const statItems: StatItem[] = [
+    {
+      label: 'Total Conversations',
+      value: '12,543',
+      hint: '+12.5%',
+      icon: MessageSquare,
+      iconClass: 'text-primary',
+    },
+    {
+      label: 'Active Users',
+      value: '3,247',
+      hint: '+5.2%',
+      icon: Users,
+      iconClass: 'text-chart-2',
+    },
+    {
+      label: 'Avg Response Time',
+      value: '1.2s',
+      hint: '-8.1%',
+      icon: Clock,
+      iconClass: 'text-chart-3',
+    },
+    {
+      label: 'Satisfaction Rate',
+      value: '94.8%',
+      hint: '+2.3%',
+      icon: TrendingUp,
+      iconClass: 'text-chart-4',
+    },
+  ];
+
   return (
-    <div className="page stack gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">Analytics</h1>
-          <p className="text-muted-foreground">
-            Monitor your chatbot performance and engagement metrics
-          </p>
+    <PageContainer>
+      <PageHeader
+        title="Analytics"
+        description="Monitor AI chatbot resolutions, response speed, and customer satisfaction."
+        actions={
+          <span className="hidden items-center gap-1.5 rounded-full border border-border/70 bg-background px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">
+            <Sparkles className="size-3 text-primary" />
+            AI &amp; Handoff Insights
+          </span>
+        }
+      />
+
+      <StatsStrip items={statItems} />
+
+      {/* Analytics Tabs & Chart Panels */}
+      <Tabs defaultValue="overview" className="flex flex-col gap-3.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <TabsList className="h-9 rounded-xl border border-border bg-secondary p-1">
+            <TabsTrigger
+              value="overview"
+              className="rounded-lg px-3 text-xs font-medium data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="conversations"
+              className="rounded-lg px-3 text-xs font-medium data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+            >
+              Conversations
+            </TabsTrigger>
+            <TabsTrigger
+              value="performance"
+              className="rounded-lg px-3 text-xs font-medium data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+            >
+              Performance
+            </TabsTrigger>
+            <TabsTrigger
+              value="satisfaction"
+              className="rounded-lg px-3 text-xs font-medium data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+            >
+              Satisfaction
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </div>
 
-      {/* Metrics Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricsCard
-          title="Total Conversations"
-          value="12,543"
-          change="+12.5%"
-          trend="up"
-          icon={MessageSquare}
-        />
-        <MetricsCard
-          title="Active Users"
-          value="3,247"
-          change="+5.2%"
-          trend="up"
-          icon={Users}
-        />
-        <MetricsCard
-          title="Avg Response Time"
-          value="1.2s"
-          change="-8.1%"
-          trend="down"
-          icon={Clock}
-        />
-        <MetricsCard
-          title="Satisfaction Rate"
-          value="94.8%"
-          change="+2.3%"
-          trend="up"
-          icon={TrendingUp}
-        />
-      </div>
-
-      <Tabs defaultValue="overview" className="stack">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="conversations">Conversations</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="satisfaction">Satisfaction</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="stack">
+        <TabsContent value="overview" className="mt-0 flex flex-col gap-3.5">
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Conversation Volume</CardTitle>
-                <CardDescription>Daily conversation trends</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AnalyticsChart type="conversations" />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>User Engagement</CardTitle>
-                <CardDescription>Active users over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AnalyticsChart type="users" />
-              </CardContent>
-            </Card>
+            <ChartPanel
+              title="Conversation Volume"
+              description="Daily AI & escalated chat trends"
+              icon={MessageSquare}
+            >
+              <AnalyticsChart type="conversations" />
+            </ChartPanel>
+
+            <ChartPanel
+              title="User Engagement"
+              description="Active visitors interacting with bots"
+              icon={Users}
+            >
+              <AnalyticsChart type="users" />
+            </ChartPanel>
           </div>
         </TabsContent>
 
-        <TabsContent value="conversations" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Conversation Analytics</CardTitle>
-              <CardDescription>Detailed conversation metrics and patterns</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AnalyticsChart type="detailed-conversations" />
-            </CardContent>
-          </Card>
+        <TabsContent value="conversations" className="mt-0 flex flex-col gap-3.5">
+          <ChartPanel
+            title="Conversation Analytics"
+            description="Detailed AI thread volume, topics, and handoff patterns"
+            icon={Activity}
+          >
+            <AnalyticsChart type="detailed-conversations" />
+          </ChartPanel>
         </TabsContent>
 
-        <TabsContent value="performance" className="stack">
+        <TabsContent value="performance" className="mt-0 flex flex-col gap-3.5">
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Response Times</CardTitle>
-                <CardDescription>Average response time trends</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AnalyticsChart type="response-times" />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Resolution Rate</CardTitle>
-                <CardDescription>Successfully resolved queries</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AnalyticsChart type="resolution" />
-              </CardContent>
-            </Card>
+            <ChartPanel
+              title="Response Times"
+              description="AI answer latency and retrieval speed"
+              icon={Clock}
+            >
+              <AnalyticsChart type="response-times" />
+            </ChartPanel>
+
+            <ChartPanel
+              title="Resolution Rate"
+              description="Queries resolved autonomously without handoff"
+              icon={CheckCircle2}
+            >
+              <AnalyticsChart type="resolution" />
+            </ChartPanel>
           </div>
         </TabsContent>
 
-        <TabsContent value="satisfaction" className="stack">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Satisfaction</CardTitle>
-              <CardDescription>User satisfaction scores and feedback</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AnalyticsChart type="satisfaction" />
-            </CardContent>
-          </Card>
+        <TabsContent value="satisfaction" className="mt-0 flex flex-col gap-3.5">
+          <ChartPanel
+            title="Customer Satisfaction"
+            description="Post-chat ratings and helpfulness feedback"
+            icon={SmilePlus}
+          >
+            <AnalyticsChart type="satisfaction" />
+          </ChartPanel>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

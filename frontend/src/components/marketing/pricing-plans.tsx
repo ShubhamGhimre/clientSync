@@ -10,11 +10,11 @@ export function PricingPlans() {
   const [yearly, setYearly] = useState(true);
 
   return (
-    <div className="stack gap-10">
+    <div className="flex flex-col gap-8">
       {/* Billing Toggle */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-2.5">
         <div
-          className="inline-flex items-center rounded-full border border-border/80 bg-muted/40 p-1 shadow-2xs"
+          className="inline-flex items-center rounded-full border border-border bg-muted/50 p-1 shadow-xs"
           role="tablist"
           aria-label="Billing period"
         >
@@ -23,9 +23,9 @@ export function PricingPlans() {
             role="tab"
             aria-selected={!yearly}
             onClick={() => setYearly(false)}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
               !yearly
-                ? "bg-background text-foreground shadow-2xs ring-1 ring-border/70"
+                ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -37,14 +37,14 @@ export function PricingPlans() {
             role="tab"
             aria-selected={yearly}
             onClick={() => setYearly(true)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
               yearly
-                ? "bg-background text-foreground shadow-2xs ring-1 ring-border/70"
+                ? "bg-card text-foreground shadow-xs ring-1 ring-border"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Yearly</span>
-            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand-strong">
+            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-primary">
               -17%
             </span>
           </button>
@@ -58,64 +58,62 @@ export function PricingPlans() {
       </div>
 
       {/* Plan Cards */}
-      <div className="grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
         {plans.map((p) => {
           const price = yearly ? p.yearly : p.monthly;
 
           return (
             <div
               key={p.id}
-              className={`group relative isolate flex flex-col overflow-hidden rounded-2xl border p-6 transition-all duration-200 hover:-translate-y-0.5 ${
+              className={`group relative isolate flex flex-col overflow-hidden rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 ${
                 p.featured
-                  ? "z-10 border-brand-strong/50 bg-gradient-to-b from-muted/45 via-background to-background shadow-md ring-1 ring-brand-strong/20"
-                  : "border-border/80 bg-background/95 shadow-2xs hover:border-foreground/15 hover:shadow-sm"
+                  ? "z-10 border-primary/50 bg-card shadow-lift ring-1 ring-primary/20"
+                  : "border-border bg-card shadow-xs hover:border-ring/50 hover:shadow-soft"
               }`}
+              style={
+                p.featured
+                  ? {
+                      background:
+                        "radial-gradient(80% 55% at 50% 0%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 70%), var(--card)",
+                    }
+                  : undefined
+              }
             >
               {p.featured && (
-                <>
-                  <div
-                    className="pointer-events-none absolute inset-x-0 top-0 h-32 opacity-75"
-                    style={{
-                      background:
-                        "radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklab, var(--brand-strong, currentColor) 14%, transparent), transparent)",
-                    }}
-                    aria-hidden="true"
-                  />
-                  <BrandMark
-                    size={160}
-                    className="pointer-events-none absolute -bottom-10 -right-10 text-foreground opacity-[0.035]"
-                    aria-hidden="true"
-                  />
-                </>
+                <BrandMark
+                  size={150}
+                  className="pointer-events-none absolute -bottom-10 -right-10 text-foreground opacity-[0.035]"
+                  aria-hidden="true"
+                />
               )}
 
               {/* Plan Header */}
               <div className="relative z-10 flex items-center justify-between gap-2">
-                <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                <h3 className="text-base font-semibold tracking-tight text-foreground">
                   {p.name}
                 </h3>
 
                 {p.featured && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-strong/25 bg-background/90 px-2.5 py-0.5 text-[11px] font-medium text-brand-strong shadow-2xs">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-background px-2.5 py-0.5 text-[11px] font-medium text-primary shadow-xs">
                     <BrandMark size={11} className="shrink-0" />
                     Most popular
                   </span>
                 )}
               </div>
 
-              <p className="relative z-10 mt-1.5 min-h-10 text-sm leading-relaxed text-muted-foreground">
+              <p className="relative z-10 mt-1.5 min-h-9 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                 {p.blurb}
               </p>
 
               {/* Price */}
-              <div className="relative z-10 my-6 flex items-baseline gap-1.5">
+              <div className="relative z-10 my-5 flex items-baseline gap-1.5">
                 {price === null ? (
-                  <span className="text-4xl font-semibold tracking-tight text-foreground">
+                  <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     Custom
                   </span>
                 ) : (
                   <>
-                    <span className="text-4xl font-semibold tabular-nums tracking-tight text-foreground">
+                    <span className="tabular text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                       ${price}
                     </span>
                     <span className="text-xs font-medium text-muted-foreground">
@@ -128,25 +126,27 @@ export function PricingPlans() {
               {/* CTA */}
               <Link
                 href={p.href}
-                className={`btn group/btn relative z-10 inline-flex w-full items-center justify-center gap-1.5 rounded-xl text-sm font-semibold ${
-                  p.featured ? "btn-brand" : "btn-secondary"
+                className={`group/btn relative z-10 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl px-4 text-xs font-medium shadow-xs transition-all sm:text-sm ${
+                  p.featured
+                    ? "bg-primary text-primary-foreground hover:opacity-90"
+                    : "border border-border bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
                 <span>{p.cta}</span>
-                <ArrowRight className="size-4 transition-transform group-hover/btn:translate-x-0.5" />
+                <ArrowRight className="size-3.5 transition-transform group-hover/btn:translate-x-0.5" />
               </Link>
 
-              <div className="relative z-10 my-6 h-px w-full bg-border/70" />
+              <div className="relative z-10 my-5 h-px w-full bg-border" />
 
               {/* Features List */}
-              <ul className="relative z-10 stack gap-3 text-sm">
+              <ul className="relative z-10 flex flex-col gap-2.5 text-xs sm:text-sm">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5">
                     <span
-                      className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border shadow-2xs ${
+                      className={`mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full border shadow-xs ${
                         p.featured
-                          ? "border-brand-strong/30 bg-brand/10 text-brand-strong"
-                          : "border-border/80 bg-muted/40 text-foreground/80"
+                          ? "border-primary/35 bg-accent text-primary"
+                          : "border-border bg-muted/60 text-foreground"
                       }`}
                     >
                       <Check className="size-3" />
